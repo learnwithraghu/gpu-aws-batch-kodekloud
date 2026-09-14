@@ -4,6 +4,56 @@ Utility scripts for pre-flight validation and course teardown.
 
 ---
 
+## Setup
+
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) if it is
+not already available:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Open a new terminal, or reload your shell so `uv` is available. The commands
+below use `uv run --with ...` to install the required Python packages in an
+isolated environment on demand.
+
+Install AWS CLI v2 if it is not already installed:
+
+```bash
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+aws --version
+```
+
+Configure the AWS CLI before running either helper. The command prompts for
+your access key ID and secret access key; enter them only at the prompt. Do
+not put credentials in this repository or commit them to `.env` files.
+
+```bash
+aws configure
+# AWS Access Key ID [None]: <enter your access key ID>
+# AWS Secret Access Key [None]: <enter your secret access key>
+# Default region name [None]: us-east-1
+# Default output format [None]: json
+```
+
+Confirm that the configured credentials work:
+
+```bash
+aws sts get-caller-identity
+```
+
+The AWS CLI stores this profile outside the repository in `~/.aws/credentials`
+and `~/.aws/config`. To use a named profile, run `aws configure --profile NAME`
+then set `AWS_PROFILE=NAME` before running a helper.
+
+```bash
+AWS_PROFILE=NAME uv run --with boto3 --with python-dotenv python helpers/teardown.py --dry-run
+```
+
+---
+
 ## check_spot_availability.py
 
 Pre-flight check before provisioning AWS Batch infrastructure. Verifies that
@@ -22,13 +72,13 @@ only to discover spot instances aren't available in that AZ.
 ### Usage
 
 ```bash
-python helpers/check_spot_availability.py \
+uv run --with boto3 --with python-dotenv python helpers/check_spot_availability.py \
   --vpc-id        vpc-xxxxxxxxxxxxxxxxx \
   --subnet-id     subnet-xxxxxxxxxxxxxxxxx \
   --security-group-id sg-xxxxxxxxxxxxxxxxx
 
 # With optional overrides:
-python helpers/check_spot_availability.py \
+uv run --with boto3 --with python-dotenv python helpers/check_spot_availability.py \
   --vpc-id        vpc-xxxxxxxxxxxxxxxxx \
   --subnet-id     subnet-xxxxxxxxxxxxxxxxx \
   --security-group-id sg-xxxxxxxxxxxxxxxxx \
@@ -47,8 +97,10 @@ python helpers/check_spot_availability.py \
 ### Prerequisites
 
 ```bash
-pip install boto3 python-dotenv
+uv run --with boto3 --with python-dotenv python helpers/check_spot_availability.py --help
 ```
+
+Complete the shared AWS CLI setup above before running this command.
 
 AWS credentials must have:
 - `ec2:DescribeSpotPriceHistory`
@@ -78,23 +130,25 @@ correct order (Batch enforces dependency ordering on deletion).
 
 ```bash
 # See what would be deleted (safe to run anytime):
-python helpers/teardown.py --dry-run
+uv run --with boto3 --with python-dotenv python helpers/teardown.py --dry-run
 
 # Delete Batch resources only:
-python helpers/teardown.py
+uv run --with boto3 --with python-dotenv python helpers/teardown.py
 
 # Delete everything:
-python helpers/teardown.py --delete-ecr --delete-s3
+uv run --with boto3 --with python-dotenv python helpers/teardown.py --delete-ecr --delete-s3
 
 # Different region:
-python helpers/teardown.py --region us-east-1 --dry-run
+uv run --with boto3 --with python-dotenv python helpers/teardown.py --region us-east-1 --dry-run
 ```
 
 ### Prerequisites
 
 ```bash
-pip install boto3 python-dotenv
+uv run --with boto3 --with python-dotenv python helpers/teardown.py --help
 ```
+
+Complete the shared AWS CLI setup above before running this command.
 
 AWS credentials must have:
 - `batch:DescribeJobQueues`, `batch:UpdateJobQueue`, `batch:DeleteJobQueue`
