@@ -10,7 +10,7 @@ FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
 RUN pip install --no-cache-dir \
     openai-clip==1.0        \
     opencv-python-headless  \
-    boto3                   \
+    boto3>=1.43.93          \
     python-dotenv           \
     numpy
 
@@ -18,3 +18,4 @@ RUN pip install --no-cache-dir \
 # Batch overrides the "command" field to run the right lesson script
 WORKDIR /app
 COPY lessons/ /app/lessons/
+COPY helpers/s3_vectors.py /app/helpers/s3_vectors.py

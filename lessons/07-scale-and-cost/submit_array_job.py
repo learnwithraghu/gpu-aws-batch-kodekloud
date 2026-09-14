@@ -23,6 +23,8 @@ from dotenv import load_dotenv
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../.env"))
 
 S3_BUCKET      = os.environ["S3_BUCKET"]
+S3_VECTOR_BUCKET = os.environ["S3_VECTOR_BUCKET"]
+S3_VECTOR_INDEX = os.environ["S3_VECTOR_INDEX"]
 JOB_QUEUE      = os.environ["BATCH_JOB_QUEUE"]
 JOB_DEFINITION = os.environ["BATCH_JOB_DEFINITION"]
 REGION         = os.environ.get("AWS_DEFAULT_REGION", "ap-northeast-1")
@@ -73,6 +75,8 @@ def submit_array(n: int) -> str:
             ],
             "environment": [
                 {"name": "S3_BUCKET",        "value": S3_BUCKET},
+                {"name": "S3_VECTOR_BUCKET", "value": S3_VECTOR_BUCKET},
+                {"name": "S3_VECTOR_INDEX",  "value": S3_VECTOR_INDEX},
                 {"name": "ARRAY_WORKER_KEY", "value": ARRAY_WORKER_KEY},
             ],
         },
@@ -110,4 +114,4 @@ if __name__ == "__main__":
 
     final_state = wait(submit_array(len(args.video_keys)))
     print(f"\n{'✅' if final_state == 'SUCCEEDED' else '❌'}  Array job {final_state}")
-    print("Check S3 under embeddings/ for results.")
+    print(f"Embeddings are in {S3_VECTOR_BUCKET}/{S3_VECTOR_INDEX}.")

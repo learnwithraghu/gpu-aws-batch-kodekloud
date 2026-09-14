@@ -19,6 +19,8 @@ from dotenv import load_dotenv
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../.env"))
 
 S3_BUCKET      = os.environ["S3_BUCKET"]
+S3_VECTOR_BUCKET = os.environ["S3_VECTOR_BUCKET"]
+S3_VECTOR_INDEX = os.environ["S3_VECTOR_INDEX"]
 JOB_QUEUE      = os.environ["BATCH_JOB_QUEUE"]
 JOB_DEFINITION = os.environ["BATCH_JOB_DEFINITION"]
 REGION         = os.environ.get("AWS_DEFAULT_REGION", "ap-northeast-1")
@@ -66,6 +68,8 @@ def submit_pipeline(video_key: str, video_stem: str) -> tuple[str, str]:
             "command": ["python", "/app/lessons/04-frames-to-embeddings/embed_frames.py"],
             "environment": [
                 {"name": "S3_BUCKET",  "value": S3_BUCKET},
+                {"name": "S3_VECTOR_BUCKET", "value": S3_VECTOR_BUCKET},
+                {"name": "S3_VECTOR_INDEX", "value": S3_VECTOR_INDEX},
                 {"name": "VIDEO_STEM", "value": video_stem},
                 {"name": "BATCH_SIZE", "value": "16"},
             ],
@@ -110,4 +114,4 @@ if __name__ == "__main__":
     print(f"Job 2 (embed)  : {'✅' if ok2 else '❌'}  {state2}")
 
     if ok1 and ok2:
-        print(f"\nEmbeddings ready at: s3://{S3_BUCKET}/embeddings/{video_stem}/")
+        print(f"\nEmbeddings ready in {S3_VECTOR_BUCKET}/{S3_VECTOR_INDEX}")

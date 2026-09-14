@@ -14,6 +14,7 @@ import os
 import cv2
 import boto3
 import tempfile
+import json
 
 # ── Config from environment ──────────────────────────────────────────────────
 S3_BUCKET = os.environ["S3_BUCKET"]
@@ -42,6 +43,7 @@ def extract_and_upload(local_path: str) -> int:
 
     frame_idx   = 0
     saved_count = 0
+    manifest = []
 
     while True:
         ok, frame = cap.read()
@@ -53,11 +55,22 @@ def extract_and_upload(local_path: str) -> int:
             _, buf = cv2.imencode(".jpg", frame)
             s3_key = f"{output_prefix}/frame_{saved_count:05d}.jpg"
             s3.put_object(Bucket=S3_BUCKET, Key=s3_key, Body=buf.tobytes())
+            manifest.append({
+                "frame_key": s3_key,
+                "frame_index": saved_count,
+                "source_frame_index": frame_idx,
+                "timestamp_ms": round(frame_idx / fps * 1000) if fps else 0,
+            })
             saved_count += 1
 
         frame_idx += 1
 
     cap.release()
+    s3.put_object(
+        Bucket=S3_BUCKET,
+        Key=f"{output_prefix}/manifest.json",
+        Body=json.dumps(manifest).encode(),
+    )
     print(f"Uploaded {saved_count} frames to s3://{S3_BUCKET}/{output_prefix}/")
     return saved_count
 

@@ -18,6 +18,8 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../.env"))
 JOB_QUEUE      = os.environ["BATCH_JOB_QUEUE"]
 JOB_DEFINITION = os.environ["BATCH_JOB_DEFINITION"]
 S3_BUCKET      = os.environ["S3_BUCKET"]
+S3_VECTOR_BUCKET = os.environ["S3_VECTOR_BUCKET"]
+S3_VECTOR_INDEX = os.environ["S3_VECTOR_INDEX"]
 REGION         = os.environ.get("AWS_DEFAULT_REGION", "ap-northeast-1")
 
 batch = boto3.client("batch", region_name=REGION)
@@ -32,6 +34,8 @@ def submit(video_stem: str) -> str:
             "command": ["python", "/app/lessons/04-frames-to-embeddings/embed_frames.py"],
             "environment": [
                 {"name": "S3_BUCKET",   "value": S3_BUCKET},
+                {"name": "S3_VECTOR_BUCKET", "value": S3_VECTOR_BUCKET},
+                {"name": "S3_VECTOR_INDEX", "value": S3_VECTOR_INDEX},
                 {"name": "VIDEO_STEM",  "value": video_stem},
                 {"name": "BATCH_SIZE",  "value": "16"},
             ],
