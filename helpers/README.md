@@ -113,6 +113,45 @@ AWS credentials must have:
 
 ---
 
+## Batch Smoke Tests
+
+These tests validate that AWS Batch can schedule and run a real container. They
+wait for completion and clean up automatically. AWS retains completed-job
+history, but no Batch resource or compute capacity is left running after either
+test.
+
+### CPU-only test
+
+```bash
+uv run --with boto3 --with python-dotenv python helpers/test_cpu_batch.py
+```
+
+This requires an EC2 instance profile named `ecsInstanceRole`, as used by the
+course Batch setup. Supply a different profile name with `--instance-profile`.
+The VPC subnet and security group are the fixed course values.
+
+### GPU test
+
+The GPU test creates a temporary on-demand `g4dn.xlarge` compute environment,
+queue, and job definition, then runs `nvidia-smi` in a CUDA container. It can
+incur GPU instance charges while it runs. Run:
+
+```bash
+uv run --with boto3 --with python-dotenv python helpers/test_gpu_batch.py
+```
+
+Its container command runs `nvidia-smi`, so a successful job confirms that
+Batch can provision a GPU instance and the scheduled container can access it.
+
+Both tests require `batch:CreateComputeEnvironment`, `batch:CreateJobQueue`,
+`batch:RegisterJobDefinition`, `batch:SubmitJob`, `batch:Describe*`,
+`batch:UpdateComputeEnvironment`, `batch:UpdateJobQueue`,
+`batch:DeleteComputeEnvironment`, `batch:DeleteJobQueue`,
+`batch:DeregisterJobDefinition`, and `batch:TerminateJob`. The CPU test also
+requires `sts:GetCallerIdentity`.
+
+---
+
 ## teardown.py
 
 Safely removes all AWS resources created by the GPU Teaching course, in the
