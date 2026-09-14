@@ -44,12 +44,20 @@ Confirm that the configured credentials work:
 aws sts get-caller-identity
 ```
 
-The AWS CLI stores this profile outside the repository in `~/.aws/credentials`
-and `~/.aws/config`. To use a named profile, run `aws configure --profile NAME`
-then set `AWS_PROFILE=NAME` before running a helper.
+The AWS CLI stores the default profile outside the repository in
+`~/.aws/credentials` and `~/.aws/config`. Use it by running the helpers without
+an `AWS_PROFILE` setting:
 
 ```bash
-AWS_PROFILE=NAME uv run --with boto3 --with python-dotenv python helpers/teardown.py --dry-run
+uv run --with boto3 --with python-dotenv python helpers/teardown.py --dry-run
+```
+
+To use a named profile, first create it with `aws configure --profile NAME`,
+then replace `NAME` below with the actual profile name. Do not run this command
+literally with `NAME`.
+
+```bash
+AWS_PROFILE=your-profile uv run --with boto3 --with python-dotenv python helpers/teardown.py --dry-run
 ```
 
 ---
@@ -72,18 +80,12 @@ only to discover spot instances aren't available in that AZ.
 ### Usage
 
 ```bash
-uv run --with boto3 --with python-dotenv python helpers/check_spot_availability.py \
-  --vpc-id        vpc-xxxxxxxxxxxxxxxxx \
-  --subnet-id     subnet-xxxxxxxxxxxxxxxxx \
-  --security-group-id sg-xxxxxxxxxxxxxxxxx
+uv run --with boto3 --with python-dotenv python helpers/check_spot_availability.py
 
-# With optional overrides:
-uv run --with boto3 --with python-dotenv python helpers/check_spot_availability.py \
-  --vpc-id        vpc-xxxxxxxxxxxxxxxxx \
-  --subnet-id     subnet-xxxxxxxxxxxxxxxxx \
-  --security-group-id sg-xxxxxxxxxxxxxxxxx \
-  --instance-type g4dn.2xlarge \
-  --region        ap-northeast-1
+# The fixed course network values used by default:
+# VPC: vpc-3f0b1a58
+# Subnet: subnet-b560b3fd
+# Security group: sg-bd00e4f5
 ```
 
 ### Exit codes

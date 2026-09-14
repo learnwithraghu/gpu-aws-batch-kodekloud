@@ -12,10 +12,13 @@ Runs three checks in sequence and prints a final verdict:
   3. Dry-run spot request — confirms the subnet/SG combo is valid
 
 Usage:
-  python helpers/check_spot_availability.py \\
-    --vpc-id        vpc-xxxxxxxxxxxxxxxxx \\
-    --subnet-id     subnet-xxxxxxxxxxxxxxxxx \\
-    --security-group-id sg-xxxxxxxxxxxxxxxxx \\
+    python helpers/check_spot_availability.py
+
+    # Override the course network values if needed:
+    python helpers/check_spot_availability.py \\
+        --vpc-id        vpc-xxxxxxxxxxxxxxxxx \\
+        --subnet-id     subnet-xxxxxxxxxxxxxxxxx \\
+        --security-group-id sg-xxxxxxxxxxxxxxxxx \\
     [--instance-type g4dn.xlarge] \\
     [--region       ap-northeast-1]
 """
@@ -260,9 +263,9 @@ def main():
         description="Check GPU spot instance availability before provisioning Batch infra.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--vpc-id",             required=True,  help="VPC ID (e.g. vpc-xxxx)")
-    parser.add_argument("--subnet-id",           required=True,  help="Subnet ID (e.g. subnet-xxxx)")
-    parser.add_argument("--security-group-id",   required=True,  help="Security group ID (e.g. sg-xxxx)")
+    parser.add_argument("--vpc-id",             default="vpc-3f0b1a58", help="VPC ID (default: course VPC)")
+    parser.add_argument("--subnet-id",           default="subnet-b560b3fd", help="Subnet ID (default: course subnet)")
+    parser.add_argument("--security-group-id",   default="sg-bd00e4f5", help="Security group ID (default: course security group)")
     parser.add_argument("--instance-type",       default="g4dn.xlarge", help="EC2 instance type (default: g4dn.xlarge)")
     parser.add_argument("--region",              default=os.environ.get("AWS_DEFAULT_REGION", "ap-northeast-1"),
                         help="AWS region (default: ap-northeast-1 or AWS_DEFAULT_REGION from .env)")
