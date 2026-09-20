@@ -408,15 +408,21 @@ def main():
     if check_on_demand:
         verdicts += [on_demand_verdict]
 
+    # Placement score is informational — a POOR score with a passing dry-run
+    # means capacity is tight but the launch would succeed. Treat POOR as a
+    # warning only when the dry-run confirms the request is valid.
     if offering_verdict == "FAILED" or (check_spot and spot_dry_verdict == "FAILED") \
             or (check_on_demand and on_demand_verdict == "FAILED"):
         print(f"\n{err('RESULT: ❌ UNAVAILABLE — request would be rejected (check IAM, network, or capacity)')}")
         sys.exit(1)
-    elif any(v in bad_verdicts for v in verdicts):
+    elif any(v in bad_verdicts for v in verdicts if v != "POOR"):
         print(f"\n{warn('RESULT: ⚠️  MARGINAL — capacity may be limited, consider another AZ or instance type')}")
         sys.exit(2)
     else:
-        print(f"\n{ok('RESULT: ✅ GOOD — capacity looks healthy, safe to provision Batch infra')}")
+        if score_verdict == "POOR":
+            print(f"\n{warn('RESULT: ✅ GOOD (with warning) — dry-run passed but spot placement score is low; on-demand is recommended')}")
+        else:
+            print(f"\n{ok('RESULT: ✅ GOOD — capacity looks healthy, safe to provision Batch infra')}")
         sys.exit(0)
 
 
