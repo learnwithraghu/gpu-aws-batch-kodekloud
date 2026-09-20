@@ -90,7 +90,7 @@ def main():
             jobDefinitionName=definition_name,
             type="container",
             containerProperties={
-                "image": "public.ecr.aws/nvidia/cuda:12.6.3-base-ubuntu22.04",
+                "image": "nvidia/cuda:12.6.3-runtime-ubuntu22.04",
                 "vcpus": 1,
                 "memory": 1024,
                 "resourceRequirements": [{"type": "GPU", "value": "1"}],
