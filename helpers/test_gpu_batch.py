@@ -102,29 +102,28 @@ def main():
         )["jobId"]
         print(f"Submitted GPU smoke job: {job_id}")
 
-        # ── Spot provisioning timer: 3 min to move from SUBMITTED/RUNNABLE to RUNNING ──
-        if args.capacity_type == "spot":
-            SPOT_PROVISION_TIMEOUT = 180  # 3 minutes
-            deadline = time.monotonic() + SPOT_PROVISION_TIMEOUT
-            provisioning_ok = False
-            while time.monotonic() < deadline:
-                status = batch.describe_jobs(jobs=[job_id])["jobs"][0]["status"]
-                print(f"  GPU smoke job (spot provisioning): {status}")
-                if status == "RUNNING":
-                    provisioning_ok = True
-                    break
-                if status in {"FAILED", "SUCCEEDED"}:
-                    break
-                time.sleep(10)
+        # ── Provisioning timer: 3 min to move from SUBMITTED/RUNNABLE to RUNNING ──
+        PROVISION_TIMEOUT = 180  # 3 minutes
+        deadline = time.monotonic() + PROVISION_TIMEOUT
+        provisioning_ok = False
+        while time.monotonic() < deadline:
+            status = batch.describe_jobs(jobs=[job_id])["jobs"][0]["status"]
+            print(f"  GPU smoke job (provisioning): {status}")
+            if status == "RUNNING":
+                provisioning_ok = True
+                break
+            if status in {"FAILED", "SUCCEEDED"}:
+                break
+            time.sleep(10)
 
-            if not provisioning_ok:
-                if status in {"FAILED", "SUCCEEDED"}:
-                    raise RuntimeError(f"GPU smoke job finished with {status} before reaching RUNNING")
-                print(f"\n⏱️  Spot provisioning timed out after {SPOT_PROVISION_TIMEOUT}s — cleaning up.")
-                raise TimeoutError(
-                    f"Spot instance not provisioned within {SPOT_PROVISION_TIMEOUT}s "
-                    f"(job stayed in {status}); the job will be terminated and resources cleaned up."
-                )
+        if not provisioning_ok:
+            if status in {"FAILED", "SUCCEEDED"}:
+                raise RuntimeError(f"GPU smoke job finished with {status} before reaching RUNNING")
+            print(f"\n⏱️  Provisioning timed out after {PROVISION_TIMEOUT}s — cleaning up.")
+            raise TimeoutError(
+                f"Instance not provisioned within {PROVISION_TIMEOUT}s "
+                f"(job stayed in {status}); the job will be terminated and resources cleaned up."
+            )
 
         # ── Wait for job completion (full timeout applies) ──
         status = wait_for(
