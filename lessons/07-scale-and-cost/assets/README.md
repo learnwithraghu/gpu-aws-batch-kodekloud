@@ -1,8 +1,9 @@
-# Sample Video
+# Sample Images
 
-Same as `lessons/03-video-to-frames/assets/`. 
-Copy your `sample.mp4` here, or symlink it:
+Same as `lessons/03-images-to-captions/assets/`.
+Copy your images here, or symlink the folder:
 
 ```bash
-ln -s ../../03-video-to-frames/assets/sample.mp4 sample.mp4
+ln -s ../../03-images-to-captions/assets/images images
 ```
+

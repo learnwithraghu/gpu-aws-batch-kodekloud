@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create the S3 Vector bucket and CLIP frame index used by the course."""
+"""Create the S3 Vector bucket and CLIP caption index used by the course."""
 
 import argparse
 import os
@@ -16,7 +16,7 @@ def main():
     parser = argparse.ArgumentParser(description="Create the course S3 Vector bucket and index.")
     parser.add_argument("--region", default=os.environ.get("AWS_DEFAULT_REGION", "ap-northeast-1"))
     parser.add_argument("--vector-bucket", default=os.environ.get("S3_VECTOR_BUCKET"))
-    parser.add_argument("--index", default=os.environ.get("S3_VECTOR_INDEX", "video-frames"))
+    parser.add_argument("--index", default=os.environ.get("S3_VECTOR_INDEX", "image-captions"))
     parser.add_argument("--dry-run", action="store_true", help="Print the resources without creating them")
     args = parser.parse_args()
 

@@ -2,14 +2,15 @@
 #  Shared Docker image for ALL GPU Teaching lessons
 #  Built once, used by every AWS Batch job.
 #
-#  Base: official PyTorch image with CUDA 11.8 (matches g4dn GPU driver)
+#  Base: official PyTorch image with CUDA 11.8 (matches g4dn.xlarge NVIDIA T4 driver)
 # ─────────────────────────────────────────────────────────────────
 FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
 
 # Install Python dependencies for all lessons in one layer
+# transformers provides both BLIP (image captioning) and CLIP (text embeddings)
 RUN pip install --no-cache-dir \
-    openai-clip==1.0        \
-    opencv-python-headless  \
+    transformers>=4.42      \
+    Pillow                  \
     boto3>=1.43.93          \
     python-dotenv           \
     numpy

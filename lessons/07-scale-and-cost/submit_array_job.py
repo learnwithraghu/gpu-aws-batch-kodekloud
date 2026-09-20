@@ -1,17 +1,17 @@
 """
 Lesson 07 — submit_array_job.py
-Runs LOCALLY. Processes multiple videos in parallel using a Batch array job.
+Runs LOCALLY. Processes multiple image batches in parallel using a Batch array job.
 
 Each array element reads its index from AWS_BATCH_JOB_ARRAY_INDEX, looks up
-the corresponding video key in a JSON list stored in S3, and runs the full
-extract → embed pipeline.
+the corresponding image prefix in a JSON list stored in S3, and runs the full
+caption → embed pipeline.
 
 Usage:
-    # First upload all videos to S3:
-    aws s3 cp videos/ s3://<bucket>/videos/ --recursive
+    # First upload all image batches to S3:
+    aws s3 cp images/ s3://<bucket>/images/ --recursive
 
-    # Then submit an array job (one element per video):
-    python submit_array_job.py --video-keys videos/clip1.mp4 videos/clip2.mp4 videos/clip3.mp4
+    # Then submit an array job (one element per image batch/prefix):
+    python submit_array_job.py --image-prefixes images/batch1 images/batch2 images/batch3
 """
 import argparse
 import json
@@ -33,14 +33,14 @@ s3    = boto3.client("s3",    region_name=REGION)
 batch = boto3.client("batch", region_name=REGION)
 
 # The array worker script (embedded inline to keep this lesson self-contained)
-ARRAY_WORKER_KEY = "config/array_video_keys.json"
+ARRAY_WORKER_KEY = "config/array_image_prefixes.json"
 
 
-def upload_video_list(video_keys: list[str]):
-    """Save the list of video S3 keys to S3 so each array element can read it."""
-    body = json.dumps(video_keys).encode()
+def upload_image_prefix_list(image_prefixes: list[str]):
+    """Save the list of image S3 prefixes to S3 so each array element can read it."""
+    body = json.dumps(image_prefixes).encode()
     s3.put_object(Bucket=S3_BUCKET, Key=ARRAY_WORKER_KEY, Body=body)
-    print(f"Saved {len(video_keys)} video keys to s3://{S3_BUCKET}/{ARRAY_WORKER_KEY}")
+    print(f"Saved {len(image_prefixes)} image prefixes to s3://{S3_BUCKET}/{ARRAY_WORKER_KEY}")
 
 
 def submit_array(n: int) -> str:
@@ -52,25 +52,24 @@ def submit_array(n: int) -> str:
         arrayProperties= {"size": n},      # ← this is what makes it an array job
         containerOverrides={
             # Each element runs this inline command:
-            # 1. Read the video key list from S3
-            # 2. Pick the key at index = AWS_BATCH_JOB_ARRAY_INDEX
-            # 3. Run extract_frames then embed_frames
+            # 1. Read the image prefix list from S3
+            # 2. Pick the prefix at index = AWS_BATCH_JOB_ARRAY_INDEX
+            # 3. Run generate_captions then embed_captions
             "command": [
                 "bash", "-c",
                 (
-                    "pip install awscli -q && "
-                    "VIDEO_KEY=$(python3 -c \""
+                    "IMAGE_PREFIX=$(python3 -c \""
                     "import boto3, json, os; "
                     "s3=boto3.client('s3'); "
-                    "keys=json.loads(s3.get_object(Bucket=os.environ['S3_BUCKET'], "
+                    "prefixes=json.loads(s3.get_object(Bucket=os.environ['S3_BUCKET'], "
                     "Key=os.environ['ARRAY_WORKER_KEY'])['Body'].read()); "
                     "idx=int(os.environ['AWS_BATCH_JOB_ARRAY_INDEX']); "
-                    "print(keys[idx])\") && "
-                    "VIDEO_STEM=$(python3 -c \"import os, sys; print(os.path.splitext(os.path.basename('$VIDEO_KEY'))[0])\") && "
-                    "S3_BUCKET=$S3_BUCKET VIDEO_KEY=$VIDEO_KEY EVERY_N=30 "
-                    "python /app/lessons/03-video-to-frames/extract_frames.py && "
-                    "S3_BUCKET=$S3_BUCKET VIDEO_STEM=$VIDEO_STEM BATCH_SIZE=16 "
-                    "python /app/lessons/04-frames-to-embeddings/embed_frames.py"
+                    "print(prefixes[idx])\") && "
+                    "IMAGE_BATCH_STEM=$(python3 -c \"import os; print(os.path.basename('$IMAGE_PREFIX'.rstrip('/')))\") && "
+                    "S3_BUCKET=$S3_BUCKET IMAGE_PREFIX=$IMAGE_PREFIX BATCH_SIZE=8 "
+                    "python /app/lessons/03-images-to-captions/generate_captions.py && "
+                    "S3_BUCKET=$S3_BUCKET IMAGE_BATCH_STEM=$IMAGE_BATCH_STEM BATCH_SIZE=16 "
+                    "python /app/lessons/04-captions-to-embeddings/embed_captions.py"
                 )
             ],
             "environment": [
@@ -104,14 +103,14 @@ def wait(job_id: str) -> str:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--video-keys", nargs="+",
-        default=["videos/sample.mp4"],
-        help="S3 keys of videos to process (already uploaded to S3)",
+        "--image-prefixes", nargs="+",
+        default=["images/sample"],
+        help="S3 prefixes of image batches to process (already uploaded to S3)",
     )
     args = parser.parse_args()
 
-    upload_video_list(args.video_keys)
+    upload_image_prefix_list(args.image_prefixes)
 
-    final_state = wait(submit_array(len(args.video_keys)))
+    final_state = wait(submit_array(len(args.image_prefixes)))
     print(f"\n{'✅' if final_state == 'SUCCEEDED' else '❌'}  Array job {final_state}")
     print(f"Embeddings are in {S3_VECTOR_BUCKET}/{S3_VECTOR_INDEX}.")

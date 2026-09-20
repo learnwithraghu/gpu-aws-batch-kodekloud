@@ -13,25 +13,25 @@ Each copy gets a unique `AWS_BATCH_JOB_ARRAY_INDEX` environment variable (0, 1, 
 ```
 submit_job(arrayProperties={"size": 5})
   → runs 5 containers simultaneously
-  → each reads its index and picks which video to process
+  → each reads its index and picks which image batch to process
 ```
 
-This is how you scale from 1 video to 100 videos without changing your code — just change the array size and provide a list of video keys.
+This is how you scale from 1 batch of images to 100 batches without changing your code — just change the array size and provide a list of image prefixes.
 
 ---
 
 ## Spot Pricing — What You're Actually Paying
 
-`g4dn.xlarge` Spot price in Tokyo: **$0.16–0.24 / hr** (varies by availability, typically 60–70% cheaper than On-Demand).
+`g4dn.xlarge` (NVIDIA T4) Spot price in Tokyo: **$0.16–0.24 / hr** (varies by availability, typically 60–70% cheaper than On-Demand).
 
 | Task | GPU time | Cost |
 |------|----------|------|
-| Extract frames (1 video, 60s) | ~1 min | ~$0.003 |
-| Embed frames (1 video, 200 frames) | ~2 min | ~$0.006 |
-| Full pipeline for 1 video | ~4 min | ~$0.011 |
-| Full pipeline for 5 videos (array job) | ~4 min (parallel!) | ~$0.055 |
+| Caption a batch of images (20 images) | ~1 min | ~$0.003 |
+| Embed captions (20 captions) | ~30 s | ~$0.002 |
+| Full pipeline for 1 image batch | ~2 min | ~$0.006 |
+| Full pipeline for 5 image batches (array job) | ~2 min (parallel!) | ~$0.030 |
 
-Notice: 5 videos in parallel takes **the same wall-clock time** as 1 video — you're just paying for 5 instances simultaneously.
+Notice: 5 image batches in parallel takes **the same wall-clock time** as 1 batch — you're just paying for 5 instances simultaneously.
 
 ---
 
@@ -39,8 +39,8 @@ Notice: 5 videos in parallel takes **the same wall-clock time** as 1 video — y
 
 | Use GPU when... | Use CPU when... |
 |-----------------|-----------------|
-| Processing images/video with a neural net | Tabular data, SQL queries |
-| Running CLIP / Whisper / BLIP on large volumes | Anything < 100 images |
+| Processing images with a neural net | Tabular data, SQL queries |
+| Running BLIP / CLIP / Whisper on large volumes | Anything < 100 images |
 | Training a model | Feature engineering, pandas |
 | Batch inference at scale | Model explainability (SHAP) |
 
@@ -50,5 +50,5 @@ Rule of thumb: **if your task involves a neural network and you have >1000 items
 
 ## Key Takeaway
 
-> Array jobs = horizontal scaling for free. Spot instances = same power at 70% discount.  
-> Together: run your GPU pipeline on 100 videos for the cost of a coffee.
+> Array jobs = horizontal scaling for free. Spot instances = same power at 70% discount.
+> Together: caption and embed 100 image batches on GPU for the cost of a coffee.

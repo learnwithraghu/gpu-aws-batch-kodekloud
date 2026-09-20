@@ -1,4 +1,4 @@
-"""Shared S3 Vectors operations for the video semantic-search lessons."""
+"""Shared S3 Vectors operations for the image-caption semantic-search lessons."""
 
 from collections.abc import Iterable
 
@@ -20,28 +20,28 @@ def validate_embedding(vector) -> list[float]:
     return values.tolist()
 
 
-def frame_vector_record(
-    video_stem: str,
-    frame_key: str,
-    frame_index: int,
-    timestamp_ms: int,
+def caption_vector_record(
+    image_batch_stem: str,
+    image_key: str,
+    image_index: int,
+    caption: str,
     embedding,
 ) -> dict:
     """Build the S3 Vectors record and metadata used by Lesson 05."""
     return {
-        "key": f"{video_stem}/frame_{frame_index:05d}",
+        "key": f"{image_batch_stem}/image_{image_index:05d}",
         "data": {"float32": validate_embedding(embedding)},
         "metadata": {
-            "video_stem": video_stem,
-            "frame_key": frame_key,
-            "frame_index": frame_index,
-            "timestamp_ms": timestamp_ms,
+            "image_batch_stem": image_batch_stem,
+            "image_key": image_key,
+            "image_index": image_index,
+            "caption": caption,
         },
     }
 
 
-def put_frame_vectors(client, vector_bucket: str, index_name: str, records: Iterable[dict]) -> int:
-    """Upsert frame vectors in S3 Vectors' maximum supported request size."""
+def put_caption_vectors(client, vector_bucket: str, index_name: str, records: Iterable[dict]) -> int:
+    """Upsert caption vectors in S3 Vectors' maximum supported request size."""
     records = list(records)
     for start in range(0, len(records), PUT_VECTORS_BATCH_SIZE):
         client.put_vectors(

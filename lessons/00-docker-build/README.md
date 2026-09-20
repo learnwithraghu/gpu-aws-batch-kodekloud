@@ -10,7 +10,7 @@
 When you run a job on a GPU instance, you can't just send a Python script — you need to send an entire environment:
 
 - The right CUDA version (must match the GPU driver on the instance)
-- Python, PyTorch, CLIP, OpenCV, boto3, …
+- Python, PyTorch, Transformers (BLIP + CLIP), Pillow, boto3, …
 - Your lesson code
 
 Docker packages all of that into a single image. The same image runs on your laptop (for testing), on any g4dn.xlarge in AWS, and on any other GPU instance anywhere.
@@ -29,13 +29,14 @@ Docker packages all of that into a single image. The same image runs on your lap
 The entire course uses **one shared image** (`Dockerfile` at the repo root):
 
 ```dockerfile
-# Base: official PyTorch image — CUDA 11.8 matches the g4dn.xlarge GPU driver
+# Base: official PyTorch image — CUDA 11.8 matches the g4dn.xlarge (NVIDIA T4) GPU driver
 FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
 
 # All Python dependencies for every lesson, installed in a single layer
+# transformers provides both BLIP (image captioning) and CLIP (text embeddings)
 RUN pip install --no-cache-dir \
-    openai-clip==1.0        \
-    opencv-python-headless  \
+    transformers>=4.42      \
+    Pillow                  \
     boto3                   \
     python-dotenv           \
     numpy
@@ -130,7 +131,7 @@ ECR_IMAGE_URI=<account>.dkr.ecr.ap-northeast-1.amazonaws.com/gpu-teaching:latest
 You can run the image locally on CPU to verify it starts correctly:
 
 ```bash
-docker run --rm gpu-teaching python -c "import torch, clip, cv2, boto3; print('All imports OK')"
+docker run --rm gpu-teaching python -c "import torch, transformers, PIL, boto3; print('All imports OK')"
 ```
 
 To test with a local GPU (if you have one):

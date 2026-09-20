@@ -10,7 +10,7 @@
 So far we've run each job manually, one at a time. In production, you want:
 
 ```
-extract_frames  →  (only after success)  →  embed_frames
+generate_captions  →  (only after success)  →  embed_captions
 ```
 
 This is a **DAG** (Directed Acyclic Graph) — a sequence of steps where each step depends on the previous one finishing successfully. If step 1 fails, step 2 never runs.
@@ -32,10 +32,10 @@ Job 2 won't start until Job 1 reaches `SUCCEEDED`. If Job 1 fails, Job 2 is auto
 
 ## What `run_pipeline.py` Does
 
-1. Submits the `extract_frames` job (Lesson 03's logic)
-2. Submits the `embed_frames` job (Lesson 04's logic) with `dependsOn` the first job
+1. Submits the `generate_captions` job (Lesson 03's logic)
+2. Submits the `embed_captions` job (Lesson 04's logic) with `dependsOn` the first job
 3. Polls both jobs until both reach a terminal state
-4. Prints where to find the final embeddings in S3
+4. Prints where to find the final embeddings in S3 Vectors
 
 Both jobs are submitted **instantly** — Batch handles the sequencing. Your local script just waits.
 

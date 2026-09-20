@@ -1,8 +1,8 @@
-# 🎬 GPU Teaching — Video → Vector Search Pipeline
+# 🖼️ GPU Teaching — Image → Caption → Vector Search Pipeline
 
 A hands-on 8-lesson course teaching GPUs to Data Scientists, using AWS Batch with GPU instances.
 
-**What you'll build:** A pipeline that takes a video, extracts frames on a GPU, turns every frame into a CLIP embedding, and lets you search with plain English — _"find me the frame with a dog."_
+**What you'll build:** A pipeline that takes a folder of images, generates a natural-language caption for each on a GPU, embeds every caption, and lets you search with plain English — _"find me the photo of a dog in a park."_
 
 ---
 
@@ -23,8 +23,8 @@ If you need more than 8 vCPUs, request an increase via the [Service Quotas conso
 | [00](lessons/00-docker-build/) | Docker Build & Push | Docker layers, ECR, CUDA base images | ECR |
 | [01](lessons/01-why-gpu/) | Why GPU? | CPU vs GPU mental model | — |
 | [02](lessons/02-first-batch-job/) | First Batch Job | AWS Batch concepts | Batch, ECR |
-| [03](lessons/03-video-to-frames/) | Video → Frames | Frame extraction, S3 I/O | Batch, S3 |
-| [04](lessons/04-frames-to-embeddings/) | Frames → Embeddings | CLIP model, GPU batching | Batch, S3 |
+| [03](lessons/03-images-to-captions/) | Images → Captions | BLIP image captioning, S3 I/O | Batch, S3 |
+| [04](lessons/04-captions-to-embeddings/) | Captions → Embeddings | CLIP text encoder, GPU batching | Batch, S3 |
 | [05](lessons/05-vector-search/) | Vector Search | Cosine similarity | S3 |
 | [06](lessons/06-full-pipeline/) | Full Pipeline | Job dependencies / DAG | Batch, S3 |
 | [07](lessons/07-scale-and-cost/) | Scale & Cost | Array jobs, spot pricing | Batch, S3 |
@@ -130,11 +130,28 @@ aws batch register-job-definition \
 
 Update `BATCH_JOB_QUEUE` and `BATCH_JOB_DEFINITION` in your `.env`.
 
+### 5. Create the S3 Vectors bucket & index
+
+Lessons 04, 06, and 07 store caption embeddings in Amazon S3 Vectors instead of
+ordinary S3. Create the vector bucket/index once:
+
+```bash
+python helpers/setup_s3_vectors.py
+```
+
+Copy the printed bucket/index names into `S3_VECTOR_BUCKET` and
+`S3_VECTOR_INDEX` in your `.env`. Also grant `s3vectors:PutVectors` on the
+index to the IAM role used by your Batch job definition (`BatchJobRole`), so
+the GPU jobs can write embeddings. See [`helpers/README.md`](helpers/README.md#setup_s3_vectorspy)
+for the full permission list.
+
 ---
 
 ## 🛠️ Pre-flight & Teardown
 
-Before provisioning Batch infrastructure, validate spot availability in your VPC:
+Before provisioning Batch infrastructure, validate GPU capacity in your VPC
+(checks instance-type availability, Spot pricing/placement, and a dry-run
+launch for Spot and/or On-Demand):
 
 ```bash
 python helpers/check_spot_availability.py \
@@ -143,7 +160,8 @@ python helpers/check_spot_availability.py \
   --security-group-id sg-xxxxxxxxxxxxxxxxx
 ```
 
-This runs three checks (spot price history, placement score, dry-run request) and prints a clear ✅ / ⚠️ / ❌ verdict.
+This prints a clear ✅ / ⚠️ / ❌ verdict for the requested capacity type(s)
+(`--capacity-type spot|on-demand|both`, default `both`).
 
 To tear down all course infrastructure when you're done:
 
@@ -171,14 +189,16 @@ gpu-teaching/
 ├── Dockerfile            ← one shared image for all lessons
 ├── helpers/
 │   ├── README.md
-│   ├── check_spot_availability.py  ← pre-flight spot check
+│   ├── check_spot_availability.py  ← pre-flight spot/on-demand check
+│   ├── setup_s3_vectors.py         ← one-time S3 Vectors bucket/index setup
+│   ├── s3_vectors.py               ← shared S3 Vectors helper (used inside Batch jobs)
 │   └── teardown.py                 ← clean up all AWS resources
 └── lessons/
     ├── 00-docker-build/
     ├── 01-why-gpu/
     ├── 02-first-batch-job/
-    ├── 03-video-to-frames/
-    ├── 04-frames-to-embeddings/
+    ├── 03-images-to-captions/
+    ├── 04-captions-to-embeddings/
     ├── 05-vector-search/
     ├── 06-full-pipeline/
     └── 07-scale-and-cost/

@@ -1,0 +1,17 @@
+# Secrets — never commit real credentials
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# AWS CLI installer artifacts (install it outside the repo, e.g. /tmp)
+awscliv2.zip
+/aws/
+
+# Local sample media used by lessons — each lesson's assets/README.md explains
+# how to add your own; don't commit large personal sample files
+lessons/*/assets/images/*.jpg
+lessons/*/assets/images/*.jpeg
+lessons/*/assets/images/*.png

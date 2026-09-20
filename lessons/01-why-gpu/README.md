@@ -51,5 +51,5 @@ Open `notebook.ipynb` and run all cells top-to-bottom.
 ## Key Takeaway
 
 > A GPU is not always faster — it's faster when the work is **massively parallel**.  
-> Frame embedding, image classification, text embedding: all massively parallel. ✅  
+> Image captioning, image classification, text embedding: all massively parallel. ✅  
 > Reading a CSV, running a SQL query: sequential. ❌
