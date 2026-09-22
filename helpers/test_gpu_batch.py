@@ -90,15 +90,17 @@ def main():
     while time.monotonic() < deadline:
         status = batch.describe_jobs(jobs=[job_id])["jobs"][0]["status"]
         print(f"  GPU smoke job (provisioning): {status}")
-        if status == "RUNNING":
+        if status in {"RUNNING", "SUCCEEDED"}:
+            # SUCCEEDED without a polled RUNNING state means the job landed on
+            # a still-warm instance — provisioning clearly succeeded.
             provisioning_ok = True
             break
-        if status in {"FAILED", "SUCCEEDED"}:
+        if status == "FAILED":
             break
         time.sleep(10)
 
     if not provisioning_ok:
-        if status in {"FAILED", "SUCCEEDED"}:
+        if status == "FAILED":
             raise RuntimeError(f"GPU smoke job finished with {status} before reaching RUNNING")
         print(
             f"\n⏱️  Provisioning timed out after {PROVISION_TIMEOUT}s — terminating the job."
