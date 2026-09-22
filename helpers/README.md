@@ -66,6 +66,57 @@ AWS_PROFILE=your-profile uv run --with boto3 --with python-dotenv python helpers
 
 ---
 
+## setup_infra.sh
+
+Tutor helper to spin the course infrastructure up and down quickly.
+
+```bash
+# Create the S3 buckets (idempotent — existing buckets are skipped):
+bash helpers/setup_infra.sh up
+
+# Tear everything down (Batch, S3, ...; asks for confirmation):
+bash helpers/setup_infra.sh down
+
+# Tear down including the ECR repository:
+bash helpers/setup_infra.sh down --delete-ecr
+
+# Preview the teardown without deleting anything:
+bash helpers/setup_infra.sh down --dry-run
+```
+
+`up` provisions two S3 buckets in your region via `create_buckets.sh`:
+
+| Bucket | Purpose |
+|--------|---------|
+| `gpu-teaching-images-<account-id>` | Raw images, uploaded manually by the tutor |
+| `gpu-teaching-captions-csv-<account-id>` | CSV files mapping each image to its caption |
+
+Bucket names are suffixed with your AWS account ID so they never collide with
+other accounts. The resolved names are written to `.env` as `S3_IMAGES_BUCKET`
+and `S3_CSV_BUCKET` (with `S3_BUCKET` set to the images bucket for lesson
+scripts). Re-running `up` detects existing buckets with `s3api head-bucket`
+and skips them.
+
+`down` delegates to `teardown.py`, which deletes both buckets when
+`--delete-s3` is used.
+
+---
+
+## create_buckets.sh
+
+Idempotent S3 bucket setup (invoked by `setup_infra.sh up`, also usable on
+its own):
+
+```bash
+bash helpers/create_buckets.sh              # region from .env / AWS CLI default
+bash helpers/create_buckets.sh --region us-east-1
+```
+
+Requires the AWS CLI to be configured (see Setup above) and permissions for
+`s3:CreateBucket`, `s3:HeadBucket`, and `sts:GetCallerIdentity`.
+
+---
+
 ## check_spot_availability.py
 
 Pre-flight check before provisioning AWS Batch infrastructure. Verifies that

@@ -261,14 +261,22 @@ def main():
                         help="Print what would be deleted; do not actually delete anything")
     args = parser.parse_args()
 
-    s3_bucket = os.environ.get("S3_BUCKET", "")
+    # Support the two course buckets plus the legacy single-bucket variable.
+    seen = set()
+    s3_buckets = []
+    for var in ("S3_BUCKET", "S3_IMAGES_BUCKET", "S3_CSV_BUCKET"):
+        for name in (os.environ.get(var, "") or "").split(","):
+            name = name.strip()
+            if name and name not in seen:
+                seen.add(name)
+                s3_buckets.append(name)
 
     print(f"\n{BOLD}=== GPU Teaching Teardown ==={RESET}")
     if args.dry_run:
         print(f"{YELLOW}DRY RUN — no resources will be deleted{RESET}")
     print(f"  Region     : {args.region}")
     print(f"  Delete ECR : {args.delete_ecr}")
-    print(f"  Delete S3  : {args.delete_s3}  (bucket: {s3_bucket or '(not set)'})")
+    print(f"  Delete S3  : {args.delete_s3}  (buckets: {', '.join(s3_buckets) or '(none set)'})")
 
     if not args.dry_run:
         confirm = input("\n⚠️  This will permanently delete AWS resources. Type 'yes' to continue: ")
@@ -290,9 +298,11 @@ def main():
         print(hdr("[4/5] ECR Repository"))
         print(skip("Skipped (pass --delete-ecr to include)"))
 
-    s3_deleted = False
+    s3_deleted = 0
     if args.delete_s3:
-        s3_deleted = teardown_s3(s3_bucket, args.dry_run)
+        for name in s3_buckets:
+            if teardown_s3(name, args.dry_run):
+                s3_deleted += 1
     else:
         print(hdr("[5/5] S3 Bucket"))
         print(skip("Skipped (pass --delete-s3 to include)"))
@@ -306,7 +316,7 @@ def main():
         print(f"  Compute envs deleted       : {len(deleted_envs)}")
         print(f"  Job definitions deregistered: {deleted_defs}")
         print(f"  ECR repository deleted     : {'yes' if ecr_deleted else 'no'}")
-        print(f"  S3 bucket deleted          : {'yes' if s3_deleted else 'no'}")
+        print(f"  S3 buckets deleted         : {s3_deleted}")
         print(f"\n{done('Teardown complete.')}")
 
 
