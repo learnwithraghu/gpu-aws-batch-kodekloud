@@ -130,10 +130,51 @@ AWS credentials must have:
 
 ## Batch Smoke Tests
 
-These tests validate that AWS Batch can schedule and run a real container. They
-wait for completion and clean up automatically. AWS retains completed-job
-history, but no Batch resource or compute capacity is left running after either
-test.
+These tests validate that AWS Batch can schedule and run a real container.
+They use **persistent, reusable** Batch resources: on the first run each test
+creates its compute environment, job queue, and job definition with stable
+names; every later run reuses them (re-creating only what is missing) and
+deletes nothing. This skips the create/wait/delete cycle so repeat runs are
+much faster. The compute environments use `minvCpus: 0`, so no compute
+capacity is left running or billed between runs.
+
+### Run everything in order
+
+`run_smoke_tests.sh` runs all smoke tests in order: spot pre-flight, GPU spot,
+GPU on-demand, then CPU. It stops at the first failed stage unless
+`--continue-on-failure` is passed.
+
+```bash
+bash helpers/run_smoke_tests.sh
+
+# Skip the spot availability pre-flight check:
+bash helpers/run_smoke_tests.sh --skip-preflight
+
+# Run every stage even if an earlier one fails:
+bash helpers/run_smoke_tests.sh --continue-on-failure
+```
+
+### Persistent resource names
+
+| Resource | Name |
+|----------|------|
+| GPU Spot compute environment | `gpu-teaching-gpu-smoke-ce-spot` |
+| GPU Spot job queue | `gpu-teaching-gpu-smoke-queue-spot` |
+| GPU On-Demand compute environment | `gpu-teaching-gpu-smoke-ce-ondemand` |
+| GPU On-Demand job queue | `gpu-teaching-gpu-smoke-queue-ondemand` |
+| GPU job definition | `gpu-teaching-gpu-smoke-job` |
+| CPU compute environment | `gpu-teaching-cpu-smoke-ce` |
+| CPU job queue | `gpu-teaching-cpu-smoke-queue` |
+| CPU job definition | `gpu-teaching-cpu-smoke-job` |
+
+If one of these exists but is `INVALID` or points at the wrong compute
+environment, the test fails with a message telling you to fix or remove it
+manually — the scripts never delete anything.
+
+> **Note**: `teardown.py` matches the `gpu-teaching-*` prefix, so it removes
+> these persistent smoke resources too. That is intentional — teardown is the
+> "done with the course, wipe it all" step. If you run it, the next smoke test
+> simply re-creates what it needs.
 
 ### CPU-only test
 
@@ -147,9 +188,8 @@ The VPC subnet and security group are the fixed course values.
 
 ### GPU test
 
-The GPU test creates a temporary compute environment, queue, and job
-definition using `g4dn.xlarge` (NVIDIA T4), then runs `nvidia-smi` in a CUDA
-container. It can incur GPU instance charges while it runs. By default it
+The GPU test uses `g4dn.xlarge` (NVIDIA T4) and runs `nvidia-smi` in a CUDA
+container. It can incur GPU instance charges while a job runs. By default it
 tests an **on-demand** compute environment; pass `--capacity-type spot` to
 test a Spot compute environment instead. Run:
 
@@ -163,14 +203,13 @@ uv run --with boto3 --with python-dotenv python helpers/test_gpu_batch.py --capa
 
 Its container command runs `nvidia-smi`, so a successful job confirms that
 Batch can provision a GPU instance (Spot or On-Demand) and the scheduled
-container can access it.
+container can access it. If a GPU instance is not provisioned within 3
+minutes, the job is terminated (the persistent resources are kept).
 
-Both tests require `batch:CreateComputeEnvironment`, `batch:CreateJobQueue`,
+The tests require `batch:CreateComputeEnvironment`, `batch:CreateJobQueue`,
 `batch:RegisterJobDefinition`, `batch:SubmitJob`, `batch:Describe*`,
-`batch:UpdateComputeEnvironment`, `batch:UpdateJobQueue`,
-`batch:DeleteComputeEnvironment`, `batch:DeleteJobQueue`,
-`batch:DeregisterJobDefinition`, and `batch:TerminateJob`. The CPU test also
-requires `sts:GetCallerIdentity`.
+`batch:UpdateComputeEnvironment`, `batch:UpdateJobQueue`, and
+`batch:TerminateJob`. The CPU test also requires `sts:GetCallerIdentity`.
 
 ---
 

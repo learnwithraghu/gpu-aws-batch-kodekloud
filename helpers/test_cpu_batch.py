@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
-"""Run a disposable CPU-only AWS Batch smoke test and remove its resources."""
+"""Run a CPU-only AWS Batch smoke test using persistent, reusable Batch resources.
+
+The compute environment, job queue, and job definition are created once with
+stable names and reused on every run — this script never deletes them, so
+repeat runs skip the create/wait/delete cycle and finish much faster.
+Use helpers/teardown.py to remove them when you are done with the course.
+"""
 
 import argparse
 import os
 import sys
 import time
-import uuid
 
 import boto3
 from botocore.exceptions import ClientError
@@ -27,90 +32,89 @@ def wait_for(get_status, expected, timeout, description):
     raise TimeoutError(f"Timed out waiting for {description}")
 
 
-def wait_until_missing(describe, timeout, description):
-    deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline:
-        try:
-            response = describe()
-            if not response.get("jobQueues", response.get("computeEnvironments", [True])):
-                print(f"  {description}: deleted")
-                return
-            print(f"  {description}: deleting")
-            time.sleep(10)
-        except ClientError as error:
-            if error.response["Error"]["Code"] in {"ClientException", "ResourceNotFoundException"}:
-                print(f"  {description}: deleted")
-                return
-            raise
-    raise TimeoutError(f"Timed out waiting for {description} deletion")
-
-
-def cleanup(batch, job_id, queue_name, environment_name, definition_arn):
-    print("\nCleaning up temporary CPU Batch resources...")
-    if job_id:
-        try:
-            status = batch.describe_jobs(jobs=[job_id])["jobs"][0]["status"]
-            if status not in TERMINAL_STATES:
-                batch.terminate_job(jobId=job_id, reason="CPU smoke test cleanup")
-                wait_for(
-                    lambda: batch.describe_jobs(jobs=[job_id])["jobs"][0]["status"],
-                    TERMINAL_STATES,
-                    300,
-                    "Job termination",
-                )
-        except ClientError as error:
-            print(f"  Could not terminate job: {error}")
-
-    if queue_name:
-        try:
-            batch.update_job_queue(jobQueue=queue_name, state="DISABLED")
-            wait_for(
-                lambda: "{state}/{status}".format(**batch.describe_job_queues(
-                    jobQueues=[queue_name]
-                )["jobQueues"][0]),
-                {"DISABLED/VALID"},
-                300,
-                "Job queue disablement",
+def ensure_compute_environment(batch, name, compute_resources, timeout):
+    """Reuse the named compute environment, creating it only if missing."""
+    environments = batch.describe_compute_environments(
+        computeEnvironments=[name]
+    ).get("computeEnvironments", [])
+    if environments:
+        environment = environments[0]
+        print(f"Reusing compute environment: {name}")
+        existing = environment.get("computeResources", {})
+        expected_types = set(compute_resources.get("instanceTypes", []))
+        if existing.get("type") != compute_resources["type"] or set(
+            existing.get("instanceTypes", [])
+        ) != expected_types:
+            raise RuntimeError(
+                f"Compute environment {name} already exists with type="
+                f"{existing.get('type')} instanceTypes={existing.get('instanceTypes')}"
+                f" — expected type={compute_resources['type']}"
+                f" instanceTypes={sorted(expected_types)}."
+                " Fix or remove it manually before running the smoke test."
             )
-            batch.delete_job_queue(jobQueue=queue_name)
-            wait_until_missing(
-                lambda: batch.describe_job_queues(jobQueues=[queue_name]),
-                300,
-                "Job queue",
-            )
-        except ClientError as error:
-            print(f"  Could not delete job queue: {error}")
+        if environment["state"] != "ENABLED":
+            print(f"  Re-enabling compute environment: {name}")
+            batch.update_compute_environment(computeEnvironment=name, state="ENABLED")
+    else:
+        print(f"Creating compute environment: {name}")
+        batch.create_compute_environment(
+            computeEnvironmentName=name,
+            type="MANAGED",
+            state="ENABLED",
+            computeResources=compute_resources,
+        )
+    status = wait_for(
+        lambda: batch.describe_compute_environments(computeEnvironments=[name])[
+            "computeEnvironments"
+        ][0]["status"],
+        {"VALID", "INVALID"},
+        timeout,
+        "Compute environment",
+    )
+    if status != "VALID":
+        raise RuntimeError(
+            f"Compute environment {name} is INVALID — fix or remove it manually"
+        )
 
-    if environment_name:
-        try:
-            batch.update_compute_environment(computeEnvironment=environment_name, state="DISABLED")
-            wait_for(
-                lambda: "{state}/{status}".format(**batch.describe_compute_environments(
-                    computeEnvironments=[environment_name]
-                )["computeEnvironments"][0]),
-                {"DISABLED/VALID"},
-                300,
-                "Compute environment disablement",
-            )
-            batch.delete_compute_environment(computeEnvironment=environment_name)
-            wait_until_missing(
-                lambda: batch.describe_compute_environments(computeEnvironments=[environment_name]),
-                300,
-                "Compute environment",
-            )
-        except ClientError as error:
-            print(f"  Could not delete compute environment: {error}")
 
-    if definition_arn:
-        try:
-            batch.deregister_job_definition(jobDefinition=definition_arn)
-        except ClientError as error:
-            print(f"  Could not deregister job definition: {error}")
+def ensure_job_queue(batch, name, environment_name, timeout):
+    """Reuse the named job queue (bound to environment_name), creating it if missing."""
+    queues = batch.describe_job_queues(jobQueues=[name]).get("jobQueues", [])
+    if queues:
+        queue = queues[0]
+        print(f"Reusing job queue: {name}")
+        order_arn = queue["computeEnvironmentOrder"][0]["computeEnvironment"]
+        if not order_arn.endswith(f"compute-environment/{environment_name}"):
+            raise RuntimeError(
+                f"Job queue {name} is bound to {order_arn}, expected compute"
+                f" environment {environment_name}. Fix or remove the queue manually."
+            )
+        if queue["state"] != "ENABLED":
+            print(f"  Re-enabling job queue: {name}")
+            batch.update_job_queue(jobQueue=name, state="ENABLED")
+    else:
+        print(f"Creating job queue: {name}")
+        batch.create_job_queue(
+            jobQueueName=name,
+            state="ENABLED",
+            priority=1,
+            computeEnvironmentOrder=[{"order": 1, "computeEnvironment": environment_name}],
+        )
+    status = wait_for(
+        lambda: batch.describe_job_queues(jobQueues=[name])["jobQueues"][0]["status"],
+        {"VALID", "INVALID"},
+        timeout,
+        "Job queue",
+    )
+    if status != "VALID":
+        raise RuntimeError(f"Job queue {name} is INVALID — fix or remove it manually")
 
 
 def main():
     load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
-    parser = argparse.ArgumentParser(description="Run and clean up a CPU-only AWS Batch smoke test.")
+    parser = argparse.ArgumentParser(
+        description="Run a CPU-only AWS Batch smoke test using persistent resources."
+    )
     parser.add_argument("--region", default=os.environ.get("AWS_DEFAULT_REGION", "ap-northeast-1"))
     parser.add_argument("--instance-profile", default="ecsInstanceRole",
                         help="EC2 instance profile name used by Batch (default: ecsInstanceRole)")
@@ -118,92 +122,52 @@ def main():
                         help="Seconds to wait for environment and job completion (default: 900)")
     args = parser.parse_args()
 
-    suffix = uuid.uuid4().hex[:8]
-    environment_name = f"gpu-teaching-cpu-smoke-ce-{suffix}"
-    queue_name = f"gpu-teaching-cpu-smoke-queue-{suffix}"
-    definition_name = f"gpu-teaching-cpu-smoke-job-{suffix}"
-    job_id = None
-    definition_arn = None
-    environment_created = False
-    queue_created = False
-    account_id = boto3.client("sts", region_name=args.region).get_caller_identity()["Account"]
+    environment_name = "gpu-teaching-cpu-smoke-ce"
+    queue_name = "gpu-teaching-cpu-smoke-queue"
+    definition_name = "gpu-teaching-cpu-smoke-job"
     batch = boto3.client("batch", region_name=args.region)
+    account_id = boto3.client("sts", region_name=args.region).get_caller_identity()["Account"]
     instance_profile = f"arn:aws:iam::{account_id}:instance-profile/{args.instance_profile}"
 
-    try:
-        print(f"Creating CPU compute environment: {environment_name}")
-        batch.create_compute_environment(
-            computeEnvironmentName=environment_name,
-            type="MANAGED",
-            state="ENABLED",
-            computeResources={
-                "type": "EC2",
-                "minvCpus": 0,
-                "maxvCpus": 2,
-                "instanceTypes": ["c6a.large"],
-                "subnets": [VPC_SUBNET],
-                "securityGroupIds": [SECURITY_GROUP],
-                "instanceRole": instance_profile,
-            },
-        )
-        environment_created = True
-        environment_status = wait_for(
-            lambda: batch.describe_compute_environments(computeEnvironments=[environment_name])[
-                "computeEnvironments"
-            ][0]["status"],
-            {"VALID", "INVALID"},
-            args.timeout,
-            "Compute environment",
-        )
-        if environment_status != "VALID":
-            raise RuntimeError("CPU compute environment became INVALID")
+    ensure_compute_environment(
+        batch,
+        environment_name,
+        {
+            "type": "EC2",
+            "minvCpus": 0,
+            "maxvCpus": 2,
+            "instanceTypes": ["c6a.large"],
+            "subnets": [VPC_SUBNET],
+            "securityGroupIds": [SECURITY_GROUP],
+            "instanceRole": instance_profile,
+        },
+        args.timeout,
+    )
+    ensure_job_queue(batch, queue_name, environment_name, args.timeout)
 
-        batch.create_job_queue(
-            jobQueueName=queue_name,
-            state="ENABLED",
-            priority=1,
-            computeEnvironmentOrder=[{"order": 1, "computeEnvironment": environment_name}],
-        )
-        queue_created = True
-        wait_for(
-            lambda: batch.describe_job_queues(jobQueues=[queue_name])["jobQueues"][0]["status"],
-            {"VALID", "INVALID"},
-            args.timeout,
-            "Job queue",
-        )
-
-        definition = batch.register_job_definition(
-            jobDefinitionName=definition_name,
-            type="container",
-            containerProperties={
-                "image": "public.ecr.aws/docker/library/busybox:latest",
-                "vcpus": 1,
-                "memory": 128,
-                "command": ["sh", "-c", "echo CPU Batch smoke test passed"],
-            },
-        )
-        definition_arn = definition["jobDefinitionArn"]
-        job_id = batch.submit_job(
-            jobName=f"cpu-smoke-{suffix}", jobQueue=queue_name, jobDefinition=definition_arn
-        )["jobId"]
-        print(f"Submitted CPU smoke job: {job_id}")
-        status = wait_for(
-            lambda: batch.describe_jobs(jobs=[job_id])["jobs"][0]["status"],
-            TERMINAL_STATES,
-            args.timeout,
-            "CPU smoke job",
-        )
-        if status != "SUCCEEDED":
-            raise RuntimeError(f"CPU smoke job finished with {status}")
-        print("CPU Batch smoke test passed.")
-    finally:
-        cleanup(
-            batch,
-            job_id,
-            queue_name if queue_created else None,
-            environment_name if environment_created else None,
-            definition_arn,
-        )
+    definition_arn = batch.register_job_definition(
+        jobDefinitionName=definition_name,
+        type="container",
+        containerProperties={
+            "image": "public.ecr.aws/docker/library/busybox:latest",
+            "vcpus": 1,
+            "memory": 128,
+            "command": ["sh", "-c", "echo CPU Batch smoke test passed"],
+        },
+    )["jobDefinitionArn"]
+    job_id = batch.submit_job(
+        jobName="cpu-smoke", jobQueue=queue_name, jobDefinition=definition_arn
+    )["jobId"]
+    print(f"Submitted CPU smoke job: {job_id}")
+    status = wait_for(
+        lambda: batch.describe_jobs(jobs=[job_id])["jobs"][0]["status"],
+        TERMINAL_STATES,
+        args.timeout,
+        "CPU smoke job",
+    )
+    if status != "SUCCEEDED":
+        raise RuntimeError(f"CPU smoke job finished with {status}")
+    print("CPU Batch smoke test passed.")
 
 
 if __name__ == "__main__":
