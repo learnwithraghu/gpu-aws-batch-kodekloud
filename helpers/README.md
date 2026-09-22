@@ -160,8 +160,8 @@ bash helpers/run_smoke_tests.sh --continue-on-failure
 |----------|------|
 | GPU Spot compute environment | `gpu-teaching-gpu-smoke-ce-spot` |
 | GPU Spot job queue | `gpu-teaching-gpu-smoke-queue-spot` |
-| GPU On-Demand compute environment | `gpu-teaching-gpu-smoke-ce-ondemand` |
-| GPU On-Demand job queue | `gpu-teaching-gpu-smoke-queue-ondemand` |
+| GPU On-Demand compute environment | `gpu-teaching-gpu-smoke-ce-on-demand` |
+| GPU On-Demand job queue | `gpu-teaching-gpu-smoke-queue-on-demand` |
 | GPU job definition | `gpu-teaching-gpu-smoke-job` |
 | CPU compute environment | `gpu-teaching-cpu-smoke-ce` |
 | CPU job queue | `gpu-teaching-cpu-smoke-queue` |
