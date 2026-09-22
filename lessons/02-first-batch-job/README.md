@@ -39,20 +39,19 @@ Simple — but it proves the GPU is working and accessible inside Batch.
 
 ## How to Run
 
-1. Make sure you've completed the **one-time setup** in the root `README.md`
-2. Run the submit script from this folder:
+Three short demos. Make sure the **one-time setup** in the root `README.md`
+is done first — then it's the same habit every time: cd in, run.
+
+| Step | You learn | Time |
+|------|-----------|------|
+| [01-the-container-script](01-the-container-script/) | The script Batch will run (read it) | 5 min |
+| [02-submit-a-job](02-submit-a-job/) | Submit a job → get a job ID | 5 min |
+| [03-watch-until-done](03-watch-until-done/) | Poll the job to SUCCEEDED | 10–15 min |
 
 ```bash
-python submit_job.py
+cd lessons/02-first-batch-job/02-submit-a-job && python main.py
+cd ../03-watch-until-done && python main.py --job-id <id>
 ```
-
-The script:
-- Submits `job.py` to AWS Batch
-- Polls every 10 seconds until it finishes
-- Prints the job ID and final status
-
-To find the job's log stream, go to:
-`AWS Console → CloudWatch → Log Groups → /aws/batch/job`
 
 ---
 

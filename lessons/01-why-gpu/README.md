@@ -42,23 +42,21 @@ That's it. Same operations, different device, very different speed.
 
 ## Running the Lesson
 
-```bash
-python lessons/01-why-gpu/benchmark_gpu.py
-```
+Four short demos, one folder each. The habit is always the same:
+**cd into a step, run `python main.py`.**
 
-(No PyTorch on your machine? `uv run --with torch python lessons/01-why-gpu/benchmark_gpu.py`)
+| Step | You learn | Time |
+|------|-----------|------|
+| [01-check-hardware](01-check-hardware/) | What hardware PyTorch sees | 2 min |
+| [02-matmul-cpu](02-matmul-cpu/) | Baseline: one matmul on CPU | 2 min |
+| [03-matmul-gpu](03-matmul-gpu/) | The same matmul on GPU — the "aha" | 3 min |
+| [04-cpu-vs-gpu](04-cpu-vs-gpu/) | Full speedup table across sizes | 5 min |
 
-**If you don't have a local GPU**: the script detects this automatically and falls back to reference times recorded on a g4dn.xlarge (NVIDIA T4), so you still see the full comparison. You'll get real GPU numbers in Lesson 02 when the job runs on AWS Batch.
+**If you don't have a local GPU**: steps 03–04 fall back to reference times
+recorded on a g4dn.xlarge (NVIDIA T4), so you still see the full comparison.
+You'll get real GPU numbers in Lesson 02 when the job runs on AWS Batch.
 
-Example output:
-
-```
-size      |  CPU (ms) |  GPU (ms) |  speedup
---------------------------------------------------
-   500x500  |      4.2  |      0.8  |     5.3x
-  2000x2000 |    145.7  |      8.2  |    17.8x
-  5000x5000 |   3612.4  |    119.0  |    30.4x
-```
+(No PyTorch on your machine? `uv run --with torch python main.py`)
 
 ---
 

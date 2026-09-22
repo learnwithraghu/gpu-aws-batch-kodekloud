@@ -33,29 +33,19 @@ automatically cancelled.
 
 ---
 
-## What the Scripts Do
+## The Steps
 
-`run_pipeline.py` (run locally):
+Three demos — break it, fix it, understand it:
 
-1. Uploads the images in `assets/images/` to S3
-2. Submits the `generate_captions` job (Lesson 03's script)
-3. Submits the `verify_captions` job with `dependsOn` the first job
-4. Polls both jobs until both reach a terminal state
-
-Both jobs are submitted **instantly** — Batch handles the sequencing. Your
-local script just waits.
-
-`verify_captions.py` (runs in the container as Job 2):
-
-1. Counts the images under the image prefix in S3
-2. Downloads `captions/<batch-stem>/captions.csv` produced by Job 1
-3. Checks every image has exactly one caption (fails the job otherwise)
-4. Writes a `_VERIFIED` marker to S3 as proof the pipeline completed
-
-Run it:
+| Step | You learn | Time |
+|------|-----------|------|
+| [01-two-jobs-no-order](01-two-jobs-no-order/) | Submit two jobs with NO ordering — watch verify fail | 15 min |
+| [02-two-jobs-ordered](02-two-jobs-ordered/) | The same pipeline with `dependsOn` — it works | 15 min |
+| [03-the-verify-job](03-the-verify-job/) | What the verify job checks (read it) | 5 min |
 
 ```bash
-python run_pipeline.py
+cd lessons/04-full-pipeline/01-two-jobs-no-order && python main.py
+cd ../02-two-jobs-ordered && python main.py
 ```
 
 ---

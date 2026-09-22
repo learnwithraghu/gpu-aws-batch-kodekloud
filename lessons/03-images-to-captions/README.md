@@ -61,17 +61,17 @@ downstream tool (pandas, a spreadsheet, another job) can read.
 
 ---
 
-## What the Scripts Do
+## The Steps
 
-1. `submit_job.py` uploads the images in `assets/images/` to S3, submits the
-   captioning job to Batch, and polls until it finishes
-2. `show_captions.py` downloads the caption file and prints the
-   image → caption table
+Five short demos — cd in, run `python main.py`:
 
-```bash
-python submit_job.py                # upload + caption + wait
-python show_captions.py             # print the caption table
-```
+| Step | You learn | Time |
+|------|-----------|------|
+| [01-upload-images](01-upload-images/) | Push sample images to S3 | 5 min |
+| [02-caption-one-image](02-caption-one-image/) | BLIP captions ONE image on the GPU | 10 min |
+| [03-caption-whole-batch](03-caption-whole-batch/) | The real container job → captions.csv | 10 min |
+| [04-submit-and-wait](04-submit-and-wait/) | Submit + poll the batch job | 15 min |
+| [05-show-captions](05-show-captions/) | Print the caption table | 2 min |
 
 ---
 

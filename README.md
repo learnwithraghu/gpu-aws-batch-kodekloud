@@ -174,7 +174,7 @@ gpu-teaching/
 │   ├── README.md
 │   ├── check_spot_availability.py  ← pre-flight spot/on-demand check
 │   └── teardown.py                 ← clean up all AWS resources
-└── lessons/
+└── lessons/              ← 6 lessons; each = numbered demo steps in subfolders
     ├── 00-docker-build/
     ├── 01-why-gpu/
     ├── 02-first-batch-job/
@@ -187,21 +187,26 @@ gpu-teaching/
 
 ## 💡 How lessons work
 
-Every lesson is plain Python scripts plus a README — no notebooks.
+Every lesson is a sequence of small, numbered steps — **one folder per demo**:
 
 ```
-README.md               ← theory + concept explanation + how to run
-*.py                    ← the scripts (submit jobs locally, or run on the GPU in Batch)
-assets/                 ← sample images (where applicable)
+lessons/03-images-to-captions/
+├── README.md                          ← theory + the step index
+├── 01-upload-images/main.py           ← one tiny script per step
+├── 02-caption-one-image/{job,main}.py
+├── 03-caption-whole-batch/generate_captions.py
+└── ...
 ```
 
-Typical flow for a Batch lesson:
+Each step folder contains a `main.py` (or the container job script) plus a
+mini-README with the exact command and expected output. The habit is always
+the same: **cd into a step, run `python main.py`.**
 
-```bash
-python submit_job.py    # upload inputs, submit the job, poll until done
-```
+Scripts that run on AWS Batch keep descriptive names (`job.py`,
+`generate_captions.py`, `verify_captions.py`) — Batch references them by path
+in the job's `command` override.
 
-The job itself follows the same pattern everywhere:
+Every Batch job follows the same pattern:
 
 ```
 download input from S3 → process on the GPU → upload results to S3

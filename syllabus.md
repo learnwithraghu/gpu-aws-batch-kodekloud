@@ -18,7 +18,7 @@
 - **Lesson 01: Why GPU?**
 -  **[Video] ->** CPU vs GPU Architecture, Parallelism, Tensors, and Matrix Multiplication
 -  **[Demo] ->** Run the same PyTorch matrix multiplication on CPU and GPU across multiple matrix sizes
--  **[Lab] ->** Run benchmark_gpu.py locally and compare the timing table; reference T4 results are used when no local GPU is available
+-  **[Lab] ->** Run the lesson 01 steps locally and compare the timing table; reference T4 results are used when no local GPU is available
 -  **[Deliverable] ->** A CPU-versus-GPU benchmark comparison and an explanation of when GPU acceleration is useful
   - **AWS Services:** None
   - **Estimated Time:** 45-60 minutes
@@ -26,7 +26,7 @@
 - **Lesson 02: Your First AWS Batch GPU Job**
 -  **[Video] ->** AWS Batch Compute Environments, Job Queues, Job Definitions, Jobs, and CloudWatch Logs
 -  **[Demo] ->** Submit a container to a g4dn.xlarge (NVIDIA T4) GPU environment and inspect GPU benchmark logs
--  **[Lab] ->** Run submit_job.py, poll the job to completion, and inspect the CloudWatch log stream
+-  **[Lab] ->** Submit the GPU check job (step 02), poll it to completion (step 03), and inspect the CloudWatch log stream
 -  **[Deliverable] ->** A successful AWS Batch GPU job with verified GPU model, memory, and runtime output
   - **AWS Services:** AWS Batch, Amazon ECR
   - **Estimated Time:** 45-60 minutes
@@ -34,15 +34,15 @@
 - **Lesson 03: Images to Captions**
 -  **[Video] ->** Image Captioning, BLIP, and the S3-to-Batch I/O Pattern
 -  **[Demo] ->** Upload a folder of sample images, generate captions in a Batch GPU job, and print the caption table
--  **[Lab] ->** Run submit_job.py to caption the sample images, then show_captions.py to review the results
+-  **[Lab] ->** Walk the five steps: upload images, caption one image, run the batch job, print the caption table
 -  **[Deliverable] ->** A caption file in S3 (one row per image: S3 image URI + caption) and an understanding of the Batch input/output flow
   - **AWS Services:** AWS Batch, Amazon S3
   - **Estimated Time:** 60-75 minutes
 
 - **Lesson 04: The Full Pipeline**
 -  **[Video] ->** Production Pipelines, DAGs, Job Dependencies, and Failure Handling
--  **[Demo] ->** Submit captioning and verification jobs together using AWS Batch dependsOn
--  **[Lab] ->** Run run_pipeline.py, monitor both jobs, and confirm the _VERIFIED marker in S3
+-  **[Demo] ->** Submit captioning and verification jobs with and without AWS Batch dependsOn — see the race fail, then the fix pass
+-  **[Lab] ->** Run the lesson 04 steps: two unordered jobs that race (step 01), then the ordered pipeline with the _VERIFIED marker in S3 (step 02)
 -  **[Deliverable] ->** A working image-to-caption pipeline with dependent-job orchestration
   - **AWS Services:** AWS Batch, Amazon S3
   - **Estimated Time:** 60-75 minutes

@@ -21,24 +21,17 @@ your code — just change the array size and provide a list of image prefixes.
 
 ---
 
-## What `submit_array_job.py` Does
+## The Steps
 
-1. Saves the list of image prefixes to `s3://<bucket>/config/array_image_prefixes.json`
-2. Submits one array job — each element reads its index, picks its image
-   prefix, and runs `generate_captions.py` on that batch
-3. Polls until every element reaches a terminal state
-
-Run it:
+| Step | You learn | Time |
+|------|-----------|------|
+| [01-cost-math](01-cost-math/) | The cost model — pure arithmetic, no AWS | 5 min |
+| [02-submit-array](02-submit-array/) | One array job → N parallel caption jobs | 15 min |
+| [03-check-results](03-check-results/) | Count caption files per batch in S3 | 2 min |
 
 ```bash
-# Upload extra image batches first (any folders of .jpg/.png):
-aws s3 cp images/ s3://<bucket>/images/ --recursive
-
-# One array element per image prefix:
-python submit_array_job.py --image-prefixes images/batch01 images/batch02 images/batch03
+cd lessons/05-scale-and-cost/02-submit-array && python main.py --image-prefixes images/batch01 images/batch02
 ```
-
-Each element writes its own `s3://<bucket>/captions/<batch-name>/captions.csv`.
 
 ---
 

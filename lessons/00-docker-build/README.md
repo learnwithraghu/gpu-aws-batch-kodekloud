@@ -53,7 +53,7 @@ Three things to notice:
 
 2. **One `RUN pip install` layer** — Docker caches each instruction as a layer. Keeping all installs in one `RUN` means a single cache miss rebuilds them all at once (avoiding a stale partial cache).
 
-3. **`COPY lessons/`** — every lesson script is baked into the image. Batch picks the right script at runtime via the `command` override in `submit_job.py`.
+3. **`COPY lessons/`** — every lesson script is baked into the image. Batch picks the right script at runtime via the `command` override in each lesson's submit script.
 
 ---
 
@@ -74,63 +74,16 @@ We use ECR because AWS Batch can pull from it directly using the IAM role attach
 
 ## How to Run
 
-This lesson is command-line only — run the steps below from the repo root.
+This lesson is command-line only. Three focused steps — each subfolder holds
+the exact commands and expected output:
 
-### Step 1 — Create the ECR repository (once)
+| Step | You learn | Time |
+|------|-----------|------|
+| [01-inspect-dockerfile](01-inspect-dockerfile/) | Read the Dockerfile line by line | 10 min |
+| [02-create-ecr-repo](02-create-ecr-repo/) | Create the private Docker registry | 2 min |
+| [03-build-push-verify](03-build-push-verify/) | Build, tag, push, verify the image | 30–60 min |
 
-```bash
-aws ecr create-repository \
-  --repository-name gpu-teaching \
-  --region ap-northeast-1
-```
-
-### Step 2 — Authenticate Docker with ECR
-
-```bash
-aws ecr get-login-password --region ap-northeast-1 \
-  | docker login --username AWS --password-stdin \
-    $(aws sts get-caller-identity --query Account --output text).dkr.ecr.ap-northeast-1.amazonaws.com
-```
-
-You'll see `Login Succeeded`.
-
-### Step 3 — Build the image
-
-```bash
-docker build -t gpu-teaching .
-```
-
-This takes 3–8 minutes the first time (downloading the ~3 GB base image and installing packages). Subsequent builds are fast because Docker caches each layer.
-
-### Step 4 — Tag and push
-
-```bash
-ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
-REGION=ap-northeast-1
-REPO=${ACCOUNT}.dkr.ecr.${REGION}.amazonaws.com/gpu-teaching
-
-docker tag gpu-teaching:latest ${REPO}:latest
-docker push ${REPO}:latest
-```
-
-### Step 5 — Update `.env`
-
-Copy the full image URI and paste it into your `.env`:
-
-```
-ECR_IMAGE_URI=<account>.dkr.ecr.ap-northeast-1.amazonaws.com/gpu-teaching:latest
-```
-
-### Step 6 — Verify the image is in ECR
-
-```bash
-aws ecr describe-images \
-  --repository-name gpu-teaching \
-  --image-ids imageTag=latest \
-  --region ap-northeast-1
-```
-
-You should see the tag, the push timestamp, and the image size.
+Finish by setting `ECR_IMAGE_URI` in your `.env` (step 03 covers it).
 
 ---
 
