@@ -8,8 +8,10 @@ image prefix has exactly one caption, prints a short report, and writes a
 _VERIFIED marker to S3. Exits non-zero (fails the Batch job) on any mismatch.
 
 Environment variables (passed by Batch at submit time):
-    S3_BUCKET     — the S3 bucket name
-    IMAGE_PREFIX  — S3 prefix holding the input images, e.g. "images/sample"
+    S3_BUCKET      — the S3 bucket holding the input images
+    S3_CSV_BUCKET  — the S3 bucket holding the caption CSV
+                     (defaults to S3_BUCKET if not set)
+    IMAGE_PREFIX   — S3 prefix holding the input images, e.g. "images/sample"
 """
 import csv
 import io
@@ -17,8 +19,9 @@ import os
 
 import boto3
 
-S3_BUCKET    = os.environ["S3_BUCKET"]
-IMAGE_PREFIX = os.environ["IMAGE_PREFIX"]     # e.g. "images/sample"
+S3_BUCKET     = os.environ["S3_BUCKET"]
+S3_CSV_BUCKET = os.environ.get("S3_CSV_BUCKET", S3_BUCKET)   # captions CSV bucket
+IMAGE_PREFIX  = os.environ["IMAGE_PREFIX"]     # e.g. "images/sample"
 
 s3 = boto3.client("s3")
 
@@ -39,7 +42,7 @@ def load_captions() -> list[dict]:
     """Load the caption file produced by Job 1."""
     stem = os.path.basename(IMAGE_PREFIX.rstrip("/"))
     key = f"captions/{stem}/captions.csv"
-    obj = s3.get_object(Bucket=S3_BUCKET, Key=key)
+    obj = s3.get_object(Bucket=S3_CSV_BUCKET, Key=key)
     return list(csv.DictReader(io.StringIO(obj["Body"].read().decode())))
 
 
@@ -48,8 +51,7 @@ def main():
     captions = load_captions()
 
     print(f"Images in s3://{S3_BUCKET}/{IMAGE_PREFIX}/ : {n_images}")
-    print(f"Captions in captions file              : {len(captions)}")
-
+    print(f"\nCaption counts: {n_images} images in images bucket, {len(captions)} rows in CSV bucket")
     if len(captions) != n_images:
         print("MISMATCH — every image must have exactly one caption.")
         raise SystemExit(1)
@@ -60,8 +62,8 @@ def main():
 
     stem = os.path.basename(IMAGE_PREFIX.rstrip("/"))
     marker_key = f"captions/{stem}/_VERIFIED"
-    s3.put_object(Bucket=S3_BUCKET, Key=marker_key, Body=b"ok")
-    print(f"\nVerification passed. Marker written to s3://{S3_BUCKET}/{marker_key}")
+    s3.put_object(Bucket=S3_CSV_BUCKET, Key=marker_key, Body=b"ok")
+    print(f"\nVerification passed. Marker written to s3://{S3_CSV_BUCKET}/{marker_key}")
 
 
 if __name__ == "__main__":

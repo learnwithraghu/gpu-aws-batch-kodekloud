@@ -15,6 +15,7 @@ from dotenv import load_dotenv
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../../.env"))
 
 S3_BUCKET      = os.environ["S3_BUCKET"]
+S3_CSV_BUCKET  = os.environ.get("S3_CSV_BUCKET", S3_BUCKET)
 JOB_QUEUE      = os.environ["BATCH_JOB_QUEUE"]
 JOB_DEFINITION = os.environ["BATCH_JOB_DEFINITION"]
 REGION         = os.environ.get("AWS_DEFAULT_REGION", "ap-northeast-1")
@@ -34,9 +35,10 @@ response = batch.submit_job(
         "command": ["python",
                     "/app/lessons/03-images-to-captions/03-caption-whole-batch/generate_captions.py"],
         "environment": [
-            {"name": "S3_BUCKET",    "value": S3_BUCKET},
-            {"name": "IMAGE_PREFIX", "value": f"images/{args.batch_stem}"},
-            {"name": "BATCH_SIZE",   "value": str(args.batch_size)},
+            {"name": "S3_BUCKET",      "value": S3_BUCKET},
+            {"name": "S3_CSV_BUCKET",  "value": S3_CSV_BUCKET},
+            {"name": "IMAGE_PREFIX",   "value": f"images/{args.batch_stem}"},
+            {"name": "BATCH_SIZE",     "value": str(args.batch_size)},
         ],
     },
 )
@@ -54,4 +56,4 @@ while True:
     time.sleep(10)
 
 print(f"\n{'✅' if status == 'SUCCEEDED' else '❌'}  Job {status}")
-print(f"Captions: s3://{S3_BUCKET}/captions/{args.batch_stem}/captions.csv")
+print(f"Captions: s3://{S3_CSV_BUCKET}/captions/{args.batch_stem}/captions.csv")

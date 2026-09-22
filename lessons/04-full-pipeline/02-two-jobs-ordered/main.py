@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../../.env"))
 
 S3_BUCKET      = os.environ["S3_BUCKET"]
+S3_CSV_BUCKET  = os.environ.get("S3_CSV_BUCKET", S3_BUCKET)
 JOB_QUEUE      = os.environ["BATCH_JOB_QUEUE"]
 JOB_DEFINITION = os.environ["BATCH_JOB_DEFINITION"]
 REGION         = os.environ.get("AWS_DEFAULT_REGION", "ap-northeast-1")
@@ -51,9 +52,10 @@ job1 = batch.submit_job(
         "command": ["python",
                     "/app/lessons/03-images-to-captions/03-caption-whole-batch/generate_captions.py"],
         "environment": [
-            {"name": "S3_BUCKET",    "value": S3_BUCKET},
-            {"name": "IMAGE_PREFIX", "value": image_prefix},
-            {"name": "BATCH_SIZE",   "value": "8"},
+            {"name": "S3_BUCKET",     "value": S3_BUCKET},
+            {"name": "S3_CSV_BUCKET", "value": S3_CSV_BUCKET},
+            {"name": "IMAGE_PREFIX",  "value": image_prefix},
+            {"name": "BATCH_SIZE",    "value": "8"},
         ],
     },
 )
@@ -69,8 +71,9 @@ job2 = batch.submit_job(
     containerOverrides={
         "command": ["python", "/app/lessons/04-full-pipeline/03-the-verify-job/verify_captions.py"],
         "environment": [
-            {"name": "S3_BUCKET",    "value": S3_BUCKET},
-            {"name": "IMAGE_PREFIX", "value": image_prefix},
+            {"name": "S3_BUCKET",     "value": S3_BUCKET},
+            {"name": "S3_CSV_BUCKET", "value": S3_CSV_BUCKET},
+            {"name": "IMAGE_PREFIX",  "value": image_prefix},
         ],
     },
 )
@@ -93,5 +96,5 @@ print(f"\nJob 1 (caption): {'✅' if states[job1_id] == 'SUCCEEDED' else '❌'} 
 print(f"Job 2 (verify) : {'✅' if states[job2_id] == 'SUCCEEDED' else '❌'}  {states[job2_id]}")
 
 if states[job1_id] == "SUCCEEDED" and states[job2_id] == "SUCCEEDED":
-    print(f"\nCaptions : s3://{S3_BUCKET}/captions/{args.batch_stem}/captions.csv")
-    print(f"Marker   : s3://{S3_BUCKET}/captions/{args.batch_stem}/_VERIFIED")
+    print(f"\nCaptions : s3://{S3_CSV_BUCKET}/captions/{args.batch_stem}/captions.csv")
+    print(f"Marker   : s3://{S3_CSV_BUCKET}/captions/{args.batch_stem}/_VERIFIED")

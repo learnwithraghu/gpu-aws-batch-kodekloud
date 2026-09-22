@@ -7,12 +7,14 @@ and uploads a caption file back to S3 with one row per image:
 the image's S3 URI and its caption.
 
 Environment variables (passed by Batch at submit time):
-    S3_BUCKET     — the S3 bucket name
-    IMAGE_PREFIX  — S3 prefix holding the input images, e.g. "images/sample"
-    BATCH_SIZE    — how many images to caption at once on GPU (default: 8)
+    S3_BUCKET      — the S3 bucket holding the input images
+    S3_CSV_BUCKET  — the S3 bucket the caption CSV is written to
+                     (defaults to S3_BUCKET if not set)
+    IMAGE_PREFIX   — S3 prefix holding the input images, e.g. "images/sample"
+    BATCH_SIZE     — how many images to caption at once on GPU (default: 8)
 
 Output:
-    s3://<bucket>/captions/<batch-stem>/captions.csv
+    s3://<csv-bucket>/captions/<batch-stem>/captions.csv
     with columns: image_s3_uri, caption
 """
 import csv
@@ -25,9 +27,10 @@ from PIL import Image
 from transformers import BlipForConditionalGeneration, BlipProcessor
 
 # ── Config from environment ──────────────────────────────────────────────────
-S3_BUCKET    = os.environ["S3_BUCKET"]
-IMAGE_PREFIX = os.environ["IMAGE_PREFIX"]     # e.g. "images/sample"
-BATCH_SIZE   = int(os.environ.get("BATCH_SIZE", "8"))
+S3_BUCKET     = os.environ["S3_BUCKET"]
+S3_CSV_BUCKET = os.environ.get("S3_CSV_BUCKET", S3_BUCKET)   # captions CSV bucket
+IMAGE_PREFIX  = os.environ["IMAGE_PREFIX"]     # e.g. "images/sample"
+BATCH_SIZE    = int(os.environ.get("BATCH_SIZE", "8"))
 
 s3     = boto3.client("s3")
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -89,7 +92,11 @@ def caption_all(model, processor, image_keys: list[str]) -> list[dict]:
 
 
 def save_caption_csv(manifest: list[dict]):
-    """Write one row per image: the image's S3 URI and its caption."""
+    """Write one row per image: the image's S3 URI and its caption.
+
+    The CSV goes to the CSV bucket; each URI points at the image in the
+    images bucket, so the CSV acts as a pointer table.
+    """
     stem = os.path.basename(IMAGE_PREFIX.rstrip("/"))
     key = f"captions/{stem}/captions.csv"
 
@@ -99,8 +106,8 @@ def save_caption_csv(manifest: list[dict]):
     for entry in manifest:
         writer.writerow([f"s3://{S3_BUCKET}/{entry['image_key']}", entry["caption"]])
 
-    s3.put_object(Bucket=S3_BUCKET, Key=key, Body=body.getvalue().encode())
-    print(f"Uploaded caption file to s3://{S3_BUCKET}/{key}")
+    s3.put_object(Bucket=S3_CSV_BUCKET, Key=key, Body=body.getvalue().encode())
+    print(f"Uploaded caption file to s3://{S3_CSV_BUCKET}/{key}")
 
 
 def main():

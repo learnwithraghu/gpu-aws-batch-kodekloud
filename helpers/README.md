@@ -102,6 +102,22 @@ and skips them.
 
 ---
 
+## organize_uploads.sh
+
+The Batch jobs caption everything under `images/<stem>/` in the images bucket,
+but a tutor may drop images at the bucket root. This helper moves any
+root-level image objects into `images/<stem>/` (default stem: `sample`):
+
+```bash
+bash helpers/organize_uploads.sh             # moves root-level images into images/sample/
+bash helpers/organize_uploads.sh --stem demo # different batch folder
+bash helpers/organize_uploads.sh --dry-run   # preview without moving
+```
+
+Then caption the batch with lesson 03 step 04 (`python main.py --batch-stem sample`).
+
+---
+
 ## create_buckets.sh
 
 Idempotent S3 bucket setup (invoked by `setup_infra.sh up`, also usable on

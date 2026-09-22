@@ -17,6 +17,7 @@ from dotenv import load_dotenv
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../../.env"))
 
 S3_BUCKET      = os.environ["S3_BUCKET"]
+S3_CSV_BUCKET  = os.environ.get("S3_CSV_BUCKET", S3_BUCKET)
 JOB_QUEUE      = os.environ["BATCH_JOB_QUEUE"]
 JOB_DEFINITION = os.environ["BATCH_JOB_DEFINITION"]
 REGION         = os.environ.get("AWS_DEFAULT_REGION", "ap-northeast-1")
@@ -60,6 +61,7 @@ response = batch.submit_job(
         ],
         "environment": [
             {"name": "S3_BUCKET",             "value": S3_BUCKET},
+            {"name": "S3_CSV_BUCKET",         "value": S3_CSV_BUCKET},
             {"name": "IMAGE_PREFIX_LIST_KEY", "value": IMAGE_PREFIX_LIST_KEY},
         ],
     },
@@ -81,4 +83,4 @@ while True:
     time.sleep(20)
 
 print(f"\n{'✅' if state == 'SUCCEEDED' else '❌'}  Array job {state}")
-print("Caption files are under s3://<bucket>/captions/<batch-name>/captions.csv")
+print("Caption files are under s3://<csv-bucket>/captions/<batch-name>/captions.csv")
