@@ -1,8 +1,8 @@
-# 🖼️ GPU Teaching — Image → Caption → Vector Search Pipeline
+# 🖼️ GPU Teaching — Image → Caption Pipeline on AWS Batch
 
-A hands-on 8-lesson course teaching GPUs to Data Scientists, using AWS Batch with GPU instances.
+A hands-on 6-lesson course teaching GPUs to Data Scientists, using AWS Batch with GPU instances.
 
-**What you'll build:** A pipeline that takes a folder of images, generates a natural-language caption for each on a GPU, embeds every caption, and lets you search with plain English — _"find me the photo of a dog in a park."_
+**What you'll build:** A pipeline that takes a folder of images, generates a natural-language caption for each one on a GPU with BLIP, and stores the results in S3 — a caption file pairing every image's S3 location with its caption.
 
 ---
 
@@ -24,10 +24,8 @@ If you need more than 8 vCPUs, request an increase via the [Service Quotas conso
 | [01](lessons/01-why-gpu/) | Why GPU? | CPU vs GPU mental model | — |
 | [02](lessons/02-first-batch-job/) | First Batch Job | AWS Batch concepts | Batch, ECR |
 | [03](lessons/03-images-to-captions/) | Images → Captions | BLIP image captioning, S3 I/O | Batch, S3 |
-| [04](lessons/04-captions-to-embeddings/) | Captions → Embeddings | CLIP text encoder, GPU batching | Batch, S3 |
-| [05](lessons/05-vector-search/) | Vector Search | Cosine similarity | S3 |
-| [06](lessons/06-full-pipeline/) | Full Pipeline | Job dependencies / DAG | Batch, S3 |
-| [07](lessons/07-scale-and-cost/) | Scale & Cost | Array jobs, spot pricing | Batch, S3 |
+| [04](lessons/04-full-pipeline/) | Full Pipeline | Job dependencies / DAG | Batch, S3 |
+| [05](lessons/05-scale-and-cost/) | Scale & Cost | Array jobs, spot pricing | Batch, S3 |
 
 Each lesson is **fully self-contained** — you can do them in order or jump to any one independently.
 
@@ -43,7 +41,7 @@ Do this once before starting any lesson.
 git clone <this-repo>
 cd gpu-teaching
 cp .env.example .env
-# Now edit .env and fill in your AWS credentials + bucket name
+# Now edit .env and fill in your bucket name + image URI
 ```
 
 ### 2. Create an S3 bucket
@@ -130,21 +128,6 @@ aws batch register-job-definition \
 
 Update `BATCH_JOB_QUEUE` and `BATCH_JOB_DEFINITION` in your `.env`.
 
-### 5. Create the S3 Vectors bucket & index
-
-Lessons 04, 06, and 07 store caption embeddings in Amazon S3 Vectors instead of
-ordinary S3. Create the vector bucket/index once:
-
-```bash
-python helpers/setup_s3_vectors.py
-```
-
-Copy the printed bucket/index names into `S3_VECTOR_BUCKET` and
-`S3_VECTOR_INDEX` in your `.env`. Also grant `s3vectors:PutVectors` on the
-index to the IAM role used by your Batch job definition (`BatchJobRole`), so
-the GPU jobs can write embeddings. See [`helpers/README.md`](helpers/README.md#setup_s3_vectorspy)
-for the full permission list.
-
 ---
 
 ## 🛠️ Pre-flight & Teardown
@@ -190,34 +173,39 @@ gpu-teaching/
 ├── helpers/
 │   ├── README.md
 │   ├── check_spot_availability.py  ← pre-flight spot/on-demand check
-│   ├── setup_s3_vectors.py         ← one-time S3 Vectors bucket/index setup
-│   ├── s3_vectors.py               ← shared S3 Vectors helper (used inside Batch jobs)
 │   └── teardown.py                 ← clean up all AWS resources
 └── lessons/
     ├── 00-docker-build/
     ├── 01-why-gpu/
     ├── 02-first-batch-job/
     ├── 03-images-to-captions/
-    ├── 04-captions-to-embeddings/
-    ├── 05-vector-search/
-    ├── 06-full-pipeline/
-    └── 07-scale-and-cost/
+    ├── 04-full-pipeline/
+    └── 05-scale-and-cost/
 ```
 
 ---
 
 ## 💡 How lessons work
 
-Every lesson that runs on AWS Batch has the same pattern:
+Every lesson is plain Python scripts plus a README — no notebooks.
 
 ```
-notebook.ipynb          ← run this to learn + trigger the job
-submit_job.py           ← submits the Batch job, polls until done
-job.py (or similar)     ← runs INSIDE the container on the GPU
-README.md               ← theory + concept explanation
+README.md               ← theory + concept explanation + how to run
+*.py                    ← the scripts (submit jobs locally, or run on the GPU in Batch)
+assets/                 ← sample images (where applicable)
 ```
 
-The notebook ties everything together — you run it top-to-bottom.
+Typical flow for a Batch lesson:
+
+```bash
+python submit_job.py    # upload inputs, submit the job, poll until done
+```
+
+The job itself follows the same pattern everywhere:
+
+```
+download input from S3 → process on the GPU → upload results to S3
+```
 
 ---
 

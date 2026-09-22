@@ -40,12 +40,19 @@ Simple — but it proves the GPU is working and accessible inside Batch.
 ## How to Run
 
 1. Make sure you've completed the **one-time setup** in the root `README.md`
-2. Open `notebook.ipynb` and run all cells
+2. Run the submit script from this folder:
 
-The notebook will:
-- Submit the job to Batch via `submit_job.py`
-- Poll every 10 seconds until it finishes
-- Print a link to the CloudWatch logs
+```bash
+python submit_job.py
+```
+
+The script:
+- Submits `job.py` to AWS Batch
+- Polls every 10 seconds until it finishes
+- Prints the job ID and final status
+
+To find the job's log stream, go to:
+`AWS Console → CloudWatch → Log Groups → /aws/batch/job`
 
 ---
 

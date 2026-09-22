@@ -10,7 +10,7 @@
 When you run a job on a GPU instance, you can't just send a Python script — you need to send an entire environment:
 
 - The right CUDA version (must match the GPU driver on the instance)
-- Python, PyTorch, Transformers (BLIP + CLIP), Pillow, boto3, …
+- Python, PyTorch, Transformers (BLIP), Pillow, boto3, …
 - Your lesson code
 
 Docker packages all of that into a single image. The same image runs on your laptop (for testing), on any g4dn.xlarge in AWS, and on any other GPU instance anywhere.
@@ -33,13 +33,12 @@ The entire course uses **one shared image** (`Dockerfile` at the repo root):
 FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
 
 # All Python dependencies for every lesson, installed in a single layer
-# transformers provides both BLIP (image captioning) and CLIP (text embeddings)
+# transformers provides BLIP (image captioning)
 RUN pip install --no-cache-dir \
     transformers>=4.42      \
     Pillow                  \
     boto3                   \
-    python-dotenv           \
-    numpy
+    python-dotenv
 
 # Copy all lesson scripts into the image
 # AWS Batch overrides the "command" field at submit time
@@ -75,9 +74,7 @@ We use ECR because AWS Batch can pull from it directly using the IAM role attach
 
 ## How to Run
 
-Open `notebook.ipynb` and run all cells top-to-bottom. It will walk you through each step interactively.
-
-If you prefer the command line, here is the full sequence:
+This lesson is command-line only — run the steps below from the repo root.
 
 ### Step 1 — Create the ECR repository (once)
 
@@ -123,6 +120,17 @@ Copy the full image URI and paste it into your `.env`:
 ```
 ECR_IMAGE_URI=<account>.dkr.ecr.ap-northeast-1.amazonaws.com/gpu-teaching:latest
 ```
+
+### Step 6 — Verify the image is in ECR
+
+```bash
+aws ecr describe-images \
+  --repository-name gpu-teaching \
+  --image-ids imageTag=latest \
+  --region ap-northeast-1
+```
+
+You should see the tag, the push timestamp, and the image size.
 
 ---
 

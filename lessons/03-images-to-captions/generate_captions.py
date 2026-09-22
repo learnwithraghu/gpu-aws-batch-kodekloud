@@ -3,15 +3,20 @@ Lesson 03 — generate_captions.py
 Runs INSIDE the Docker container on the AWS Batch instance.
 
 Downloads a batch of images from S3, runs BLIP image captioning on each (GPU),
-and uploads a caption manifest back to S3.
+and uploads a caption file back to S3 with one row per image:
+the image's S3 URI and its caption.
 
 Environment variables (passed by Batch at submit time):
     S3_BUCKET     — the S3 bucket name
     IMAGE_PREFIX  — S3 prefix holding the input images, e.g. "images/sample"
     BATCH_SIZE    — how many images to caption at once on GPU (default: 8)
+
+Output:
+    s3://<bucket>/captions/<batch-stem>/captions.csv
+    with columns: image_s3_uri, caption
 """
+import csv
 import io
-import json
 import os
 
 import boto3
@@ -83,18 +88,26 @@ def caption_all(model, processor, image_keys: list[str]) -> list[dict]:
     return manifest
 
 
-def upload_manifest(manifest: list[dict]):
+def save_caption_csv(manifest: list[dict]):
+    """Write one row per image: the image's S3 URI and its caption."""
     stem = os.path.basename(IMAGE_PREFIX.rstrip("/"))
-    key = f"captions/{stem}/manifest.json"
-    s3.put_object(Bucket=S3_BUCKET, Key=key, Body=json.dumps(manifest).encode())
-    print(f"Uploaded caption manifest to s3://{S3_BUCKET}/{key}")
+    key = f"captions/{stem}/captions.csv"
+
+    body = io.StringIO()
+    writer = csv.writer(body)
+    writer.writerow(["image_s3_uri", "caption"])
+    for entry in manifest:
+        writer.writerow([f"s3://{S3_BUCKET}/{entry['image_key']}", entry["caption"]])
+
+    s3.put_object(Bucket=S3_BUCKET, Key=key, Body=body.getvalue().encode())
+    print(f"Uploaded caption file to s3://{S3_BUCKET}/{key}")
 
 
 def main():
     model, processor = load_blip()
     image_keys        = list_image_keys()
-    manifest           = caption_all(model, processor, image_keys)
-    upload_manifest(manifest)
+    manifest          = caption_all(model, processor, image_keys)
+    save_caption_csv(manifest)
     print(f"Done. {len(manifest)} images captioned.")
 
 

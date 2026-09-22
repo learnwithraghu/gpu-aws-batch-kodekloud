@@ -244,11 +244,6 @@ uv run --with boto3 --with python-dotenv python helpers/teardown.py --delete-ecr
 uv run --with boto3 --with python-dotenv python helpers/teardown.py --region us-east-1 --dry-run
 ```
 
-> **Note**: `teardown.py` does not delete S3 Vectors resources (the vector
-> bucket/index created by `setup_s3_vectors.py`). Remove those manually with
-> the AWS CLI or console if you no longer need them — they are billed
-> separately from Batch/ECR/S3.
-
 ### Prerequisites
 
 ```bash
@@ -264,42 +259,3 @@ AWS credentials must have:
 - `ecr:DeleteRepository` (if using `--delete-ecr`)
 - `s3:DeleteBucket`, `s3:DeleteObject`, `s3:ListBucket`, `s3:ListBucketVersions` (if using `--delete-s3`)
 
----
-
-## setup_s3_vectors.py
-
-One-time setup helper that creates the S3 Vectors bucket and index used by
-Lessons 04, 06, and 07 to store caption embeddings. It is idempotent — safe to
-run again if the bucket/index already exist.
-
-### Usage
-
-```bash
-# Create using the defaults (bucket name derived from your AWS account ID):
-uv run --with boto3 --with python-dotenv python helpers/setup_s3_vectors.py
-
-# Preview without creating anything:
-uv run --with boto3 --with python-dotenv python helpers/setup_s3_vectors.py --dry-run
-
-# Override the bucket/index names:
-uv run --with boto3 --with python-dotenv python helpers/setup_s3_vectors.py \
-  --vector-bucket my-vectors-bucket --index my-captions-index
-```
-
-After it runs, copy the printed bucket/index names into `.env`:
-
-```dotenv
-S3_VECTOR_BUCKET=gpu-teaching-vectors-<account-id>
-S3_VECTOR_INDEX=image-captions
-```
-
-### Prerequisites
-
-AWS credentials must have:
-- `s3vectors:CreateVectorBucket`, `s3vectors:GetVectorBucket`
-- `s3vectors:CreateIndex`, `s3vectors:GetIndex`
-- `sts:GetCallerIdentity`
-
-The AWS Batch job role (`BatchJobRole` / `jobRoleArn` in your job definition)
-also needs `s3vectors:PutVectors` on the index so Lessons 04/06/07 can write
-embeddings from inside the container.

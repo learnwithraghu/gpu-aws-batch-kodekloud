@@ -84,4 +84,4 @@ if __name__ == "__main__":
     final_state  = wait(job_id)
 
     print(f"\n{'✅' if final_state == 'SUCCEEDED' else '❌'}  Job {final_state}")
-    print(f"Captions are at: s3://{S3_BUCKET}/captions/{args.batch_stem}/manifest.json")
+    print(f"Captions are at: s3://{S3_BUCKET}/captions/{args.batch_stem}/captions.csv")

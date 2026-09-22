@@ -47,17 +47,31 @@ S3 (input)  →  download to /tmp  →  process  →  upload results to S3  → 
 ```
 
 The job reads `S3_BUCKET` and `IMAGE_PREFIX` from environment variables
-(passed at submit time), and writes a caption manifest to
-`captions/<batch-stem>/manifest.json`.
+(passed at submit time), and writes one caption file per image batch to
+`captions/<batch-stem>/captions.csv`:
+
+```csv
+image_s3_uri,caption
+s3://your-bucket/images/sample/dog.jpg,"a dog running across a grassy park"
+```
+
+Each row pairs the **S3 location of the image** with **the caption BLIP
+generated for it** — a simple, portable record of the whole batch that any
+downstream tool (pandas, a spreadsheet, another job) can read.
 
 ---
 
-## What the Notebook Does
+## What the Scripts Do
 
-1. Uploads the images in `assets/images/` (committed in this folder) to S3
-2. Submits the captioning job to Batch
-3. After the job completes, downloads the caption manifest and displays a few
-   images next to their generated captions
+1. `submit_job.py` uploads the images in `assets/images/` to S3, submits the
+   captioning job to Batch, and polls until it finishes
+2. `show_captions.py` downloads the caption file and prints the
+   image → caption table
+
+```bash
+python submit_job.py                # upload + caption + wait
+python show_captions.py             # print the caption table
+```
 
 ---
 
