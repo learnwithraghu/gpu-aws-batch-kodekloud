@@ -102,6 +102,29 @@ and skips them.
 
 ---
 
+## push_ecr_image.sh
+
+Builds the course GPU Docker image (repo-root `Dockerfile` → CUDA 11.8 +
+PyTorch + transformers/BLIP) and pushes it to ECR. Idempotent: the ECR
+repository `gpu-teaching` is created on first run, and the image is rebuilt
+and re-pushed every run — required after changing the Dockerfile or any
+lesson code (Batch instances run the baked-in copies under `/app/lessons/`).
+
+```bash
+bash helpers/push_ecr_image.sh              # build + push gpu-teaching:latest
+bash helpers/push_ecr_image.sh --tag v2     # push an extra tag alongside latest
+bash helpers/push_ecr_image.sh --region us-east-1
+```
+
+Writes `ECR_IMAGE_URI` into `.env` when done (the lesson submitters read
+`BATCH_JOB_QUEUE` / `BATCH_JOB_DEFINITION`; the job definition references
+the ECR image). Requires Docker and permissions: `s3:*`-style ECR actions
+(`CreateRepository`, `DescribeRepositories`, `GetAuthorizationToken`,
+`BatchCheckLayerAvailability`, `PutImage`, `InitiateLayerUpload`,
+`UploadLayerPart`, `CompleteLayerUpload`, `DescribeImages`).
+
+---
+
 ## organize_uploads.sh
 
 The Batch jobs caption everything under `images/<stem>/` in the images bucket,

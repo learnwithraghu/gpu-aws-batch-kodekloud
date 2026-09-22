@@ -1,9 +1,22 @@
 # Step 03 — Build, tag, push, verify
 
 The full image pipeline. Build takes 3–8 minutes the first time (~3 GB base
-image); later builds are fast because Docker caches each layer.
+image); later builds are fast because Docker caches each layer. Step 02
+(creating the ECR repository) is handled automatically by the helper below.
 
-**Run:**
+**Run (recommended — idempotent helper does all of the below):**
+
+```bash
+bash helpers/push_ecr_image.sh
+```
+
+This ensures the ECR repository exists (creating it if missing), authenticates
+Docker with ECR, builds the image, pushes `gpu-teaching:latest`, verifies it
+landed, and writes `ECR_IMAGE_URI` into your `.env`. Re-run it any time you
+change the Dockerfile or lesson code.
+
+<details>
+<summary>Manual steps (equivalent, for learning what the helper does)</summary>
 
 ```bash
 # 1. Authenticate Docker with ECR (token valid 12 hours)
@@ -25,5 +38,8 @@ aws ecr describe-images --repository-name gpu-teaching \
   --image-ids imageTag=latest --region ap-northeast-1
 ```
 
-**Expected:** `Login Succeeded`, a pushed image, and JSON showing tag
-`latest`. Then set `ECR_IMAGE_URI=${REPO}:latest` in your `.env`.
+</details>
+
+**Expected:** the helper prints "created" (first run only), `Login Succeeded`,
+a pushed image, and a verification line. `ECR_IMAGE_URI` in `.env` is updated
+automatically.
