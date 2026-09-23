@@ -34,9 +34,13 @@ DEFAULT_COMMAND = [
 
 CONTAINER_PROPERTIES = {
     "image": ECR_IMAGE_URI,
+    # Memory stays below the g4dn.xlarge's 16 GiB: ECS registers usable
+    # memory slightly under the instance total (OS + agent overhead), so a
+    # job asking for the full 16384 MiB can never be placed
+    # (MISCONFIGURATION:JOB_RESOURCE_REQUIREMENT).
     "resourceRequirements": [
         {"type": "VCPU",   "value": "4"},
-        {"type": "MEMORY", "value": "16384"},
+        {"type": "MEMORY", "value": "12288"},
         {"type": "GPU",    "value": "1"},
     ],
     "environment": [
@@ -54,13 +58,25 @@ def find_active() -> dict | None:
     return max(revs, key=lambda j: j["revision"]) if revs else None
 
 
+def matches(existing: dict) -> bool:
+    """True if the active revision already has exactly the desired config."""
+    c = existing["containerProperties"]
+    req  = sorted(c.get("resourceRequirements", []), key=lambda r: r["type"])
+    want = sorted(CONTAINER_PROPERTIES["resourceRequirements"], key=lambda r: r["type"])
+    return (
+        c.get("image") == CONTAINER_PROPERTIES["image"]
+        and req == want
+        and c.get("environment", []) == CONTAINER_PROPERTIES["environment"]
+        and c.get("command", []) == CONTAINER_PROPERTIES["command"]
+    )
+
+
 existing = find_active()
-if existing and existing["containerProperties"]["image"] == ECR_IMAGE_URI:
-    print(f"✅ {JOB_DEFINITION}:{existing['revision']} already points at our image — nothing to do")
+if existing and matches(existing):
+    print(f"✅ {JOB_DEFINITION}:{existing['revision']} already matches — nothing to do")
 else:
     if existing:
-        print(f"Image changed → registering a new revision "
-              f"(was {existing['containerProperties']['image']})")
+        print("Config changed → registering a new revision")
     resp = batch.register_job_definition(
         jobDefinitionName=JOB_DEFINITION,
         type="container",
@@ -71,5 +87,5 @@ else:
 
 print(f"\nJob definition : {existing['jobDefinitionArn']}")
 print(f"Image          : {existing['containerProperties']['image']}")
-print("Resources      : 4 vCPU · 16 GiB · 1 GPU (g4dn.xlarge)")
+print("Resources      : 4 vCPU · 12 GiB · 1 GPU (g4dn.xlarge)")
 print("\nNext: caption one image   python ../02-caption-one-image/main.py")
