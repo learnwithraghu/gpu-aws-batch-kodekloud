@@ -66,8 +66,8 @@ else:
         type="container",
         containerProperties=CONTAINER_PROPERTIES,
     )
-    existing = resp
     print(f"Registered {resp['jobDefinitionArn']}")
+    existing = find_active()   # describe shape includes containerProperties
 
 print(f"\nJob definition : {existing['jobDefinitionArn']}")
 print(f"Image          : {existing['containerProperties']['image']}")
