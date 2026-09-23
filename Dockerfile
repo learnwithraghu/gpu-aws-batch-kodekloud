@@ -7,9 +7,11 @@
 FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
 
 # Install Python dependencies for all lessons in one layer
-# transformers provides BLIP (image captioning)
+# transformers is PINNED: newer releases require PyTorch >= 2.5 and disable
+# themselves against this image's torch 2.1.0 (ImportError: Blip... requires
+# the PyTorch library). 4.46.3 is the newest line that runs on torch 2.1.
 RUN pip install --no-cache-dir \
-    transformers>=4.42      \
+    transformers==4.46.3    \
     Pillow                  \
     boto3                   \
     python-dotenv
