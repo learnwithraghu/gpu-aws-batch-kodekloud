@@ -63,10 +63,11 @@ downstream tool (pandas, a spreadsheet, another job) can read.
 
 ## The Steps
 
-Five short demos — cd in, run `python main.py`:
+Six short demos — cd in, run `python main.py`:
 
 | Step | You learn | Time |
 |------|-----------|------|
+| [00-register-job-def](00-register-job-def/) | Point Batch at the ECR image (job definition) | 5 min |
 | [01-upload-images](01-upload-images/) | Push sample images to S3 | 5 min |
 | [02-caption-one-image](02-caption-one-image/) | BLIP captions ONE image on the GPU | 10 min |
 | [03-caption-whole-batch](03-caption-whole-batch/) | The real container job → captions.csv | 10 min |
