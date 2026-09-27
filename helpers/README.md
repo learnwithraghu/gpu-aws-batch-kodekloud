@@ -2,6 +2,10 @@
 
 Utility scripts for pre-flight validation and course teardown.
 
+Live resource names (queues, job definitions, buckets, VPC) are documented in
+[`docs/aws-batch-setup.md`](../docs/aws-batch-setup.md) — use that instead of
+re-querying AWS each session.
+
 ---
 
 ## Setup

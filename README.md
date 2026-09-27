@@ -4,6 +4,12 @@ A hands-on 6-lesson course teaching GPUs to Data Scientists, using AWS Batch wit
 
 **What you'll build:** A pipeline that takes a folder of images, generates a natural-language caption for each one on a GPU with BLIP, and stores the results in S3 — a caption file pairing every image's S3 location with its caption.
 
+**Live AWS inventory** (queues, job definitions, buckets, VPC, IAM):
+[`docs/aws-batch-setup.md`](docs/aws-batch-setup.md). Read that instead of
+re-discovering resource names. Account-specific IDs stay in local `.env`.
+The one-time setup below is how the account was first provisioned; the
+names in the inventory are what is actually running.
+
 ---
 
 ## 🔔 AWS Quota Notes
@@ -169,6 +175,7 @@ See [`helpers/README.md`](helpers/README.md) for full documentation.
 gpu-teaching/
 ├── .env.example          ← template; copy to .env
 ├── README.md             ← you are here
+├── docs/aws-batch-setup.md ← live queues, job defs, buckets, VPC, IAM
 ├── Dockerfile            ← one shared image for all lessons
 ├── helpers/
 │   ├── README.md

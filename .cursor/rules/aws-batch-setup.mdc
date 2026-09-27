@@ -1,0 +1,35 @@
+---
+description: Live AWS Batch resource names and constraints for this course account
+alwaysApply: true
+---
+
+# AWS Batch setup (do not re-discover)
+
+Full inventory: [`docs/aws-batch-setup.md`](../../docs/aws-batch-setup.md).
+Read that file instead of querying AWS unless the user says infra changed.
+Account ID, bucket suffixes, and ECR registry come from local `.env` — never
+commit them.
+
+## Defaults (region `ap-northeast-1`)
+
+- Queue: `gpu-teaching-gpu-smoke-queue-spot` (fallback: `gpu-teaching-gpu-smoke-queue-on-demand`)
+- Job definition: `gpu-teaching-caption-job` — use revision **2+** (4 vCPU, **12288 MiB**, 1 GPU). Revision **1 is broken** (16384 MiB never places).
+- Image: `<account-id>.dkr.ecr.ap-northeast-1.amazonaws.com/gpu-teaching:latest` (from `ECR_IMAGE_URI`)
+- Images: `s3://gpu-teaching-images-<account-id>/images/<stem>/`
+- Captions: `s3://gpu-teaching-captions-csv-<account-id>/captions/<stem>/captions.csv`
+- Logs: `/aws/batch/job`
+- Network (already wired into the CEs): VPC `vpc-3f0b1a58`, subnet `subnet-b560b3fd` (`ap-northeast-1a`), SG `sg-bd00e4f5`
+- Instance profile: `ecsInstanceRole`. No `BatchJobRole` exists; caption job defs have no `jobRoleArn`.
+
+## Do not
+
+- Recreate `gpu-teaching-ce` / `gpu-teaching-queue` / `gpu-teaching-job-def` (README example names; they are not the live resources).
+- Register a job def with 16384 MiB memory on `g4dn.xlarge`.
+- Put AWS keys or account IDs in the repo. CLI creds stay in `~/.aws/` via `aws configure`.
+- Assume the ECR `:latest` image matches the current `Dockerfile` / `lessons/` — Batch runs the baked image. Rebuild with `bash helpers/push_ecr_image.sh` after those files change.
+
+## Stuck jobs
+
+- `RUNNABLE` forever → Spot/quota; switch queue to on-demand in `.env`.
+- `MISCONFIGURATION:JOB_RESOURCE_REQUIREMENT` → wrong memory; use caption-job `:2`.
+- Container exit 1 → CloudWatch `/aws/batch/job` first.
