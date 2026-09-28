@@ -13,13 +13,13 @@ commit them.
 ## Defaults (region `ap-northeast-1`)
 
 - Queue: `gpu-teaching-gpu-smoke-queue-spot` (fallback: `gpu-teaching-gpu-smoke-queue-on-demand`)
-- Job definition: `gpu-teaching-caption-job` — use revision **2+** (4 vCPU, **12288 MiB**, 1 GPU). Revision **1 is broken** (16384 MiB never places).
+- Job definition: `gpu-teaching-caption-job` — use revision **3+** (4 vCPU, **12288 MiB**, 1 GPU, job role). Revision **1 is broken** (16384 MiB never places). Revision **2** has no `jobRoleArn`.
 - Image: `<account-id>.dkr.ecr.ap-northeast-1.amazonaws.com/gpu-teaching:latest` (from `ECR_IMAGE_URI`)
 - Images: `s3://gpu-teaching-images-<account-id>/images/<stem>/`
 - Captions: `s3://gpu-teaching-captions-csv-<account-id>/captions/<stem>/captions.csv`
 - Logs: `/aws/batch/job`
 - Network (already wired into the CEs): VPC `vpc-3f0b1a58`, subnet `subnet-b560b3fd` (`ap-northeast-1a`), SG `sg-bd00e4f5`
-- Instance profile: `ecsInstanceRole`. No `BatchJobRole` exists; caption job defs have no `jobRoleArn`.
+- Instance profile: `ecsInstanceRole` (ECR pull and logs only). Container S3 uses `gpu-teaching-batch-job-role` via `jobRoleArn` (`BATCH_JOB_ROLE_ARN` in `.env`). README name `BatchJobRole` is not live.
 
 ## Do not
 
@@ -31,5 +31,5 @@ commit them.
 ## Stuck jobs
 
 - `RUNNABLE` forever → Spot/quota; switch queue to on-demand in `.env`.
-- `MISCONFIGURATION:JOB_RESOURCE_REQUIREMENT` → wrong memory; use caption-job `:2`.
+- `MISCONFIGURATION:JOB_RESOURCE_REQUIREMENT` → wrong memory; use caption-job `:3`.
 - Container exit 1 → CloudWatch `/aws/batch/job` first.

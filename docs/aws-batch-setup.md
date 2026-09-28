@@ -49,7 +49,7 @@ These are the names lesson `main.py` files already expect via `.env`.
 |------|------|--------|
 | Default job queue | `gpu-teaching-gpu-smoke-queue-spot` | GPU Spot (`g4dn.xlarge`) |
 | Fallback job queue | `gpu-teaching-gpu-smoke-queue-on-demand` | If a job sits in `RUNNABLE` (no Spot capacity) |
-| Lesson job definition | `gpu-teaching-caption-job` | Use revision **`:2` or later**. `:1` is broken (16 GiB memory). |
+| Lesson job definition | `gpu-teaching-caption-job` | Use revision **`:3` or later** (12288 MiB + job role). `:1` is broken (16 GiB). `:2` has no `jobRoleArn`. |
 | Image | `<account-id>.dkr.ecr.ap-northeast-1.amazonaws.com/gpu-teaching:latest` | Course CUDA + PyTorch + BLIP image |
 | Images bucket | `gpu-teaching-images-<account-id>` | Input: `images/<stem>/…` |
 | Captions bucket | `gpu-teaching-captions-csv-<account-id>` | Output: `captions/<stem>/captions.csv` |
@@ -122,17 +122,17 @@ Submit by **name**; Batch uses the latest ACTIVE revision unless you pin one.
 
 ### `gpu-teaching-caption-job` — lessons 02–05
 
-Use **revision 2** (or a newer matching revision). Do not submit `:1`.
+Use **revision 3** (or a newer matching revision). Do not submit `:1` or `:2`.
 
-| Field | Revision 2 (good) | Revision 1 (broken) |
-|-------|-------------------|---------------------|
-| Image | `…/gpu-teaching:latest` | same |
-| VCPU | 4 | 4 |
-| MEMORY | **12288 MiB** | 16384 MiB — never placeable |
-| GPU | 1 | 1 |
-| `jobRoleArn` | none | none |
-| Env | `S3_BUCKET`, `S3_CSV_BUCKET` | same |
-| Default command | `python -c "import torch; print('CUDA:…')"` | same |
+| Field | Revision 3 (good) | Revision 2 | Revision 1 (broken) |
+|-------|-------------------|------------|---------------------|
+| Image | `…/gpu-teaching:latest` | same | same |
+| VCPU | 4 | 4 | 4 |
+| MEMORY | **12288 MiB** | 12288 MiB | 16384 MiB — never placeable |
+| GPU | 1 | 1 | 1 |
+| `jobRoleArn` | `gpu-teaching-batch-job-role` | none — S3 `AccessDenied` | none |
+| Env | `S3_BUCKET`, `S3_CSV_BUCKET` | same | same |
+| Default command | `python -c "import torch; print('CUDA:…')"` | same | same |
 
 Lessons override `command` at submit time to run a script under `/app/lessons/`.
 They also pass `IMAGE_PREFIX`, `BATCH_SIZE`, and the two bucket env vars.
@@ -166,8 +166,8 @@ Created/reused by `helpers/test_gpu_batch.py`. Not for lessons.
 | Tag mutability | MUTABLE |
 | Scan on push | on |
 | Size | ~3.8 GB |
-| Last push | 2026-09-22 |
-| Last pull | 2026-09-23 |
+| Last push | 2026-09-28 |
+| Last pull | 2026-09-28 |
 
 Dockerfile (repo root): `pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime`,
 `transformers==4.46.3`, Pillow, boto3, python-dotenv. Lesson code is copied
@@ -232,14 +232,14 @@ compute environments.
 |-----------|------|----------|
 | Batch service-linked role | `AWSServiceRoleForBatch` | Batch manages CEs, ECS clusters, scaling |
 | EC2 instance role + profile | `ecsInstanceRole` | ECS agent, ECR pull, CloudWatch logs (`AmazonEC2ContainerServiceforEC2Role`) |
+| Batch job role | `gpu-teaching-batch-job-role` | Container S3 access (`jobRoleArn` on caption job def `:3`+) |
 | Local CLI user | configured default profile | Submit jobs, S3 upload, register job defs |
 
-There is **no** `BatchJobRole`. Caption job definitions have no
-`jobRoleArn`. Containers therefore use the instance role, which does **not**
-include S3. Laptop-side scripts (upload, submit, list) work because the CLI
-user can reach S3. If a job reaches RUNNING and then fails on
-`AccessDenied` from boto3, attach an S3 job role to
-`gpu-teaching-caption-job` (or add S3 to the instance role).
+`ecsInstanceRole` has no S3. Caption containers assume
+`gpu-teaching-batch-job-role` (`BATCH_JOB_ROLE_ARN` in `.env`): `ListBucket`
+on both course buckets, `GetObject` on the images bucket, `GetObject` and
+`PutObject` on the captions bucket. Laptop-side scripts still use the CLI
+user. The README example name `BatchJobRole` is not a live resource.
 
 ---
 
@@ -290,10 +290,10 @@ aws batch describe-compute-environments --compute-environments gpu-teaching-gpu-
 
 | Symptom | Likely cause | What to do |
 |---------|--------------|------------|
-| `MISCONFIGURATION:JOB_RESOURCE_REQUIREMENT` | Job asked for 16 GiB | Use `gpu-teaching-caption-job:2` (12288 MiB) |
+| `MISCONFIGURATION:JOB_RESOURCE_REQUIREMENT` | Job asked for 16 GiB | Use `gpu-teaching-caption-job:3` (12288 MiB) |
 | Stuck `RUNNABLE` | No Spot capacity / quota | Switch `.env` to `gpu-teaching-gpu-smoke-queue-on-demand` |
 | Exit 1, transformers / PyTorch error | Image predates the 4.46.3 pin | `bash helpers/push_ecr_image.sh` then resubmit |
-| Exit 1, S3 `AccessDenied` | No job role; instance role has no S3 | Add a job role with `s3:GetObject` / `PutObject` / `ListBucket` on the two course buckets |
+| Exit 1, S3 `AccessDenied` | Job def older than `:3`, or role policy missing the bucket | Re-register with `00-register-job-def` so `jobRoleArn` is `gpu-teaching-batch-job-role` |
 | Smoke test provision timeout (3 min) | GPU instance not launched in time | Persistent CEs stay; retry or use on-demand |
 
 Cost: `g4dn.xlarge` Spot in Tokyo is roughly $0.16–0.24/hr. A 2–5 minute

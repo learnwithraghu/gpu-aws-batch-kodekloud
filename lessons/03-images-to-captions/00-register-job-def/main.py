@@ -5,7 +5,8 @@ image we pushed to ECR in lesson 00.
 
 This is the glue between "image exists in ECR" and "Batch can run it":
 a job definition is where you declare the image, the resources the
-container needs (1 GPU here), and default environment variables.
+container needs (1 GPU here), default environment variables, and the
+S3 job role (`BATCH_JOB_ROLE_ARN`).
 
 Run:  python main.py
 """
@@ -20,6 +21,7 @@ ECR_IMAGE_URI  = os.environ["ECR_IMAGE_URI"]
 S3_BUCKET      = os.environ["S3_BUCKET"]
 S3_CSV_BUCKET  = os.environ.get("S3_CSV_BUCKET", S3_BUCKET)
 JOB_DEFINITION = os.environ["BATCH_JOB_DEFINITION"]
+JOB_ROLE_ARN   = os.environ["BATCH_JOB_ROLE_ARN"]
 REGION         = os.environ.get("AWS_DEFAULT_REGION", "ap-northeast-1")
 
 batch = boto3.client("batch", region_name=REGION)
@@ -48,6 +50,9 @@ CONTAINER_PROPERTIES = {
         {"name": "S3_CSV_BUCKET", "value": S3_CSV_BUCKET},
     ],
     "command": DEFAULT_COMMAND,
+    # Instance role (ecsInstanceRole) can pull ECR and write logs, but has
+    # no S3. The container uses this role for List/Get/Put on the course buckets.
+    "jobRoleArn": JOB_ROLE_ARN,
 }
 
 
@@ -68,6 +73,7 @@ def matches(existing: dict) -> bool:
         and req == want
         and c.get("environment", []) == CONTAINER_PROPERTIES["environment"]
         and c.get("command", []) == CONTAINER_PROPERTIES["command"]
+        and c.get("jobRoleArn") == CONTAINER_PROPERTIES["jobRoleArn"]
     )
 
 
@@ -87,5 +93,6 @@ else:
 
 print(f"\nJob definition : {existing['jobDefinitionArn']}")
 print(f"Image          : {existing['containerProperties']['image']}")
+print(f"Job role       : {existing['containerProperties'].get('jobRoleArn')}")
 print("Resources      : 4 vCPU · 12 GiB · 1 GPU (g4dn.xlarge)")
 print("\nNext: caption one image   python ../02-caption-one-image/main.py")

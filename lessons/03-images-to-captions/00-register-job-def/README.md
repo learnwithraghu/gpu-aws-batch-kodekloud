@@ -5,7 +5,9 @@ what resources the container needs. This one-time step wires the image we
 pushed to ECR in lesson 00 to the GPU queue: **4 vCPU · 12 GiB · 1 GPU**
 (a g4dn.xlarge — memory stays under the instance's 16 GiB because the OS
 and ECS agent reserve some), with the course S3 buckets as default
-environment variables.
+environment variables, and a job role (`BATCH_JOB_ROLE_ARN`) so the
+container can read images and write the caption file. The EC2 instance
+role does not have S3.
 
 Idempotent — run it again and it reuses the existing registration; if the
 `ECR_IMAGE_URI` in `.env` or the resource config has changed, it registers
