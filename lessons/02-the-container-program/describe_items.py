@@ -12,7 +12,7 @@ import photos
 
 # How many photos the GPU sees in one pass. 8 fits the T4 on a g4dn.xlarge.
 GROUP_SIZE = int(os.environ.get("BATCH_SIZE", "8"))
-PROMPT = "a food dish of"
+PROMPT = "a photography of"
 MODEL_NAME = "Salesforce/blip-image-captioning-base"
 
 # "cuda" on the Batch GPU instance. "cpu" only if this file is started with no GPU.
@@ -38,8 +38,14 @@ def describe_group(processor, model, images):
     ).to(device)
 
     # no_grad: do not store training gradients. This job only generates text.
+    # Beams try a few wordings; the short cap cuts a rambling tail.
     with torch.no_grad():
-        output_ids = model.generate(**inputs, max_new_tokens=40)
+        output_ids = model.generate(
+            **inputs,
+            max_new_tokens=20,
+            num_beams=3,
+            repetition_penalty=1.2,
+        )
 
     texts = processor.batch_decode(output_ids, skip_special_tokens=True)
     return [text.strip() for text in texts]
