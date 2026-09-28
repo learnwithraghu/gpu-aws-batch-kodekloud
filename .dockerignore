@@ -1,0 +1,15 @@
+# Keep build context small — only Dockerfile, requirements, and lessons/ are needed.
+.git
+.github
+.cursor
+.env
+.env.*
+!.env.example
+docs
+helpers
+PLAN.md
+README.md
+syllabus.md
+**/__pycache__
+**/*.pyc
+**/.DS_Store

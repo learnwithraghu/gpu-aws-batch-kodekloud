@@ -1,0 +1,6 @@
+# Pinned for torch 2.1 (pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime).
+# Newer transformers releases require PyTorch >= 2.5 and break BLIP on Batch.
+transformers==4.46.3
+Pillow
+boto3
+python-dotenv

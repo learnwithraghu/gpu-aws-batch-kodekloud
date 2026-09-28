@@ -29,31 +29,28 @@ Docker packages all of that into a single image. The same image runs on your lap
 The entire course uses **one shared image** (`Dockerfile` at the repo root):
 
 ```dockerfile
-# Base: official PyTorch image — CUDA 11.8 matches the g4dn.xlarge (NVIDIA T4) GPU driver
 FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
 
-# All Python dependencies for every lesson, installed in a single layer
-# transformers provides BLIP (image captioning)
-RUN pip install --no-cache-dir \
-    transformers>=4.42      \
-    Pillow                  \
-    boto3                   \
-    python-dotenv
-
-# Copy all lesson scripts into the image
-# AWS Batch overrides the "command" field at submit time
-# to run the specific lesson script (e.g. "python lessons/02-.../job.py")
 WORKDIR /app
+COPY requirements-gpu.txt .
+RUN pip install --no-cache-dir -r requirements-gpu.txt
+
 COPY lessons/ /app/lessons/
 ```
+
+Dependency pins live in `requirements-gpu.txt` at the repo root (not in the
+image). **transformers** must stay on 4.46.x with torch 2.1 — newer releases
+require PyTorch ≥ 2.5 and break BLIP in Batch.
 
 Three things to notice:
 
 1. **`pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime`** — this is the base. It bundles Python + PyTorch + CUDA 11.8 + cuDNN 8. The g4dn.xlarge runs the NVIDIA driver that supports CUDA 11.x, so this version is intentional.
 
-2. **One `RUN pip install` layer** — Docker caches each instruction as a layer. Keeping all installs in one `RUN` means a single cache miss rebuilds them all at once (avoiding a stale partial cache).
+2. **`requirements-gpu.txt` + one `RUN pip install`** — pins are easy to read; Docker caches this layer until the file changes.
 
-3. **`COPY lessons/`** — every lesson script is baked into the image. Batch picks the right script at runtime via the `command` override in each lesson's submit script.
+3. **`.dockerignore`** — sends only `Dockerfile`, `requirements-gpu.txt`, and `lessons/` to the daemon (faster, smaller context).
+
+4. **`COPY lessons/`** — every lesson script is baked into the image. Batch picks the right script at runtime via the `command` override in each lesson's submit script.
 
 ---
 

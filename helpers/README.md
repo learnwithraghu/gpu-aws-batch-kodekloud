@@ -108,14 +108,19 @@ and skips them.
 
 ## push_ecr_image.sh
 
-Builds the course GPU Docker image (repo-root `Dockerfile` → CUDA 11.8 +
-PyTorch + transformers/BLIP) and pushes it to ECR. Idempotent: the ECR
-repository `gpu-teaching` is created on first run, and the image is rebuilt
-and re-pushed every run — required after changing the Dockerfile or any
-lesson code (Batch instances run the baked-in copies under `/app/lessons/`).
+Builds the course GPU Docker image (`Dockerfile` + `requirements-gpu.txt` →
+CUDA 11.8 / PyTorch 2.1 / transformers 4.46.x for BLIP) and pushes it to
+ECR. Idempotent: the ECR repository `gpu-teaching` is created on first run.
+Re-run after changing the Dockerfile, `requirements-gpu.txt`, or any lesson
+code (Batch runs the baked-in copies under `/app/lessons/`).
+
+First build is often 15–25 minutes (CUDA base pull + pip + push); cached
+rebuilds are much faster. Pass `--pull-base` only to re-download the PyTorch
+base tag.
 
 ```bash
 bash helpers/push_ecr_image.sh              # build + push gpu-teaching:latest
+bash helpers/push_ecr_image.sh --pull-base  # refresh the ~3 GB CUDA base layer
 bash helpers/push_ecr_image.sh --tag v2     # push an extra tag alongside latest
 bash helpers/push_ecr_image.sh --region us-east-1
 ```

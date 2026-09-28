@@ -1,8 +1,20 @@
 # Step 03 — Build, tag, push, verify
 
-The full image pipeline. Build takes 3–8 minutes the first time (~3 GB base
-image); later builds are fast because Docker caches each layer. Step 02
-(creating the ECR repository) is handled automatically by the helper below.
+The full image pipeline. **First run** is often **15–25 minutes** end-to-end:
+
+| Phase | Typical time | Why |
+|-------|----------------|-----|
+| Pull CUDA base | ~8–12 min | `pytorch/pytorch:…-runtime` is ~3 GB (once; cached locally) |
+| `pip install` | ~2–5 min | transformers + deps |
+| Push to ECR | ~5–15 min | uploads the full image |
+
+Re-runs after a lesson-only change reuse cached layers and finish in **under a
+minute** (plus push if you changed the image). Use `helpers/push_ecr_image.sh
+--pull-base` only when you intentionally refresh the PyTorch base tag.
+
+If Docker dies mid-build/push (`Bad response from Docker engine`), raise
+**Docker Desktop → Settings → Resources → Memory** to **8 GB**, quit Docker
+fully, reopen, and retry. Step 02 (ECR repo) is handled by the helper below.
 
 **Run (recommended — idempotent helper does all of the below):**
 
