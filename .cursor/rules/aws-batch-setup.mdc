@@ -15,8 +15,8 @@ commit them.
 - Queue: `gpu-teaching-gpu-smoke-queue-spot` (fallback: `gpu-teaching-gpu-smoke-queue-on-demand`)
 - Job definition: `gpu-teaching-caption-job` — use revision **3+** (4 vCPU, **12288 MiB**, 1 GPU, job role). Revision **1 is broken** (16384 MiB never places). Revision **2** has no `jobRoleArn`.
 - Image: `<account-id>.dkr.ecr.ap-northeast-1.amazonaws.com/gpu-teaching:latest` (from `ECR_IMAGE_URI`)
-- Images: `s3://gpu-teaching-images-<account-id>/images/<stem>/`
-- Captions: `s3://gpu-teaching-captions-csv-<account-id>/captions/<stem>/captions.csv`
+- Images: `s3://gpu-teaching-images-<account-id>/images/<stem>/` (vendor food photos, ~25–30 per folder)
+- Descriptions: `s3://gpu-teaching-captions-csv-<account-id>/descriptions/<stem>/descriptions.csv` (`image_s3_uri`, `item_description`)
 - Logs: `/aws/batch/job`
 - Network (already wired into the CEs): VPC `vpc-3f0b1a58`, subnet `subnet-b560b3fd` (`ap-northeast-1a`), SG `sg-bd00e4f5`
 - Instance profile: `ecsInstanceRole` (ECR pull and logs only). Container S3 uses `gpu-teaching-batch-job-role` via `jobRoleArn` (`BATCH_JOB_ROLE_ARN` in `.env`). README name `BatchJobRole` is not live.
@@ -26,7 +26,7 @@ commit them.
 - Recreate `gpu-teaching-ce` / `gpu-teaching-queue` / `gpu-teaching-job-def` (README example names; they are not the live resources).
 - Register a job def with 16384 MiB memory on `g4dn.xlarge`.
 - Put AWS keys or account IDs in the repo. CLI creds stay in `~/.aws/` via `aws configure`.
-- Assume the ECR `:latest` image matches the current `Dockerfile` / `lessons/` — Batch runs the baked image. Rebuild with `bash helpers/push_ecr_image.sh` after those files change.
+- Assume the ECR `:latest` image matches the current `Dockerfile` / `describe_items.py` — Batch runs the baked image. Rebuild with `bash helpers/push_ecr_image.sh` after those files change.
 
 ## Stuck jobs
 

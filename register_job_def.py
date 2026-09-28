@@ -1,33 +1,23 @@
-"""
-Lesson 03 · Step 00 — register-job-def
-Register the course job definition that points AWS Batch at the Docker
-image we pushed to ECR in lesson 00.
+"""Register the GPU job definition used by submit_job.py.
 
-This is the glue between "image exists in ECR" and "Batch can run it":
-a job definition is where you declare the image, the resources the
-container needs (1 GPU here), default environment variables, and the
-S3 job role (`BATCH_JOB_ROLE_ARN`).
-
-Run:  python main.py
+Run:  python register_job_def.py
 """
 import os
 
 import boto3
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../../.env"))
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
 
-ECR_IMAGE_URI  = os.environ["ECR_IMAGE_URI"]
-S3_BUCKET      = os.environ["S3_BUCKET"]
-S3_CSV_BUCKET  = os.environ.get("S3_CSV_BUCKET", S3_BUCKET)
+ECR_IMAGE_URI = os.environ["ECR_IMAGE_URI"]
+S3_BUCKET = os.environ["S3_BUCKET"]
+S3_CSV_BUCKET = os.environ.get("S3_CSV_BUCKET", S3_BUCKET)
 JOB_DEFINITION = os.environ["BATCH_JOB_DEFINITION"]
-JOB_ROLE_ARN   = os.environ["BATCH_JOB_ROLE_ARN"]
-REGION         = os.environ.get("AWS_DEFAULT_REGION", "ap-northeast-1")
+JOB_ROLE_ARN = os.environ["BATCH_JOB_ROLE_ARN"]
+REGION = os.environ.get("AWS_DEFAULT_REGION", "ap-northeast-1")
 
 batch = boto3.client("batch", region_name=REGION)
 
-# What the container runs by default (steps 02/04 override the command at
-# submit time — this default just proves the image + GPU work).
 DEFAULT_COMMAND = [
     "python", "-c",
     "import torch; print('CUDA:', torch.cuda.is_available(), "
@@ -36,37 +26,31 @@ DEFAULT_COMMAND = [
 
 CONTAINER_PROPERTIES = {
     "image": ECR_IMAGE_URI,
-    # Memory stays below the g4dn.xlarge's 16 GiB: ECS registers usable
-    # memory slightly under the instance total (OS + agent overhead), so a
-    # job asking for the full 16384 MiB can never be placed
-    # (MISCONFIGURATION:JOB_RESOURCE_REQUIREMENT).
+    # Stay under the g4dn.xlarge's 16 GiB. ECS reserves some for the OS,
+    # so 16384 MiB can never be placed.
     "resourceRequirements": [
-        {"type": "VCPU",   "value": "4"},
+        {"type": "VCPU", "value": "4"},
         {"type": "MEMORY", "value": "12288"},
-        {"type": "GPU",    "value": "1"},
+        {"type": "GPU", "value": "1"},
     ],
     "environment": [
-        {"name": "S3_BUCKET",     "value": S3_BUCKET},
+        {"name": "S3_BUCKET", "value": S3_BUCKET},
         {"name": "S3_CSV_BUCKET", "value": S3_CSV_BUCKET},
     ],
     "command": DEFAULT_COMMAND,
-    # Instance role (ecsInstanceRole) can pull ECR and write logs, but has
-    # no S3. The container uses this role for List/Get/Put on the course buckets.
     "jobRoleArn": JOB_ROLE_ARN,
 }
 
 
 def find_active() -> dict | None:
-    """Highest active revision of JOB_DEFINITION, or None."""
     resp = batch.describe_job_definitions(jobDefinitionName=JOB_DEFINITION, status="ACTIVE")
     revs = resp["jobDefinitions"]
     return max(revs, key=lambda j: j["revision"]) if revs else None
 
 
 def matches(existing: dict) -> bool:
-    """True if the active revision already has exactly the desired config."""
     c = existing["containerProperties"]
-    req  = sorted(c.get("resourceRequirements", []), key=lambda r: r["type"])
+    req = sorted(c.get("resourceRequirements", []), key=lambda r: r["type"])
     want = sorted(CONTAINER_PROPERTIES["resourceRequirements"], key=lambda r: r["type"])
     return (
         c.get("image") == CONTAINER_PROPERTIES["image"]
@@ -89,10 +73,10 @@ else:
         containerProperties=CONTAINER_PROPERTIES,
     )
     print(f"Registered {resp['jobDefinitionArn']}")
-    existing = find_active()   # describe shape includes containerProperties
+    existing = find_active()
 
 print(f"\nJob definition : {existing['jobDefinitionArn']}")
 print(f"Image          : {existing['containerProperties']['image']}")
 print(f"Job role       : {existing['containerProperties'].get('jobRoleArn')}")
 print("Resources      : 4 vCPU · 12 GiB · 1 GPU (g4dn.xlarge)")
-print("\nNext: caption one image   python ../02-caption-one-image/main.py")
+print("\nNext: python submit_job.py --batch-stem sample")

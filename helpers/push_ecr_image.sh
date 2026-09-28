@@ -7,7 +7,7 @@
 #   4. Tag and push :latest
 #   5. Write ECR_IMAGE_URI=<repo>:latest into .env (if the container was
 #      built before, this re-pushes the updated image — required after any
-#      change to the Dockerfile or lessons/)
+#      change to the Dockerfile or describe_items.py)
 #
 # Usage:
 #   helpers/push_ecr_image.sh [--region <region>] [--repo <name>] [--tag <tag>]
@@ -102,9 +102,9 @@ aws ecr get-login-password --region "$REGION" \
 # 3. Build from the repo root (--pull-base re-downloads the ~3 GB CUDA base; default uses cache)
 echo "[3/4] Building image    : gpu-teaching:${TAG}"
 if [ "$PULL_BASE" -eq 1 ]; then
-  docker build --pull -t "${REPO_NAME}:${TAG}" "$REPO_ROOT"
+  docker build --platform linux/amd64 --pull -t "${REPO_NAME}:${TAG}" "$REPO_ROOT"
 else
-  docker build -t "${REPO_NAME}:${TAG}" "$REPO_ROOT"
+  docker build --platform linux/amd64 -t "${REPO_NAME}:${TAG}" "$REPO_ROOT"
 fi
 
 # 4. Tag and push

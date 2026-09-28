@@ -43,7 +43,7 @@ ECR_IMAGE_URI=<account-id>.dkr.ecr.ap-northeast-1.amazonaws.com/gpu-teaching:lat
 
 ## What to use when developing lessons
 
-These are the names lesson `main.py` files already expect via `.env`.
+These are the names `submit_job.py` and `register_job_def.py` already expect via `.env`.
 
 | Role | Name | Notes |
 |------|------|--------|
@@ -52,7 +52,7 @@ These are the names lesson `main.py` files already expect via `.env`.
 | Lesson job definition | `gpu-teaching-caption-job` | Use revision **`:3` or later** (12288 MiB + job role). `:1` is broken (16 GiB). `:2` has no `jobRoleArn`. |
 | Image | `<account-id>.dkr.ecr.ap-northeast-1.amazonaws.com/gpu-teaching:latest` | Course CUDA + PyTorch + BLIP image |
 | Images bucket | `gpu-teaching-images-<account-id>` | Input: `images/<stem>/…` |
-| Captions bucket | `gpu-teaching-captions-csv-<account-id>` | Output: `captions/<stem>/captions.csv` |
+| Descriptions bucket | `gpu-teaching-captions-csv-<account-id>` | Output: `descriptions/<stem>/descriptions.csv` |
 | Logs | CloudWatch `/aws/batch/job` | Stream name looks like `gpu-teaching-caption-job/default/<taskId>` |
 
 Do **not** create `gpu-teaching-ce`, `gpu-teaching-queue`, or
@@ -134,8 +134,8 @@ Use **revision 3** (or a newer matching revision). Do not submit `:1` or `:2`.
 | Env | `S3_BUCKET`, `S3_CSV_BUCKET` | same | same |
 | Default command | `python -c "import torch; print('CUDA:…')"` | same | same |
 
-Lessons override `command` at submit time to run a script under `/app/lessons/`.
-They also pass `IMAGE_PREFIX`, `BATCH_SIZE`, and the two bucket env vars.
+`submit_job.py` overrides `command` to `python /app/describe_items.py` and passes
+`IMAGE_PREFIX`, `BATCH_SIZE`, and the two bucket env vars.
 
 **Memory rule:** ECS on `g4dn.xlarge` does not register the full 16 GiB
 (OS + agent). Asking for `16384` yields
@@ -145,8 +145,7 @@ They also pass `IMAGE_PREFIX`, `BATCH_SIZE`, and the two bucket env vars.
 Re-register (idempotent if unchanged) with:
 
 ```bash
-cd lessons/03-images-to-captions/00-register-job-def
-uv run --with boto3 --with python-dotenv python main.py
+uv run --with boto3 --with python-dotenv python register_job_def.py
 ```
 
 ### `gpu-teaching-gpu-smoke-job` — GPU smoke only
@@ -170,20 +169,18 @@ Created/reused by `helpers/test_gpu_batch.py`. Not for lessons.
 | Last pull | 2026-09-28 |
 
 Dockerfile (repo root): `pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime`,
-`transformers==4.46.3`, Pillow, boto3, python-dotenv. Lesson code is copied
-to `/app/lessons/`. Batch never runs local `.py` files — only what is
-**baked into this image**.
+`transformers==4.46.3`, Pillow, boto3, python-dotenv. `describe_items.py` is
+copied to `/app/describe_items.py`. Batch never runs the laptop scripts —
+only what is **baked into this image**.
 
-After any change to `Dockerfile` or `lessons/`, rebuild and push:
+After any change to `Dockerfile` or `describe_items.py`, rebuild and push:
 
 ```bash
 bash helpers/push_ecr_image.sh
 ```
 
-The job definition URI stays `:latest`; new jobs pull the new image. The
-image in ECR was pushed **before** the transformers pin (`072aacf`,
-2026-09-23). Rebuild before the next captioning run if that push is still
-the one in ECR.
+The job definition URI stays `:latest`; new jobs pull the new image.
+`:latest` was pushed on 2026-09-28 with `/app/describe_items.py`.
 
 ---
 
@@ -192,18 +189,15 @@ the one in ECR.
 | Bucket | Purpose | Current objects (2026-09-27) |
 |--------|---------|------------------------------|
 | `gpu-teaching-images-<account-id>` | Raw images | `images/sample/` (one sample PNG) |
-| `gpu-teaching-captions-csv-<account-id>` | Caption CSVs | empty |
-
-Convention used by every lesson job:
+| `gpu-teaching-captions-csv-<account-id>` | Item-description CSVs | `descriptions/<stem>/descriptions.csv` |
 
 ```
-s3://gpu-teaching-images-<account-id>/images/<stem>/…     # input
-s3://gpu-teaching-captions-csv-<account-id>/captions/<stem>/captions.csv
-s3://gpu-teaching-captions-csv-<account-id>/captions/<stem>/_VERIFIED   # lesson 04
+s3://gpu-teaching-images-<account-id>/images/<stem>/…     # vendor food photos
+s3://gpu-teaching-captions-csv-<account-id>/descriptions/<stem>/descriptions.csv
 ```
 
-`S3_BUCKET` is the legacy alias for the images bucket. Array jobs also write
-`s3://<images-bucket>/config/array_image_prefixes.json`.
+`S3_BUCKET` is the images bucket. The CSV bucket name still says `captions`
+because that is the live bucket; new files use the `descriptions/` prefix.
 
 Create buckets (idempotent): `bash helpers/setup_infra.sh up`
 
@@ -238,36 +232,22 @@ compute environments.
 `ecsInstanceRole` has no S3. Caption containers assume
 `gpu-teaching-batch-job-role` (`BATCH_JOB_ROLE_ARN` in `.env`): `ListBucket`
 on both course buckets, `GetObject` on the images bucket, `GetObject` and
-`PutObject` on the captions bucket. Laptop-side scripts still use the CLI
+`PutObject` on the descriptions bucket. Laptop-side scripts still use the CLI
 user. The README example name `BatchJobRole` is not a live resource.
 
 ---
 
-## How a lesson job is submitted
+## How a job is submitted
 
-Every GPU lesson follows the same pattern:
-
-1. Load `.env` → `BATCH_JOB_QUEUE`, `BATCH_JOB_DEFINITION`, buckets, region.
-2. `batch.submit_job(...)` with a `command` override pointing at a script
-   already inside the image.
-3. Pass S3 env vars. Poll `describe_jobs` until `SUCCEEDED` or `FAILED`.
-
-| Lesson | Command override |
-|--------|------------------|
-| 02 GPU check | `python /app/lessons/02-first-batch-job/01-the-container-script/job.py` |
-| 03 one image | `python /app/lessons/03-images-to-captions/02-caption-one-image/job.py` |
-| 03 / 04 / 05 caption | `python /app/lessons/03-images-to-captions/03-caption-whole-batch/generate_captions.py` |
-| 04 verify | `python /app/lessons/04-full-pipeline/03-the-verify-job/verify_captions.py` |
-
-Container env vars for captioning:
+`submit_job.py` loads `.env`, submits `python /app/describe_items.py`, and
+polls until `SUCCEEDED` or `FAILED`.
 
 | Variable | Meaning |
 |----------|---------|
 | `S3_BUCKET` | Images bucket |
-| `S3_CSV_BUCKET` | Captions bucket |
-| `IMAGE_PREFIX` | e.g. `images/sample` |
+| `S3_CSV_BUCKET` | Descriptions CSV bucket |
+| `IMAGE_PREFIX` | e.g. `images/vendor-a` |
 | `BATCH_SIZE` | Images per GPU forward pass (default 8) |
-| `AWS_BATCH_JOB_ARRAY_INDEX` | Set by Batch on array jobs (lesson 05) |
 
 ---
 
@@ -293,6 +273,7 @@ aws batch describe-compute-environments --compute-environments gpu-teaching-gpu-
 | `MISCONFIGURATION:JOB_RESOURCE_REQUIREMENT` | Job asked for 16 GiB | Use `gpu-teaching-caption-job:3` (12288 MiB) |
 | Stuck `RUNNABLE` | No Spot capacity / quota | Switch `.env` to `gpu-teaching-gpu-smoke-queue-on-demand` |
 | Exit 1, transformers / PyTorch error | Image predates the 4.46.3 pin | `bash helpers/push_ecr_image.sh` then resubmit |
+| Exit 1, old caption script missing | Image still has `/app/lessons/` | `bash helpers/push_ecr_image.sh` so `/app/describe_items.py` is in ECR |
 | Exit 1, S3 `AccessDenied` | Job def older than `:3`, or role policy missing the bucket | Re-register with `00-register-job-def` so `jobRoleArn` is `gpu-teaching-batch-job-role` |
 | Smoke test provision timeout (3 min) | GPU instance not launched in time | Persistent CEs stay; retry or use on-demand |
 

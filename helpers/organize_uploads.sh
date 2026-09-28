@@ -2,7 +2,7 @@
 # Sort root-level image uploads in the images bucket into the prefix layout
 # the Batch jobs expect (images/<stem>/).
 #
-# The lesson jobs always caption images from an s3://<images-bucket>/images/<stem>/
+# describe_items.py reads images from an s3://<images-bucket>/images/<stem>/
 # prefix. This helper finds image objects sitting at the bucket root (no "/")
 # and moves them into images/<stem>/ (default stem: sample).
 #

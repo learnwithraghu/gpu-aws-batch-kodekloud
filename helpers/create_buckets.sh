@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Create the course S3 buckets (idempotent — skip if they already exist):
-#   - images bucket       : raw images, uploaded manually by the tutor
-#   - captions-csv bucket : CSV files mapping each image to its caption
+#   - images bucket       : vendor food photos
+#   - captions-csv bucket : item-description CSVs (live bucket name)
 #
 # Bucket names are suffixed with the AWS account ID so they are unique and
 # never collide with other tutors' buckets. Resolved names are written back
