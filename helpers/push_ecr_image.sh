@@ -7,7 +7,7 @@
 #   4. Tag and push :latest
 #   5. Write ECR_IMAGE_URI=<repo>:latest into .env (if the container was
 #      built before, this re-pushes the updated image — required after any
-#      change to the Dockerfile or lessons/03-the-job-script/describe_items.py)
+#      change to the Dockerfile or lessons/02-the-container-program/describe_items.py)
 #
 # Usage:
 #   helpers/push_ecr_image.sh [--region <region>] [--repo <name>] [--tag <tag>]

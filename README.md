@@ -1,6 +1,6 @@
 # Food catalog descriptions on AWS Batch
 
-A vendor uploads one folder of dish photos (about 25–30). One GPU job writes one catalog CSV the food app can read.
+A vendor uploads one folder of dish photos (about 25–30). One GPU job writes one catalog CSV the food app can read. Each lesson adds one piece with the AWS CLI: the image, the registry, the buckets, the Batch environment, then the job.
 
 ```
 s3://<images-bucket>/images/<batch>/
@@ -18,17 +18,15 @@ Course outline: [syllabus.md](syllabus.md). Live queue, job definition, and buck
 
 | # | Lesson | What you do |
 |---|--------|-------------|
-| [00](lessons/00-the-catalog/) | The catalog | See the folder in and the one CSV out |
-| [01](lessons/01-create-the-buckets/) | Create the buckets | `bash helpers/setup_infra.sh up` |
-| [02](lessons/02-upload-the-images/) | Upload the images | Sync one vendor folder to `images/<batch>/` |
-| [03](lessons/03-the-job-script/) | The job script | Read `describe_items.py` |
-| [04](lessons/04-the-image/) | The image | See what Batch actually runs |
-| [05](lessons/05-register-the-job/) | Register the job | `python lessons/05-register-the-job/register_job_def.py` |
-| [06](lessons/06-submit-and-wait/) | Submit and wait | `python lessons/06-submit-and-wait/submit_job.py --batch-stem sample` |
-| [07](lessons/07-read-the-catalog/) | Read the catalog | `python lessons/07-read-the-catalog/show_descriptions.py --batch-stem sample` |
+| [00](lessons/00-the-real-job/) | The real job | See the folder in, the one CSV out, and why it is a GPU batch job |
+| [01](lessons/01-batch-and-gpu/) | AWS Batch and the GPU | Learn the compute environment, queue, job definition, and what a GPU job needs |
+| [02](lessons/02-the-container-program/) | The container program | Read `describe_items.py`, the program the GPU runs |
+| [03](lessons/03-build-the-image/) | Build the image locally | `docker build --platform linux/amd64 -t gpu-teaching:latest .` |
+| [04](lessons/04-push-to-ecr/) | Push to ECR | Create the repository, log in, tag, and push |
+| [05](lessons/05-create-the-buckets/) | Create the buckets | `aws s3api create-bucket` for photos and the CSV |
+| [06](lessons/06-upload-the-images/) | Upload the images | `aws s3 sync` one vendor folder to `images/<batch>/` |
+| [07](lessons/07-the-batch-environment/) | The Batch environment | Create the GPU environment, queue, and job definition |
+| [08](lessons/08-submit-the-job/) | Submit the job | `aws batch submit-job` for `images/sample/` |
+| [09](lessons/09-read-the-catalog/) | Read the catalog | `aws s3 cp` the CSV |
 
-After `lessons/03-the-job-script/describe_items.py` or the Dockerfile changes, rebuild the image Batch runs:
-
-```bash
-bash helpers/push_ecr_image.sh
-```
+After `lessons/02-the-container-program/describe_items.py` or the Dockerfile changes, build and push again (lessons 03 and 04). Batch runs the image in ECR.

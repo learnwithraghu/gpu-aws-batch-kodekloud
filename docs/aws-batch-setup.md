@@ -43,7 +43,7 @@ ECR_IMAGE_URI=<account-id>.dkr.ecr.ap-northeast-1.amazonaws.com/gpu-teaching:lat
 
 ## What to use when developing lessons
 
-These are the names the lesson scripts already expect via `.env`.
+These are the names the lesson CLI commands already expect via `.env`.
 
 | Role | Name | Notes |
 |------|------|--------|
@@ -134,7 +134,7 @@ Use **revision 3** (or a newer matching revision). Do not submit `:1` or `:2`.
 | Env | `S3_BUCKET`, `S3_CSV_BUCKET` | same | same |
 | Default command | `python -c "import torch; print('CUDA:…')"` | same | same |
 
-`lessons/06-submit-and-wait/submit_job.py` overrides `command` to `python /app/describe_items.py` and passes
+Lesson 08 `aws batch submit-job` overrides `command` to `python /app/describe_items.py` and passes
 `IMAGE_PREFIX`, `BATCH_SIZE`, and the two bucket env vars.
 
 **Memory rule:** ECS on `g4dn.xlarge` does not register the full 16 GiB
@@ -142,11 +142,8 @@ Use **revision 3** (or a newer matching revision). Do not submit `:1` or `:2`.
 `MISCONFIGURATION:JOB_RESOURCE_REQUIREMENT` and the job never leaves
 `RUNNABLE`. Keep MEMORY at **12288**.
 
-Re-register (idempotent if unchanged) with:
-
-```bash
-uv run --with boto3 --with python-dotenv python lessons/05-register-the-job/register_job_def.py
-```
+Re-register only when the image, memory, GPU, or job role is wrong (lesson 07).
+Every `register-job-definition` call creates a new revision.
 
 ### `gpu-teaching-gpu-smoke-job` — GPU smoke only
 
@@ -169,11 +166,11 @@ Created/reused by `helpers/test_gpu_batch.py`. Not for lessons.
 | Last pull | 2026-09-28 |
 
 Dockerfile (repo root): `pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime`,
-`transformers==4.46.3`, Pillow, boto3, python-dotenv. Lesson 03's
-`describe_items.py` is copied to `/app/describe_items.py`. Batch never runs the laptop scripts —
-only what is **baked into this image**.
+`transformers==4.46.3`, Pillow, boto3, python-dotenv. Lesson 02's
+`describe_items.py` is copied to `/app/describe_items.py`. Batch runs only what is
+**baked into this image**.
 
-After any change to `Dockerfile` or `lessons/03-the-job-script/describe_items.py`, rebuild and push:
+After any change to `Dockerfile` or `lessons/02-the-container-program/describe_items.py`, rebuild and push (lessons 03 and 04):
 
 ```bash
 bash helpers/push_ecr_image.sh
@@ -199,7 +196,7 @@ s3://gpu-teaching-captions-csv-<account-id>/descriptions/<stem>/descriptions.csv
 `S3_BUCKET` is the images bucket. The CSV bucket name still says `captions`
 because that is the live bucket; new files use the `descriptions/` prefix.
 
-Create buckets (idempotent): `bash helpers/setup_infra.sh up`
+Create buckets with the CLI in lesson 05. Tutor shortcut: `bash helpers/setup_infra.sh up`
 
 ---
 
@@ -239,8 +236,8 @@ user. The README example name `BatchJobRole` is not a live resource.
 
 ## How a job is submitted
 
-`lessons/06-submit-and-wait/submit_job.py` loads `.env`, submits `python /app/describe_items.py`, and
-polls until `SUCCEEDED` or `FAILED`.
+Lesson 08 runs `aws batch submit-job` with `python /app/describe_items.py` and
+polls `aws batch describe-jobs` until `SUCCEEDED` or `FAILED`.
 
 | Variable | Meaning |
 |----------|---------|
@@ -274,7 +271,7 @@ aws batch describe-compute-environments --compute-environments gpu-teaching-gpu-
 | Stuck `RUNNABLE` | No Spot capacity / quota | Switch `.env` to `gpu-teaching-gpu-smoke-queue-on-demand` |
 | Exit 1, transformers / PyTorch error | Image predates the 4.46.3 pin | `bash helpers/push_ecr_image.sh` then resubmit |
 | Exit 1, old caption script missing | Image still has `/app/lessons/` | `bash helpers/push_ecr_image.sh` so `/app/describe_items.py` is in ECR |
-| Exit 1, S3 `AccessDenied` | Job def older than `:3`, or role policy missing the bucket | Re-register with `00-register-job-def` so `jobRoleArn` is `gpu-teaching-batch-job-role` |
+| Exit 1, S3 `AccessDenied` | Job def older than `:3`, or role policy missing the bucket | Re-register (lesson 07) so `jobRoleArn` is `gpu-teaching-batch-job-role` |
 | Smoke test provision timeout (3 min) | GPU instance not launched in time | Persistent CEs stay; retry or use on-demand |
 
 Cost: `g4dn.xlarge` Spot in Tokyo is roughly $0.16–0.24/hr. A 2–5 minute

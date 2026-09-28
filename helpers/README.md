@@ -112,7 +112,7 @@ Builds the course GPU Docker image (`Dockerfile` + `requirements-gpu.txt` →
 CUDA 11.8 / PyTorch 2.1 / transformers 4.46.x for BLIP) and pushes it to
 ECR. Idempotent: the ECR repository `gpu-teaching` is created on first run.
 Re-run after changing the Dockerfile, `requirements-gpu.txt`, or
-`describe_items.py` (Batch runs `/app/describe_items.py` from the image).
+`lessons/02-the-container-program/describe_items.py` (Batch runs `/app/describe_items.py` from the image).
 
 First build is often 15–25 minutes (CUDA base pull + pip + push); cached
 rebuilds are much faster. Pass `--pull-base` only to re-download the PyTorch
@@ -146,7 +146,7 @@ bash helpers/organize_uploads.sh --stem demo # different batch folder
 bash helpers/organize_uploads.sh --dry-run   # preview without moving
 ```
 
-Then run the catalog job with `python lessons/06-submit-and-wait/submit_job.py --batch-stem sample` (lesson 06).
+Then submit the catalog job with `aws batch submit-job` (lesson 08).
 
 ---
 
