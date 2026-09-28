@@ -2,6 +2,8 @@
 
 Batch pulls from Amazon ECR. This lesson creates the `gpu-teaching` repository, logs Docker in, and pushes the image you built in lesson 03.
 
+Theory reading: [`theory.md`](theory.md).
+
 From the repo root, with the AWS CLI configured for `ap-northeast-1`:
 
 ```bash

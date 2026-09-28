@@ -2,6 +2,8 @@
 
 Put one vendor folder where the container will look: `images/<batch>/` in the images bucket from lesson 05.
 
+Theory reading: [`theory.md`](theory.md).
+
 ```bash
 set -a && source .env && set +a
 ```

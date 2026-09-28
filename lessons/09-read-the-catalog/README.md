@@ -2,6 +2,8 @@
 
 The job in lesson 08 has to be `SUCCEEDED`. This lesson reads the CSV the food app would read.
 
+Theory reading: [`theory.md`](theory.md).
+
 ```bash
 set -a && source .env && set +a
 ```

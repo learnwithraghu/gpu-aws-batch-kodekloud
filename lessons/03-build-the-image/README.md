@@ -2,6 +2,8 @@
 
 AWS Batch runs a container image. This lesson builds that image on your machine and stops there. ECR is the next lesson.
 
+Theory reading: [`theory.md`](theory.md).
+
 Work from the repo root. Docker Desktop must be running.
 
 ## What the Dockerfile does

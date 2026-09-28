@@ -2,6 +2,8 @@
 
 One CLI submission runs one folder. The image is in ECR, the photos are in `images/sample/`, and the queue and job definition exist from lesson 07.
 
+Theory reading: [`theory.md`](theory.md).
+
 ```bash
 set -a && source .env && set +a
 export AWS_DEFAULT_REGION=ap-northeast-1

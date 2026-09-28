@@ -2,6 +2,8 @@
 
 You already have an image in ECR and two buckets. This lesson attaches a GPU machine pool, a queue, and a job definition. Create a piece only when the describe command says it is missing. This account already has these names. A second copy with a different name is a different pool you will pay for.
 
+Theory reading: [`theory.md`](theory.md).
+
 ```bash
 set -a && source .env && set +a
 export AWS_DEFAULT_REGION=ap-northeast-1

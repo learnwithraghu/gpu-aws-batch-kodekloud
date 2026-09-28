@@ -2,6 +2,8 @@
 
 A food vendor drops one folder of dish photos, about 25–30 pictures. A GPU writes one catalog line per photo. The food app reads that file. The GPU machine does not stay on between drops.
 
+Theory reading: [`theory.md`](theory.md).
+
 No AWS commands in this lesson. Later lessons build the pieces that make this run.
 
 ## What arrives

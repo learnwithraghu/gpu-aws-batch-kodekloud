@@ -2,6 +2,8 @@
 
 Two buckets. Photos go in one. The catalog CSV goes in the other. Names end with your account ID so they do not collide with another account.
 
+Theory reading: [`theory.md`](theory.md).
+
 ```bash
 export AWS_DEFAULT_REGION=ap-northeast-1
 export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)

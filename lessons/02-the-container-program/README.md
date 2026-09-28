@@ -2,6 +2,8 @@
 
 Two short files. Students read them. They do not run a job in this lesson.
 
+Theory reading: [`theory.md`](theory.md).
+
 | File | Job |
 |------|-----|
 | [`photos.py`](photos.py) | S3 only: list the folder, download one photo, write one CSV |

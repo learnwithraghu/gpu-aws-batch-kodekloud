@@ -2,6 +2,8 @@
 
 This is the map for the rest of the course. You will create each piece in a later lesson. Here you learn what the pieces are, and what changes when the job needs a GPU.
 
+Theory reading: [`theory.md`](theory.md).
+
 Region for every command: `ap-northeast-1`.
 
 ## Four objects
