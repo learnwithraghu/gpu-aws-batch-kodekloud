@@ -1,14 +1,9 @@
-# Food item descriptions on AWS Batch
+# Food catalog descriptions on AWS Batch
 
-Vendors upload food photos (about 25–30 at a time) to the images bucket:
+A vendor uploads one folder of dish photos (about 25–30). One GPU job writes one catalog CSV the food app can read.
 
 ```
 s3://<images-bucket>/images/<batch>/
-```
-
-A GPU job writes one item description per photo for the food app:
-
-```
 s3://<descriptions-bucket>/descriptions/<batch>/descriptions.csv
 ```
 
@@ -17,24 +12,22 @@ image_s3_uri,item_description
 s3://<images-bucket>/images/vendor-a/bowl.jpg,a food dish of noodles with vegetables
 ```
 
-Live queue, job definition, and bucket names: [`docs/aws-batch-setup.md`](docs/aws-batch-setup.md).
+Course outline: [syllabus.md](syllabus.md). Live queue, job definition, and bucket names: [`docs/aws-batch-setup.md`](docs/aws-batch-setup.md).
 
-## Scripts
+## Lessons
 
-| Script | Where it runs | What it does |
-|--------|----------------|--------------|
-| `describe_items.py` | Inside the GPU container | Read the image folder, write the CSV |
-| `register_job_def.py` | Your laptop | Point Batch at the ECR image |
-| `submit_job.py` | Your laptop | Submit one folder and wait |
-| `show_descriptions.py` | Your laptop | Print the CSV |
+| # | Lesson | What you do |
+|---|--------|-------------|
+| [00](lessons/00-the-catalog/) | The catalog | See the folder in and the one CSV out |
+| [01](lessons/01-create-the-buckets/) | Create the buckets | `bash helpers/setup_infra.sh up` |
+| [02](lessons/02-upload-the-images/) | Upload the images | Sync one vendor folder to `images/<batch>/` |
+| [03](lessons/03-the-job-script/) | The job script | Read `describe_items.py` |
+| [04](lessons/04-the-image/) | The image | See what Batch actually runs |
+| [05](lessons/05-register-the-job/) | Register the job | `python register_job_def.py` |
+| [06](lessons/06-submit-and-wait/) | Submit and wait | `python submit_job.py --batch-stem sample` |
+| [07](lessons/07-read-the-catalog/) | Read the catalog | `python show_descriptions.py --batch-stem sample` |
 
-```bash
-python register_job_def.py
-python submit_job.py --batch-stem vendor-a
-python show_descriptions.py --batch-stem vendor-a
-```
-
-After `describe_items.py` or the Dockerfile changes, rebuild the image Batch actually runs:
+After `describe_items.py` or the Dockerfile changes, rebuild the image Batch runs:
 
 ```bash
 bash helpers/push_ecr_image.sh

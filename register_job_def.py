@@ -1,4 +1,4 @@
-"""Register the GPU job definition used by submit_job.py.
+"""Register the GPU job definition used by the food-catalog job.
 
 Run:  python register_job_def.py
 """

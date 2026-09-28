@@ -1,4 +1,4 @@
-"""Submit the food-item description job and wait until it finishes.
+"""Submit the food-catalog job and wait until it finishes.
 
 Run:  python submit_job.py --batch-stem sample
 """
@@ -19,7 +19,7 @@ REGION = os.environ.get("AWS_DEFAULT_REGION", "ap-northeast-1")
 
 batch = boto3.client("batch", region_name=REGION)
 
-parser = argparse.ArgumentParser(description="Submit the item-description job.")
+parser = argparse.ArgumentParser(description="Submit the food-catalog job.")
 parser.add_argument("--batch-stem", default="sample", help="Folder under images/ in the images bucket")
 parser.add_argument("--batch-size", type=int, default=8)
 args = parser.parse_args()

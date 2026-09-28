@@ -92,8 +92,8 @@ bash helpers/setup_infra.sh down --dry-run
 
 | Bucket | Purpose |
 |--------|---------|
-| `gpu-teaching-images-<account-id>` | Raw images, uploaded manually by the tutor |
-| `gpu-teaching-captions-csv-<account-id>` | CSV files mapping each image to its caption |
+| `gpu-teaching-images-<account-id>` | Vendor dish photos |
+| `gpu-teaching-captions-csv-<account-id>` | Food catalog CSVs (`descriptions/<stem>/descriptions.csv`) |
 
 Bucket names are suffixed with your AWS account ID so they never collide with
 other accounts. The resolved names are written to `.env` as `S3_IMAGES_BUCKET`
@@ -136,7 +136,7 @@ the ECR image). Requires Docker and permissions: `s3:*`-style ECR actions
 
 ## organize_uploads.sh
 
-The Batch jobs caption everything under `images/<stem>/` in the images bucket,
+The catalog job reads everything under `images/<stem>/` in the images bucket,
 but a tutor may drop images at the bucket root. This helper moves any
 root-level image objects into `images/<stem>/` (default stem: `sample`):
 
@@ -146,7 +146,7 @@ bash helpers/organize_uploads.sh --stem demo # different batch folder
 bash helpers/organize_uploads.sh --dry-run   # preview without moving
 ```
 
-Then caption the batch with lesson 03 step 04 (`python main.py --batch-stem sample`).
+Then run the catalog job with `python submit_job.py --batch-stem sample` (lesson 06).
 
 ---
 

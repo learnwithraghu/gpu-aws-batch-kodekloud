@@ -1,10 +1,10 @@
-"""Write a short food-item description for every photo in one S3 folder.
+"""Write one food-catalog CSV for every photo in one S3 folder.
 
 Vendors upload images (about 25–30 at a time) to the images bucket:
 
     s3://$S3_BUCKET/$IMAGE_PREFIX/photo.jpg
 
-This job writes one CSV the food app can read:
+This job writes one catalog CSV the food app can read:
 
     s3://$S3_CSV_BUCKET/descriptions/<folder>/descriptions.csv
     columns: image_s3_uri, item_description

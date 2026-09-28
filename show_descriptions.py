@@ -1,4 +1,4 @@
-"""Print the item-description CSV for one image folder.
+"""Print the food-catalog CSV for one image folder.
 
 Run:  python show_descriptions.py --batch-stem sample
 """
@@ -18,7 +18,7 @@ REGION = os.environ.get("AWS_DEFAULT_REGION", "ap-northeast-1")
 
 s3 = boto3.client("s3", region_name=REGION)
 
-parser = argparse.ArgumentParser(description="Print item descriptions for one image folder.")
+parser = argparse.ArgumentParser(description="Print the food-catalog CSV for one image folder.")
 parser.add_argument("--batch-stem", default="sample")
 args = parser.parse_args()
 

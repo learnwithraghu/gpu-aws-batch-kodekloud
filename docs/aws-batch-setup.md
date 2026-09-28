@@ -52,7 +52,7 @@ These are the names `submit_job.py` and `register_job_def.py` already expect via
 | Lesson job definition | `gpu-teaching-caption-job` | Use revision **`:3` or later** (12288 MiB + job role). `:1` is broken (16 GiB). `:2` has no `jobRoleArn`. |
 | Image | `<account-id>.dkr.ecr.ap-northeast-1.amazonaws.com/gpu-teaching:latest` | Course CUDA + PyTorch + BLIP image |
 | Images bucket | `gpu-teaching-images-<account-id>` | Input: `images/<stem>/…` |
-| Descriptions bucket | `gpu-teaching-captions-csv-<account-id>` | Output: `descriptions/<stem>/descriptions.csv` |
+| Catalog bucket | `gpu-teaching-captions-csv-<account-id>` | Output: `descriptions/<stem>/descriptions.csv` |
 | Logs | CloudWatch `/aws/batch/job` | Stream name looks like `gpu-teaching-caption-job/default/<taskId>` |
 
 Do **not** create `gpu-teaching-ce`, `gpu-teaching-queue`, or
@@ -120,7 +120,7 @@ Spot will not place.
 
 Submit by **name**; Batch uses the latest ACTIVE revision unless you pin one.
 
-### `gpu-teaching-caption-job` — lessons 02–05
+### `gpu-teaching-caption-job` — food catalog job
 
 Use **revision 3** (or a newer matching revision). Do not submit `:1` or `:2`.
 
@@ -189,7 +189,7 @@ The job definition URI stays `:latest`; new jobs pull the new image.
 | Bucket | Purpose | Current objects (2026-09-27) |
 |--------|---------|------------------------------|
 | `gpu-teaching-images-<account-id>` | Raw images | `images/sample/` (one sample PNG) |
-| `gpu-teaching-captions-csv-<account-id>` | Item-description CSVs | `descriptions/<stem>/descriptions.csv` |
+| `gpu-teaching-captions-csv-<account-id>` | Food catalog CSVs | `descriptions/<stem>/descriptions.csv` |
 
 ```
 s3://gpu-teaching-images-<account-id>/images/<stem>/…     # vendor food photos
