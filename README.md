@@ -20,7 +20,7 @@ Course outline: [syllabus.md](syllabus.md). Live queue, job definition, and buck
 |---|--------|-------------|
 | [00](lessons/00-the-real-job/) | The real job | See the folder in, the one CSV out, and why it is a GPU batch job |
 | [01](lessons/01-batch-and-gpu/) | AWS Batch and the GPU | Learn the compute environment, queue, job definition, and what a GPU job needs |
-| [02](lessons/02-the-container-program/) | The container program | Read `describe_items.py`, the program the GPU runs |
+| [02](lessons/02-the-container-program/) | The container program | Read `photos.py` (S3) and `describe_items.py` (GPU) |
 | [03](lessons/03-build-the-image/) | Build the image locally | `docker build --platform linux/amd64 -t gpu-teaching:latest .` |
 | [04](lessons/04-push-to-ecr/) | Push to ECR | Create the repository, log in, tag, and push |
 | [05](lessons/05-create-the-buckets/) | Create the buckets | `aws s3api create-bucket` for photos and the CSV |
@@ -29,4 +29,4 @@ Course outline: [syllabus.md](syllabus.md). Live queue, job definition, and buck
 | [08](lessons/08-submit-the-job/) | Submit the job | `aws batch submit-job` for `images/sample/` |
 | [09](lessons/09-read-the-catalog/) | Read the catalog | `aws s3 cp` the CSV |
 
-After `lessons/02-the-container-program/describe_items.py` or the Dockerfile changes, build and push again (lessons 03 and 04). Batch runs the image in ECR.
+After `photos.py`, `describe_items.py`, or the Dockerfile changes, build and push again (lessons 03 and 04). Batch runs the image in ECR.

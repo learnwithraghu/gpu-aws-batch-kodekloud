@@ -1,87 +1,73 @@
-"""Write one food-catalog CSV for every photo in one S3 folder.
+"""Describe every photo in one S3 folder and write one catalog CSV.
 
-Vendors upload images (about 25–30 at a time) to the images bucket:
-
-    s3://$S3_BUCKET/$IMAGE_PREFIX/photo.jpg
-
-This job writes one catalog CSV the food app can read:
-
-    s3://$S3_CSV_BUCKET/descriptions/<folder>/descriptions.csv
-    columns: image_s3_uri, item_description
+Batch runs this file:  python /app/describe_items.py
+S3 listing and the CSV live in photos.py. This file is the GPU part.
 """
-import csv
-import io
 import os
 
-import boto3
 import torch
-from PIL import Image
 from transformers import BlipForConditionalGeneration, BlipProcessor
 
-S3_BUCKET = os.environ["S3_BUCKET"]
-S3_CSV_BUCKET = os.environ.get("S3_CSV_BUCKET", S3_BUCKET)
-IMAGE_PREFIX = os.environ["IMAGE_PREFIX"].strip("/")
-BATCH_SIZE = int(os.environ.get("BATCH_SIZE", "8"))
+import photos
+
+# How many photos the GPU sees in one pass. 8 fits the T4 on a g4dn.xlarge.
+GROUP_SIZE = int(os.environ.get("BATCH_SIZE", "8"))
 PROMPT = "a food dish of"
+MODEL_NAME = "Salesforce/blip-image-captioning-base"
 
-s3 = boto3.client("s3")
+# "cuda" on the Batch GPU instance. "cpu" only if this file is started with no GPU.
 device = "cuda" if torch.cuda.is_available() else "cpu"
-print(f"Device: {device}")
+print("Device:", device)
 
 
-def list_image_keys() -> list[str]:
-    keys = []
-    paginator = s3.get_paginator("list_objects_v2")
-    for page in paginator.paginate(Bucket=S3_BUCKET, Prefix=f"{IMAGE_PREFIX}/"):
-        for obj in page.get("Contents", []):
-            if obj["Key"].lower().endswith((".jpg", ".jpeg", ".png")):
-                keys.append(obj["Key"])
-    keys.sort()
-    return keys
+def load_model():
+    """Load the caption model and move it onto the GPU."""
+    processor = BlipProcessor.from_pretrained(MODEL_NAME)
+    model = BlipForConditionalGeneration.from_pretrained(MODEL_NAME)
+    model = model.to(device)
+    model.eval()  # we are describing photos, not training
+    return processor, model
+
+
+def describe_group(processor, model, images):
+    """One GPU pass. images is a short list of pictures. Returns one sentence each."""
+    inputs = processor(
+        images=images,
+        text=[PROMPT] * len(images),  # same prompt on every photo in the group
+        return_tensors="pt",
+    ).to(device)
+
+    # no_grad: do not store training gradients. This job only generates text.
+    with torch.no_grad():
+        output_ids = model.generate(**inputs, max_new_tokens=40)
+
+    texts = processor.batch_decode(output_ids, skip_special_tokens=True)
+    return [text.strip() for text in texts]
 
 
 def main():
-    processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
-    model = BlipForConditionalGeneration.from_pretrained(
-        "Salesforce/blip-image-captioning-base"
-    ).to(device)
-    model.eval()
+    processor, model = load_model()
 
-    keys = list_image_keys()
-    print(f"Found {len(keys)} images in s3://{S3_BUCKET}/{IMAGE_PREFIX}/")
+    keys = photos.list_photo_keys()
+    print(f"Found {len(keys)} images in s3://{photos.BUCKET}/{photos.PREFIX}/")
     if not keys:
         raise SystemExit("No images to describe.")
 
     rows = []
-    for start in range(0, len(keys), BATCH_SIZE):
-        batch_keys = keys[start : start + BATCH_SIZE]
-        images = []
-        for key in batch_keys:
-            body = s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
-            images.append(Image.open(io.BytesIO(body)).convert("RGB"))
 
-        inputs = processor(
-            images=images,
-            text=[PROMPT] * len(images),
-            return_tensors="pt",
-        ).to(device)
-        with torch.no_grad():
-            output_ids = model.generate(**inputs, max_new_tokens=40)
-        descriptions = processor.batch_decode(output_ids, skip_special_tokens=True)
+    # 30 photos become groups of 8, 8, 8, and 6. Each group is one GPU pass.
+    for start in range(0, len(keys), GROUP_SIZE):
+        group = keys[start : start + GROUP_SIZE]
+        images = [photos.download_photo(key) for key in group]
+        descriptions = describe_group(processor, model, images)
 
-        for key, description in zip(batch_keys, descriptions):
-            text = description.strip()
-            rows.append((f"s3://{S3_BUCKET}/{key}", text))
-            print(f"  {key} -> {text}")
+        for key, description in zip(group, descriptions):
+            uri = f"s3://{photos.BUCKET}/{key}"
+            rows.append((uri, description))
+            print(f"  {key} -> {description}")
 
-    folder = IMAGE_PREFIX.split("/")[-1]
-    out_key = f"descriptions/{folder}/descriptions.csv"
-    body = io.StringIO()
-    writer = csv.writer(body)
-    writer.writerow(["image_s3_uri", "item_description"])
-    writer.writerows(rows)
-    s3.put_object(Bucket=S3_CSV_BUCKET, Key=out_key, Body=body.getvalue().encode())
-    print(f"Wrote {len(rows)} descriptions to s3://{S3_CSV_BUCKET}/{out_key}")
+    # One folder in, one CSV out. The groups above do not become extra files.
+    photos.save_csv(rows)
 
 
 if __name__ == "__main__":

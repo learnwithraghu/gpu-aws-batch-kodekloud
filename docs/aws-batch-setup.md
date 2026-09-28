@@ -167,10 +167,11 @@ Created/reused by `helpers/test_gpu_batch.py`. Not for lessons.
 
 Dockerfile (repo root): `pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime`,
 `transformers==4.46.3`, Pillow, boto3, python-dotenv. Lesson 02's
-`describe_items.py` is copied to `/app/describe_items.py`. Batch runs only what is
+`photos.py` and `describe_items.py` are copied to `/app/`. Batch runs
+`python /app/describe_items.py`, which imports `photos.py`. Batch runs only what is
 **baked into this image**.
 
-After any change to `Dockerfile` or `lessons/02-the-container-program/describe_items.py`, rebuild and push (lessons 03 and 04):
+After any change to `Dockerfile` or `lessons/02-the-container-program/`, rebuild and push (lessons 03 and 04):
 
 ```bash
 bash helpers/push_ecr_image.sh

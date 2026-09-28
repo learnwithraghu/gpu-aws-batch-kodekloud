@@ -24,10 +24,10 @@
   - **Estimated Time:** 25 minutes
 
 - **Lesson 02: The Container Program**
--  **[Video] ->** How `describe_items.py` lists one folder, describes photos on the GPU, and writes one CSV
--  **[Demo] ->** Environment variables, the file types, groups of 8, one `put_object` at the end
--  **[Lab] ->** Read `describe_items.py`. Do not submit a job
--  **[Deliverable] ->** You can explain that 8-at-a-time is GPU memory, and that this file does not create AWS resources
+-  **[Video] ->** Two files: `photos.py` talks to S3, `describe_items.py` talks to the GPU
+-  **[Demo] ->** List the folder, describe groups of 8, write one CSV
+-  **[Lab] ->** Read `photos.py`, then `describe_items.py`. Do not submit a job
+-  **[Deliverable] ->** You can explain that 8-at-a-time is GPU memory, and that these files do not create AWS resources
   - **AWS Services:** None
   - **Estimated Time:** 20 minutes
 

@@ -6,4 +6,5 @@ WORKDIR /app
 COPY requirements-gpu.txt .
 RUN pip install --no-cache-dir -r requirements-gpu.txt
 
+COPY lessons/02-the-container-program/photos.py /app/photos.py
 COPY lessons/02-the-container-program/describe_items.py /app/describe_items.py
