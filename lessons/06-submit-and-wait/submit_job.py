@@ -1,6 +1,6 @@
 """Submit the food-catalog job and wait until it finishes.
 
-Run:  python submit_job.py --batch-stem sample
+Run from this folder:  python submit_job.py --batch-stem sample
 """
 import argparse
 import os
@@ -9,7 +9,7 @@ import time
 import boto3
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../.env"))
 
 S3_BUCKET = os.environ["S3_BUCKET"]
 S3_CSV_BUCKET = os.environ.get("S3_CSV_BUCKET", S3_BUCKET)

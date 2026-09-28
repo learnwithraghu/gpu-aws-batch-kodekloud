@@ -7,10 +7,10 @@ AWS Batch runs a container image from ECR. It does not run `describe_items.py` f
 The [Dockerfile](../../Dockerfile) starts from `pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime`, installs [`requirements-gpu.txt`](../../requirements-gpu.txt), and copies one script:
 
 ```
-COPY describe_items.py /app/describe_items.py
+COPY lessons/03-the-job-script/describe_items.py /app/describe_items.py
 ```
 
-That path is what `submit_job.py` executes: `python /app/describe_items.py`.
+The source file stays in lesson 03. The image copies it to `/app/describe_items.py`, which is what lesson 06 executes.
 
 ## What Batch runs
 
@@ -18,7 +18,7 @@ The job definition points at `ECR_IMAGE_URI` in `.env`, the `:latest` tag of `gp
 
 ## When to rebuild
 
-Rebuild after any change to the Dockerfile, `requirements-gpu.txt`, or `describe_items.py`:
+Rebuild after any change to the Dockerfile, `requirements-gpu.txt`, or `lessons/03-the-job-script/describe_items.py`:
 
 ```bash
 bash helpers/push_ecr_image.sh

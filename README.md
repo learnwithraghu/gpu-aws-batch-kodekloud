@@ -23,11 +23,11 @@ Course outline: [syllabus.md](syllabus.md). Live queue, job definition, and buck
 | [02](lessons/02-upload-the-images/) | Upload the images | Sync one vendor folder to `images/<batch>/` |
 | [03](lessons/03-the-job-script/) | The job script | Read `describe_items.py` |
 | [04](lessons/04-the-image/) | The image | See what Batch actually runs |
-| [05](lessons/05-register-the-job/) | Register the job | `python register_job_def.py` |
-| [06](lessons/06-submit-and-wait/) | Submit and wait | `python submit_job.py --batch-stem sample` |
-| [07](lessons/07-read-the-catalog/) | Read the catalog | `python show_descriptions.py --batch-stem sample` |
+| [05](lessons/05-register-the-job/) | Register the job | `python lessons/05-register-the-job/register_job_def.py` |
+| [06](lessons/06-submit-and-wait/) | Submit and wait | `python lessons/06-submit-and-wait/submit_job.py --batch-stem sample` |
+| [07](lessons/07-read-the-catalog/) | Read the catalog | `python lessons/07-read-the-catalog/show_descriptions.py --batch-stem sample` |
 
-After `describe_items.py` or the Dockerfile changes, rebuild the image Batch runs:
+After `lessons/03-the-job-script/describe_items.py` or the Dockerfile changes, rebuild the image Batch runs:
 
 ```bash
 bash helpers/push_ecr_image.sh

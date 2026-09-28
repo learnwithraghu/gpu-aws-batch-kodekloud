@@ -1,13 +1,13 @@
 """Register the GPU job definition used by the food-catalog job.
 
-Run:  python register_job_def.py
+Run from this folder:  python register_job_def.py
 """
 import os
 
 import boto3
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../.env"))
 
 ECR_IMAGE_URI = os.environ["ECR_IMAGE_URI"]
 S3_BUCKET = os.environ["S3_BUCKET"]
@@ -79,4 +79,4 @@ print(f"\nJob definition : {existing['jobDefinitionArn']}")
 print(f"Image          : {existing['containerProperties']['image']}")
 print(f"Job role       : {existing['containerProperties'].get('jobRoleArn')}")
 print("Resources      : 4 vCPU · 12 GiB · 1 GPU (g4dn.xlarge)")
-print("\nNext: python submit_job.py --batch-stem sample")
+print("\nNext: python lessons/06-submit-and-wait/submit_job.py --batch-stem sample")

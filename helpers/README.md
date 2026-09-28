@@ -146,7 +146,7 @@ bash helpers/organize_uploads.sh --stem demo # different batch folder
 bash helpers/organize_uploads.sh --dry-run   # preview without moving
 ```
 
-Then run the catalog job with `python submit_job.py --batch-stem sample` (lesson 06).
+Then run the catalog job with `python lessons/06-submit-and-wait/submit_job.py --batch-stem sample` (lesson 06).
 
 ---
 

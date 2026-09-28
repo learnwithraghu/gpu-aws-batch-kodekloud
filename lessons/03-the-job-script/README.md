@@ -1,6 +1,6 @@
 # Lesson 03 — The job script
 
-Read [`describe_items.py`](../../describe_items.py). It runs inside the GPU container, not on your laptop. Do not submit a job in this lesson.
+Read [`describe_items.py`](describe_items.py) in this folder. It runs inside the GPU container, not on your laptop. Do not submit a job in this lesson.
 
 ## Inputs
 
@@ -13,7 +13,7 @@ The container reads:
 | `IMAGE_PREFIX` | Folder to read, such as `images/sample` |
 | `BATCH_SIZE` | Photos per GPU pass. Default 8 |
 
-`submit_job.py` sets these when you submit. They are not hard-coded in the script.
+Lesson 06 `submit_job.py` sets these when you submit. They are not hard-coded in the script.
 
 ## Listing
 

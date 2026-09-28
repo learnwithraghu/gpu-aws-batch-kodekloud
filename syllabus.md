@@ -49,7 +49,7 @@
 
 - **Lesson 05: Register the Job**
 -  **[Video] ->** The job definition: image, 4 vCPU, 12288 MiB, 1 GPU, and the S3 job role
--  **[Demo] ->** `python register_job_def.py`, including a second run that prints "already matches"
+-  **[Demo] ->** `python lessons/05-register-the-job/register_job_def.py`, including a second run that prints "already matches"
 -  **[Lab] ->** Register and note the revision
 -  **[Deliverable] ->** Active revision `:3` or later. Do not use `:1` or `:2`
   - **AWS Services:** AWS Batch
@@ -57,7 +57,7 @@
 
 - **Lesson 06: Submit and Wait**
 -  **[Video] ->** One submission for one folder, polled until the job finishes
--  **[Demo] ->** `python submit_job.py --batch-stem sample` and the status path
+-  **[Demo] ->** `python lessons/06-submit-and-wait/submit_job.py --batch-stem sample` and the status path
 -  **[Lab] ->** Submit the sample folder and wait for SUCCEEDED
 -  **[Deliverable] ->** One catalog file at `descriptions/sample/descriptions.csv`
   - **AWS Services:** AWS Batch, Amazon S3
@@ -65,7 +65,7 @@
 
 - **Lesson 07: Read the Catalog**
 -  **[Video] ->** The CSV the food app reads: description first, image URI under it
--  **[Demo] ->** `python show_descriptions.py --batch-stem sample`
+-  **[Demo] ->** `python lessons/07-read-the-catalog/show_descriptions.py --batch-stem sample`
 -  **[Lab] ->** Print the sample catalog and open the same object in S3
 -  **[Deliverable] ->** One header plus one row per photo
   - **AWS Services:** Amazon S3

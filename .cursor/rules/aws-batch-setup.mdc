@@ -26,7 +26,7 @@ commit them.
 - Recreate `gpu-teaching-ce` / `gpu-teaching-queue` / `gpu-teaching-job-def` (README example names; they are not the live resources).
 - Register a job def with 16384 MiB memory on `g4dn.xlarge`.
 - Put AWS keys or account IDs in the repo. CLI creds stay in `~/.aws/` via `aws configure`.
-- Assume the ECR `:latest` image matches the current `Dockerfile` / `describe_items.py` — Batch runs the baked image. Rebuild with `bash helpers/push_ecr_image.sh` after those files change.
+- Assume the ECR `:latest` image matches the current `Dockerfile` / `lessons/03-the-job-script/describe_items.py` — Batch runs the baked image. Rebuild with `bash helpers/push_ecr_image.sh` after those files change.
 
 ## Stuck jobs
 

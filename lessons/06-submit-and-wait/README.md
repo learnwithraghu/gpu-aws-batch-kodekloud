@@ -9,7 +9,7 @@ The stem is the folder name under `images/`. `sample` means the container reads 
 ## The command
 
 ```bash
-python submit_job.py --batch-stem sample
+python lessons/06-submit-and-wait/submit_job.py --batch-stem sample
 ```
 
 That submits `python /app/describe_items.py` on `BATCH_JOB_QUEUE` using `BATCH_JOB_DEFINITION` from `.env`. `--batch-size` defaults to 8 and only changes how many photos the GPU sees at once.

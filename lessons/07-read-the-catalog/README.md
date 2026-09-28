@@ -5,7 +5,7 @@ Print the CSV the food app would read. The job in lesson 06 must already be `SUC
 ## The command
 
 ```bash
-python show_descriptions.py --batch-stem sample
+python lessons/07-read-the-catalog/show_descriptions.py --batch-stem sample
 ```
 
 `--batch-stem` must match the stem you submitted. `sample` reads `descriptions/sample/descriptions.csv` from `S3_CSV_BUCKET`.
