@@ -54,7 +54,35 @@ The instance role does not get S3 for this course. A job that reaches the GPU wi
 
 Spot capacity is cheaper and can disappear or be unavailable. On-demand is steadier and costs more.
 
-The default queue in this course is Spot. A job that sits in `RUNNABLE` for a long time is often “no Spot GPU right now,” not a broken image. The fallback is the on-demand queue with the same instance type. Lesson 08 shows cancel and resubmit.
+The default queue in this course is Spot. A job that sits in `RUNNABLE` for a long time on Spot is often “no Spot GPU right now,” not a broken image.
+
+**On-demand is not automatic.** EC2 Service Quotas control how many G/VT instance vCPUs you may run:
+
+| Quota | Code | Role in this course |
+|-------|------|---------------------|
+| Running On-Demand G and VT instances | `L-DB2E81BA` | Must be **≥ 4** before a `g4dn.xlarge` on-demand job can start |
+| All G and VT Spot Instance Requests | `L-3819A6DF` | Spot path; this teaching account uses **8** |
+
+Many new accounts default **on-demand G/VT to 0**. With quota 0, the on-demand CE and queue can look `VALID` and `Healthy`, yet every job stays `RUNNABLE` forever: no instance, no container, no CloudWatch logs. That is an account limit, not a Batch misconfiguration.
+
+### How to check
+
+```bash
+aws service-quotas get-service-quota \
+  --service-code ec2 --quota-code L-DB2E81BA --region ap-northeast-1 \
+  --query 'Quota.{name:QuotaName,value:Value}'
+```
+
+`helpers/watch_batch_job.sh` prints the same quota when a job stays `RUNNABLE` for about two minutes.
+
+### How to request an increase
+
+1. AWS Console → **Service Quotas** → **Amazon EC2** → region **ap-northeast-1**.
+2. Open **Running On-Demand G and VT instances**.
+3. **Request increase** to at least **4** (this course often asks for **8** so one `g4dn.xlarge` fits with headroom).
+4. Wait until the case is **Approved** and `get-service-quota` shows the new value. Until then, stay on the Spot queue.
+
+Only after on-demand G/VT ≥ 4 should you treat `gpu-teaching-gpu-smoke-queue-on-demand` as a real fallback. Lesson 08 covers cancel and resubmit once that is true.
 
 ## Why not Lambda / SageMaker here
 

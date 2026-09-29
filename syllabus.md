@@ -17,7 +17,7 @@
   - **Estimated Time:** 15 minutes
 
 - **Lesson 01: AWS Batch and the GPU**
--  **[Theory] ->** [theory.md](lessons/01-batch-and-gpu/theory.md) — four Batch objects, GPU placement, roles, Spot vs on-demand
+-  **[Theory] ->** [theory.md](lessons/01-batch-and-gpu/theory.md) — four Batch objects, GPU placement, roles, Spot vs on-demand, **Service Quotas and requesting a G/VT increase**
 -  **[Video] ->** Compute environment, job queue, job definition, and job — and what changes when the job needs a GPU
 -  **[Demo] ->** `g4dn.xlarge`, the NVIDIA AMI, 1 GPU, 12288 MiB, the instance role versus the job role, Spot versus on-demand
 -  **[Lab] ->** Describe the live environment, queue, and job definition. Create nothing
@@ -80,7 +80,7 @@
   - **Estimated Time:** 30 minutes
 
 - **Lesson 08: Submit the Job**
--  **[Theory] ->** [theory.md](lessons/08-submit-the-job/theory.md) — submit vs run, overrides, status path, cold start, logs, cancel/resubmit
+-  **[Theory] ->** [theory.md](lessons/08-submit-the-job/theory.md) — submit vs run, overrides, status path, cold start, logs, **GPU Service Quota increase**, cancel/resubmit
 -  **[Video] ->** One `submit-job` for one folder, polled until the job finishes
 -  **[Demo] ->** `aws batch submit-job` with a container override, then `describe-jobs`
 -  **[Lab] ->** Submit `images/sample/` and wait for `SUCCEEDED`. If it stays `RUNNABLE`, resubmit on the on-demand queue
