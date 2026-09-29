@@ -41,7 +41,7 @@ Long `RUNNABLE` is usually one of:
 - Compute environment `INVALID` or disabled
 - Queue bound to the wrong CE
 
-**No CloudWatch `/aws/batch/job` stream while `RUNNABLE`.** The container has not started, so prints inside `describe_items.py` cannot appear. Check `statusReason` on the job and the CE (`desiredvCpus`). Lesson 08’s wait step uses `helpers/watch_batch_job.sh`, which prints that hint after about two minutes. Switching to the on-demand queue is the course’s capacity escape hatch — after you understand it is capacity, not a bad Python import.
+**No CloudWatch `/aws/batch/job` stream while `RUNNABLE`.** The container has not started, so prints inside `describe_items.py` cannot appear. Check `statusReason` on the job and the CE (`desiredvCpus`). Lesson 08’s wait step uses `helpers/watch_batch_job.sh`, which also prints the G-instance Service Quota. On this account, **on-demand G/VT quota is often 0** (AWS default), so the on-demand queue never places — successful GPU jobs have been on **Spot**. Do not treat on-demand as an automatic escape hatch until `L-DB2E81BA` is at least 4.
 
 ## Cold start costs
 

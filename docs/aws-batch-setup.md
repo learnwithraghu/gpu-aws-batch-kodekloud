@@ -99,8 +99,11 @@ Quota: **All G and VT Spot Instance Requests = 8 vCPUs** in
 | AMI | `ECS_AL2023_NVIDIA` |
 | Queue | `gpu-teaching-gpu-smoke-queue-on-demand` |
 
-Set `BATCH_JOB_QUEUE=gpu-teaching-gpu-smoke-queue-on-demand` in `.env` when
-Spot will not place.
+Set `BATCH_JOB_QUEUE=gpu-teaching-gpu-smoke-queue-on-demand` in `.env` only when
+Spot will not place **and** Service Quotas shows **Running On-Demand G and VT
+instances** (`L-DB2E81BA`) ≥ 4. On this teaching account the default has been
+**0**, so on-demand jobs stay `RUNNABLE` forever with no container and no logs.
+Spot G/VT (`L-3819A6DF`) is 8 and is what successful GPU smoke/catalog jobs used.
 
 ### CPU — smoke tests only
 
@@ -278,7 +281,7 @@ aws batch describe-compute-environments --compute-environments gpu-teaching-gpu-
 | Symptom | Likely cause | What to do |
 |---------|--------------|------------|
 | `MISCONFIGURATION:JOB_RESOURCE_REQUIREMENT` | Job asked for 16 GiB | Use `gpu-teaching-caption-job:4` (12288 MiB) |
-| Stuck `RUNNABLE` | No Spot capacity / quota | Switch `.env` to `gpu-teaching-gpu-smoke-queue-on-demand` |
+| Stuck `RUNNABLE` | Spot: no capacity. On-demand: **Running On-Demand G and VT instances** quota is often **0** (this account) | Prefer Spot (`gpu-teaching-gpu-smoke-queue-spot`). On-demand only after L-DB2E81BA ≥ 4. `helpers/watch_batch_job.sh` prints the quota. |
 | Exit 1, transformers / PyTorch error | Image predates the 4.46.3 pin | `bash helpers/push_ecr_image.sh` then resubmit |
 | Exit 1, old caption script missing | Image still has `/app/lessons/` | `bash helpers/push_ecr_image.sh` so `/app/describe_items.py` is in ECR |
 | Exit 1, S3 `AccessDenied` | Job def older than `:3`, or role policy missing the bucket | Re-register (lesson 07) so `jobRoleArn` is `gpu-teaching-batch-job-role` |

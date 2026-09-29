@@ -59,6 +59,42 @@ peek_compute_environment() {
     --output json 2>/dev/null || true
 }
 
+# On-demand G/VT (L-DB2E81BA) vs Spot G/VT (L-3819A6DF). Value 0 means Batch
+# can never launch g4dn — job stays RUNNABLE with no container / no logs.
+peek_gpu_quota() {
+  local ce_json ce_type quota_code quota_name quota_value
+  ce_json="$(peek_compute_environment)"
+  ce_type="$(python3 -c 'import json,sys; d=json.loads(sys.argv[1] or "{}"); print(d.get("type") or "")' "$ce_json" 2>/dev/null || true)"
+  if [ "$ce_type" = "SPOT" ]; then
+    quota_code="L-3819A6DF"
+    quota_name="All G and VT Spot Instance Requests"
+  else
+    # EC2 = on-demand CE
+    quota_code="L-DB2E81BA"
+    quota_name="Running On-Demand G and VT instances"
+  fi
+  quota_value="$(aws service-quotas get-service-quota --service-code ec2 --quota-code "$quota_code" \
+    --query 'Quota.Value' --output text 2>/dev/null || echo "?")"
+  echo "  GPU quota ($quota_name / $quota_code): $quota_value  (CE type=$ce_type)"
+  if [ "$quota_value" = "0.0" ] || [ "$quota_value" = "0" ]; then
+    echo "  *** This quota is 0 — Batch cannot start a g4dn instance on this CE. ***"
+    echo "  *** No container will start; CloudWatch /aws/batch/job will stay empty. ***"
+    if [ "$ce_type" = "SPOT" ]; then
+      echo "  Request a Spot G/VT increase, or use on-demand only if on-demand G quota > 0."
+    else
+      echo "  Request Service Quotas increase for L-DB2E81BA (at least 4). Spot may still work if Spot G quota > 0."
+      echo "  Escape hatch: cancel and resubmit on gpu-teaching-gpu-smoke-queue-spot."
+    fi
+    return 0
+  fi
+  if [ "$ce_type" = "SPOT" ]; then
+    echo "  Spot quota looks non-zero; long RUNNABLE is usually Spot capacity in this AZ."
+    echo "  Escape hatch: cancel and resubmit on-demand only if on-demand G quota > 0."
+  else
+    echo "  On-demand G quota looks non-zero; check CE desiredvCpus and AZ capacity."
+  fi
+}
+
 START_EPOCH="$(date +%s)"
 RUNNABLE_HINT_SHOWN=0
 STARTED_HINT_SHOWN=0
@@ -103,11 +139,12 @@ for k, v in vals.items():
         echo
         echo "Still RUNNABLE after ${RUNNABLE_HINT_AFTER}s."
         echo "  No container has started → no /aws/batch/job logs yet."
-        echo "  This is usually Spot capacity, quota, or CE placement — not describe_items.py."
+        echo "  Not describe_items.py — Batch has not placed a GPU instance."
         echo "  Queue: $QUEUE"
         echo "  Check CE scale attempt:"
         peek_compute_environment
-        echo "  Escape hatch: cancel this job, set BATCH_JOB_QUEUE to the on-demand queue, resubmit."
+        echo "  Check GPU instance quota:"
+        peek_gpu_quota
         echo
       fi
       ;;

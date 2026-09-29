@@ -50,13 +50,13 @@ bash helpers/watch_batch_job.sh "$JOB_ID"
 
 The path is `SUBMITTED` → `RUNNABLE` → `STARTING` → `RUNNING` → `SUCCEEDED`.
 
-The first run on a new instance also downloads the BLIP weights, so `RUNNING` can last several minutes. A job that stays in `RUNNABLE` is usually Spot. Point `.env` at the on-demand queue and submit again:
+The first run on a new instance also downloads the BLIP weights, so `RUNNING` can last several minutes. A job that stays in `RUNNABLE` on **Spot** is usually Spot capacity. Do **not** assume on-demand will work as a fallback: this account’s **Running On-Demand G and VT instances** quota is often **0**, so on-demand never starts a container. Prefer staying on Spot, or raise `L-DB2E81BA` to at least 4 before using the on-demand queue.
 
 ```bash
-BATCH_JOB_QUEUE=gpu-teaching-gpu-smoke-queue-on-demand
+BATCH_JOB_QUEUE=gpu-teaching-gpu-smoke-queue-spot
 ```
 
-Cancel the stuck job before you resubmit, or you will pay for two runs if Spot appears later:
+Cancel a stuck job before you resubmit:
 
 ```bash
 aws batch cancel-job --job-id "$JOB_ID" --reason "no Spot capacity, resubmitting on-demand"

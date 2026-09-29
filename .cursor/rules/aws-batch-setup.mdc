@@ -30,6 +30,6 @@ commit them.
 
 ## Stuck jobs
 
-- `RUNNABLE` forever → Spot/quota; switch queue to on-demand in `.env`.
+- `RUNNABLE` forever → Spot capacity, or on-demand G/VT quota is 0 (`L-DB2E81BA`); stay on Spot until that quota is ≥ 4. Use `helpers/watch_batch_job.sh`.
 - `MISCONFIGURATION:JOB_RESOURCE_REQUIREMENT` → wrong memory; use caption-job `:3`.
 - Container exit 1 → CloudWatch `/aws/batch/job` first.
