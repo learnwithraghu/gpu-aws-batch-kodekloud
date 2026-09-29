@@ -197,16 +197,22 @@ BATCH_JOB_QUEUE=gpu-teaching-gpu-smoke-queue-spot
 
 The definition is the template lesson 08 submits. Memory stays at **12288**. GPU is **1**. The image is the URI you pushed in lesson 04. The job role is the role from step 2.
 
+Stdout and stderr go to CloudWatch via the `awslogs` driver. Create the log group once (safe to re-run):
+
+```bash
+aws logs create-log-group --log-group-name /aws/batch/job --region "$AWS_DEFAULT_REGION" 2>/dev/null || true
+```
+
 Look at the highest active revision first:
 
 ```bash
 aws batch describe-job-definitions \
   --job-definition-name gpu-teaching-caption-job \
   --status ACTIVE \
-  --query 'sort_by(jobDefinitions, &revision)[-1].{revision:revision,image:containerProperties.image,req:containerProperties.resourceRequirements,role:containerProperties.jobRoleArn}'
+  --query 'sort_by(jobDefinitions, &revision)[-1].{revision:revision,image:containerProperties.image,req:containerProperties.resourceRequirements,role:containerProperties.jobRoleArn,logs:containerProperties.logConfiguration}'
 ```
 
-Register a new revision only when there is no active revision, or the image, memory, GPU, or role is wrong. Every register call creates another revision even when nothing changed.
+Register a new revision only when there is no active revision, or the image, memory, GPU, role, or logging config is wrong. Every register call creates another revision even when nothing changed.
 
 ```bash
 aws batch register-job-definition \
@@ -222,13 +228,22 @@ aws batch register-job-definition \
     ],
     \"environment\": [
       {\"name\": \"S3_BUCKET\", \"value\": \"${S3_BUCKET}\"},
-      {\"name\": \"S3_CSV_BUCKET\", \"value\": \"${S3_CSV_BUCKET}\"}
+      {\"name\": \"S3_CSV_BUCKET\", \"value\": \"${S3_CSV_BUCKET}\"},
+      {\"name\": \"PYTHONUNBUFFERED\", \"value\": \"1\"}
     ],
+    \"logConfiguration\": {
+      \"logDriver\": \"awslogs\",
+      \"options\": {
+        \"awslogs-group\": \"/aws/batch/job\",
+        \"awslogs-region\": \"${AWS_DEFAULT_REGION}\",
+        \"awslogs-stream-prefix\": \"gpu-teaching-caption-job\"
+      }
+    },
     \"command\": [\"python\", \"-c\", \"import torch; print(torch.cuda.is_available())\"]
   }"
 ```
 
-The default command only checks that CUDA is visible. Lesson 08 replaces it with `python /app/describe_items.py` for the catalog run.
+The default command only checks that CUDA is visible. Lesson 08 replaces it with `python /app/describe_items.py` for the catalog run. Logs appear under `/aws/batch/job` only after the job reaches `STARTING` / `RUNNING` — not while it sits in `RUNNABLE`.
 
 ```bash
 BATCH_JOB_DEFINITION=gpu-teaching-caption-job

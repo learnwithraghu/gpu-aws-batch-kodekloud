@@ -39,15 +39,14 @@ Change `images/sample` and the job name together if the folder stem is not `samp
 
 ## Wait
 
+Use the watch helper so every poll shows `statusReason`. That is how you tell **capacity stuck** from a **container** failure:
+
 ```bash
-while true; do
-  STATUS=$(aws batch describe-jobs --jobs "$JOB_ID" \
-    --query 'jobs[0].status' --output text)
-  echo "$STATUS"
-  case "$STATUS" in SUCCEEDED|FAILED) break ;; esac
-  sleep 15
-done
+bash helpers/watch_batch_job.sh "$JOB_ID"
 ```
+
+- `RUNNABLE` with no `logStreamName` → Batch has not started a container. There will be **no** CloudWatch app logs yet. Usually Spot capacity, quota, or CE placement — not `describe_items.py`. After ~2 minutes the helper prints that hint and peeks at the compute environment’s `desiredvCpus`.
+- `STARTING` / `RUNNING` → the container exists. Logs are under `/aws/batch/job` (the helper prints the stream name when Batch provides it).
 
 The path is `SUBMITTED` → `RUNNABLE` → `STARTING` → `RUNNING` → `SUCCEEDED`.
 
@@ -70,7 +69,7 @@ aws batch describe-jobs --jobs "$JOB_ID" \
   --query 'jobs[0].{status:status,reason:statusReason,exit:attempts[0].container.exitCode,log:attempts[0].container.logStreamName}'
 ```
 
-Then read the container log. The stream name is in that output:
+Then read the container log. The stream name is in that output. Logs live in `/aws/batch/job` (explicit `awslogs` on the job definition from lesson 07). There is no stream while the job is still `RUNNABLE`.
 
 ```bash
 aws logs get-log-events \

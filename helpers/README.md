@@ -134,6 +134,23 @@ the ECR image). Requires Docker and permissions: `s3:*`-style ECR actions
 
 ---
 
+## watch_batch_job.sh
+
+Poll one Batch job until it finishes. Prints `status` and `statusReason` every
+15 seconds so you can tell **capacity stuck** (`RUNNABLE`, no container logs)
+from a real container run (`STARTING` / `RUNNING`, CloudWatch `/aws/batch/job`).
+
+```bash
+bash helpers/watch_batch_job.sh <job-id>
+bash helpers/watch_batch_job.sh <job-id> --region ap-northeast-1
+```
+
+After about two minutes in `RUNNABLE`, it prints an explicit “no logs yet”
+hint and peeks at the queue’s compute environment (`desiredvCpus` / status).
+Exit 0 on `SUCCEEDED`, 1 on `FAILED`. Used by lesson 08.
+
+---
+
 ## organize_uploads.sh
 
 The catalog job reads everything under `images/<stem>/` in the images bucket,

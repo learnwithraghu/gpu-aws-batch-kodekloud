@@ -49,7 +49,7 @@ These are the names the lesson CLI commands already expect via `.env`.
 |------|------|--------|
 | Default job queue | `gpu-teaching-gpu-smoke-queue-spot` | GPU Spot (`g4dn.xlarge`) |
 | Fallback job queue | `gpu-teaching-gpu-smoke-queue-on-demand` | If a job sits in `RUNNABLE` (no Spot capacity) |
-| Lesson job definition | `gpu-teaching-caption-job` | Use revision **`:3` or later** (12288 MiB + job role). `:1` is broken (16 GiB). `:2` has no `jobRoleArn`. |
+| Lesson job definition | `gpu-teaching-caption-job` | Use revision **`:4` or later** (12288 MiB + job role + explicit awslogs). `:1` is broken (16 GiB). `:2` has no `jobRoleArn`. |
 | Image | `<account-id>.dkr.ecr.ap-northeast-1.amazonaws.com/gpu-teaching:latest` | Course CUDA + PyTorch + BLIP image |
 | Images bucket | `gpu-teaching-images-<account-id>` | Input: `images/<stem>/…` |
 | Catalog bucket | `gpu-teaching-captions-csv-<account-id>` | Output: `descriptions/<stem>/descriptions.csv` |
@@ -122,17 +122,18 @@ Submit by **name**; Batch uses the latest ACTIVE revision unless you pin one.
 
 ### `gpu-teaching-caption-job` — food catalog job
 
-Use **revision 3** (or a newer matching revision). Do not submit `:1` or `:2`.
+Use **revision 4** (or a newer matching revision with `logConfiguration`). Do not submit `:1` or `:2`.
 
-| Field | Revision 3 (good) | Revision 2 | Revision 1 (broken) |
-|-------|-------------------|------------|---------------------|
-| Image | `…/gpu-teaching:latest` | same | same |
-| VCPU | 4 | 4 | 4 |
-| MEMORY | **12288 MiB** | 12288 MiB | 16384 MiB — never placeable |
-| GPU | 1 | 1 | 1 |
-| `jobRoleArn` | `gpu-teaching-batch-job-role` | none — S3 `AccessDenied` | none |
-| Env | `S3_BUCKET`, `S3_CSV_BUCKET` | same | same |
-| Default command | `python -c "import torch; print('CUDA:…')"` | same | same |
+| Field | Revision 4+ (good) | Revision 3 | Revision 2 | Revision 1 (broken) |
+|-------|--------------------|------------|------------|---------------------|
+| Image | `…/gpu-teaching:latest` | same | same | same |
+| VCPU | 4 | 4 | 4 | 4 |
+| MEMORY | **12288 MiB** | 12288 MiB | 12288 MiB | 16384 MiB — never placeable |
+| GPU | 1 | 1 | 1 | 1 |
+| `jobRoleArn` | `gpu-teaching-batch-job-role` | same | none — S3 `AccessDenied` | none |
+| Env | `S3_BUCKET`, `S3_CSV_BUCKET`, `PYTHONUNBUFFERED=1` | buckets only | same | same |
+| Logs | `awslogs` → `/aws/batch/job` | often default awslogs | — | — |
+| Default command | `python -c "import torch; print(…)"` | same | same | same |
 
 Lesson 08 `aws batch submit-job` overrides `command` to `python /app/describe_items.py` and passes
 `IMAGE_PREFIX`, `BATCH_SIZE`, and the two bucket env vars.
@@ -142,7 +143,15 @@ Lesson 08 `aws batch submit-job` overrides `command` to `python /app/describe_it
 `MISCONFIGURATION:JOB_RESOURCE_REQUIREMENT` and the job never leaves
 `RUNNABLE`. Keep MEMORY at **12288**.
 
-Re-register only when the image, memory, GPU, or job role is wrong (lesson 07).
+**Logging:** Ensure the group exists once:
+
+```bash
+aws logs create-log-group --log-group-name /aws/batch/job --region ap-northeast-1 2>/dev/null || true
+```
+
+Streams appear only after `STARTING` / `RUNNING`. `RUNNABLE` has no container and no app logs.
+
+Re-register when the image, memory, GPU, job role, or logging config is wrong (lesson 07).
 Every `register-job-definition` call creates a new revision.
 
 ### `gpu-teaching-gpu-smoke-job` — GPU smoke only
@@ -268,7 +277,7 @@ aws batch describe-compute-environments --compute-environments gpu-teaching-gpu-
 
 | Symptom | Likely cause | What to do |
 |---------|--------------|------------|
-| `MISCONFIGURATION:JOB_RESOURCE_REQUIREMENT` | Job asked for 16 GiB | Use `gpu-teaching-caption-job:3` (12288 MiB) |
+| `MISCONFIGURATION:JOB_RESOURCE_REQUIREMENT` | Job asked for 16 GiB | Use `gpu-teaching-caption-job:4` (12288 MiB) |
 | Stuck `RUNNABLE` | No Spot capacity / quota | Switch `.env` to `gpu-teaching-gpu-smoke-queue-on-demand` |
 | Exit 1, transformers / PyTorch error | Image predates the 4.46.3 pin | `bash helpers/push_ecr_image.sh` then resubmit |
 | Exit 1, old caption script missing | Image still has `/app/lessons/` | `bash helpers/push_ecr_image.sh` so `/app/describe_items.py` is in ECR |

@@ -17,7 +17,7 @@ MODEL_NAME = "Salesforce/blip-image-captioning-base"
 
 # "cuda" on the Batch GPU instance. "cpu" only if this file is started with no GPU.
 device = "cuda" if torch.cuda.is_available() else "cpu"
-print("Device:", device)
+print("Device:", device, flush=True)
 
 
 def load_model():
@@ -52,10 +52,12 @@ def describe_group(processor, model, images):
 
 
 def main():
+    print("Loading caption model (first run may download weights)…", flush=True)
     processor, model = load_model()
+    print("Model ready. Listing photos…", flush=True)
 
     keys = photos.list_photo_keys()
-    print(f"Found {len(keys)} images in s3://{photos.BUCKET}/{photos.PREFIX}/")
+    print(f"Found {len(keys)} images in s3://{photos.BUCKET}/{photos.PREFIX}/", flush=True)
     if not keys:
         raise SystemExit("No images to describe.")
 

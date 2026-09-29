@@ -75,7 +75,7 @@
 -  **[Video] ->** Instance role, job role, GPU compute environment, queue, and job definition
 -  **[Demo] ->** `aws batch create-compute-environment`, `create-job-queue`, and `register-job-definition` (12288 MiB, 1 GPU, job role)
 -  **[Lab] ->** Describe each piece. Create it only if it is missing. Record the queue and job definition in `.env`
--  **[Deliverable] ->** Spot environment and queue `VALID`. Active job definition is revision `:3` or later. Do not use `:1` or `:2`
+-  **[Deliverable] ->** Spot environment and queue `VALID`. Active job definition is revision `:4` or later (with awslogs). Do not use `:1` or `:2`
   - **AWS Services:** AWS Batch, IAM
   - **Estimated Time:** 30 minutes
 
