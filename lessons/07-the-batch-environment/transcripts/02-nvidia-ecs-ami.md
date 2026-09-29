@@ -1,19 +1,23 @@
 # Video 02 — NVIDIA ECS AMI
-**Type:** Theory  
+**Type:** Theory
 **Runtime target:** ~3–4 minutes
+
+Read this straight through. It is the words for the recording.
 
 ---
 
-**What it is.** An **AMI** (Amazon Machine Image) is the **disk snapshot and configuration** an EC2 instance boots from. For GPU workloads on ECS, AWS publishes **ECS-optimized AMIs** that already include the ECS agent. The **`ECS_AL2023_NVIDIA`** image type adds **NVIDIA kernel drivers and the user-space pieces the agent needs** so containers can be scheduled with GPU resources.
+An AMI is the disk image an EC2 instance boots from. The snapshot, the packages, the agent, the drivers. For GPU work on ECS, AWS publishes ECS-optimized AMIs that already include the ECS agent. The image type ECS_AL2023_NVIDIA adds the NVIDIA kernel drivers and the user-space pieces that agent needs, so a container can be scheduled with a GPU resource. On the create call, that choice is ec2Configuration, image type ECS_AL2023_NVIDIA. It is one field. It is easy to skip in the console. It is painful to debug after you skip it.
 
-**Why it exists.** A GPU in the EC2 console is only **hardware attached to the instance**. PyTorch inside Docker still asks: “Is there a driver on the host, and is a GPU device passed into my container?” If you boot a generic Linux AMI on a `g4dn`, you might spend hours installing drivers, matching kernel modules, and configuring the ECS agent — and one wrong package breaks the cluster. AWS sells a **pre-integrated path** so Batch users pick **`imageType: ECS_AL2023_NVIDIA`** in **`ec2Configuration`** instead of becoming Linux GPU sysadmins.
+A GPU line in the EC2 console only means the hardware is attached to the instance. PyTorch inside the container still asks two questions. Is there a driver on the host, and was a GPU device passed into this container? Boot a plain Amazon Linux AMI on a g4dn and you can spend hours installing drivers, matching kernel modules, and wiring the ECS agent. One wrong package breaks the cluster. The NVIDIA ECS image is the pre-integrated path. You select the image type. You do not become the Linux GPU administrator for a teaching job.
 
-**Example — two boot sequences on screen.** **Path A (wrong for us):** plain Amazon Linux on `g4dn` → instance “has GPU” in billing → container starts → `torch.cuda.is_available()` returns **False** → job fails or runs on CPU by mistake. **Path B (course):** NVIDIA ECS AMI → agent registers GPU → Batch places `GPU=1` job → container sees **`/dev/nvidia0`** → CUDA true → BLIP runs on the T4.
+Walk the two boots. Path A is the wrong one for this course. Plain Amazon Linux on a g4dn.xlarge. Billing says the instance has a GPU. The container starts. torch dot cuda dot is_available returns false. The job fails, or worse, it quietly runs the caption on CPU. Path B is the course. The NVIDIA ECS AMI boots. The agent registers the GPU. Batch places a job that asked for one GPU. Inside the container you can see the device slash dev slash nvidia0. CUDA comes back true. BLIP runs on the T4.
 
-Remember the **split stack**: **drivers on the host** (AMI), **CUDA libraries and PyTorch in the image** (your Dockerfile). The container does not replace the AMI; both layers must agree, like needing both a charging cable and a wall outlet.
+Keep the split stack straight. Drivers live on the host, which means the AMI. CUDA libraries and PyTorch live in the image you built, which means the Dockerfile. The container does not replace the AMI. Both layers have to be present, the way a laptop needs both a cable and a live outlet. Lesson one stated that split. This create call is where it becomes a field you can forget.
 
-**In this course.** The create-compute-environment call sets **`ec2Configuration`** with **`ECS_AL2023_NVIDIA`**. That single field is easy to skip in the console and painful to debug if omitted — lesson eight “GPU job failed” might be lesson seven “wrong AMI type.”
+The job definition still has to ask for one GPU. The scheduler uses that request to pick an instance the agent has marked as GPU-ready. A correct AMI with a job that asks for zero GPUs will not reserve the card. A job that asks for one GPU, placed on a host with no NVIDIA driver, will not see CUDA. Lesson eight can look like a GPU failure when lesson seven stored the wrong image type. When a CUDA check prints false, come back to this field before you rebuild the container.
 
-**Visual:** Two-column boot diagram; green check only on NVIDIA ECS path. Small inset of job definition **`GPU=1`** connecting to “scheduler only picks GPU-ready instances.”
+In this account the Spot environment and the on-demand environment both set that image type. Describe the compute environment and read ec2Configuration before you assume the running host matches the notes. If you ever create the environment because describe came back empty, that image type goes in the same call as the instance type g4dn.xlarge, minimum vCPUs zero, and maximum vCPUs four.
 
-Networking must let that instance pull images and model weights — next.
+On the screen, two columns. The left column is plain Amazon Linux, and the CUDA check is a red false. The right column is ECS_AL2023_NVIDIA, and the CUDA check is a green true. A small inset shows the job definition asking for GPU equals one, with a line to the sentence the scheduler only places that job on a GPU-ready host.
+
+That host still has to reach ECR, S3, and the model download. Networking is next.

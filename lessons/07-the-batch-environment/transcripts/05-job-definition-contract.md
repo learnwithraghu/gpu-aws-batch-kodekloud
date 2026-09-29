@@ -1,29 +1,21 @@
 # Video 05 — Job definition as contract
-**Type:** Theory  
+**Type:** Theory
 **Runtime target:** ~3–4 minutes
+
+Read this straight through. It is the words for the recording.
 
 ---
 
-**What it is.** An AWS Batch **job definition** is a **registered template** that answers: “When Batch runs *this kind* of work, which container image should it use, how much CPU memory and GPU does it need, which IAM role does the *application inside the container* assume, and what command should start by default?” It is **not** a single run. It is the **spec** that many runs can share — like a job description posted on an internal careers site, not one employee’s first day on the job.
+A job definition is a registered template. It answers a fixed set of questions. When Batch runs this kind of work, which container image, how much CPU, memory, and GPU, which IAM role the application inside the container assumes, and what command starts by default. It is not one run. It is the spec many runs share. Like a job description posted for a role, not one person's first morning. Batch stores it by name and by revision. Submit usually passes the name gpu-teaching-caption-job, and Batch picks the highest active revision. You can pin a revision, and in this course you do not pin revision one or revision two.
 
-Batch stores definitions by **name** and **revision**. When you submit a job, you usually pass **`jobDefinition: my-name:revision`** or **`my-name`** and Batch picks the latest active revision. Think of revision numbers like versions of an API schema: consumers depend on the shape staying predictable.
+The template exists so every submit does not retype dozens of fields. Without it, one person asks for too much memory, another forgets the GPU, a third points at a test image. Platform teams can say caption jobs always use this image, this GPU size, and this S3 role. Application runs only vary the inputs for that day, through container overrides in lesson eight.
 
-**Why it exists.** Without a job definition, every submit call would have to repeat dozens of fields — image URI, resource limits, roles, logging — and operators would drift: one teammate asks for too much memory, another forgets the GPU flag, a third points at a test image. AWS centralizes that in a **versioned template** so platform teams can say “caption jobs always use *this* image, *this* GPU size, *this* S3 role,” while application teams only vary **per-run** inputs (which folder, which buckets) via **container overrides** in lesson eight.
+Read the course template as a filled-in card. The name is gpu-teaching-caption-job. The image is the ECR URI from lesson four, gpu-teaching, tag latest. vCPU is four, the whole g4dn.xlarge, so placement matches one machine. Memory is twelve thousand two hundred eighty-eight mebibytes. Sixteen thousand three hundred eighty-four will not place on this instance type. The host has sixteen gibibytes, and ECS keeps some for the operating system and the agent. Resource requirements are four vCPUs, that memory value, and GPU equals one. GPU equals one is what tells the scheduler to place the job only where a GPU is free.
 
-**Example — read it like a form.** Picture a card on screen with these fields filled in for our course name **`gpu-teaching-caption-job`**:
+The job role ARN is gpu-teaching-batch-job-role. Without it, the container can start and still fail on the first photo download. The default command is a small CUDA check, Python minus c, import torch, print whether torch dot cuda dot is_available. Lesson eight replaces that command with python slash app slash describe_items.py. The definition also carries default environment for the two bucket names, S3_BUCKET and S3_CSV_BUCKET, and PYTHONUNBUFFERED set to one so print lines show up while the job runs. Log configuration uses the awslogs driver, the group slash aws slash batch slash job, the region ap-northeast-1, and the stream prefix gpu-teaching-caption-job. Those logs appear only after the job reaches STARTING or RUNNING. They do not appear while it sits in RUNNABLE.
 
-- **Image:** an ECR URI such as `…/gpu-teaching:latest` — the program from lessons three and four.
-- **vCPU:** four — we request the whole `g4dn.xlarge` vCPU count so placement matches one machine.
-- **Memory:** twelve thousand two hundred eighty-eight mebibytes — not sixteen thousand; sixteen breaks placement on this instance type.
-- **Resource requirements:** **`GPU` = 1** — tells the scheduler “only place me where a GPU is free.”
-- **Job role ARN:** e.g. **`gpu-teaching-batch-job-role`** — S3 read/write for the catalog; without it, the container can start and still fail on the first photo download.
-- **Command (default):** often a tiny CUDA check in lab setup — “does this image see a GPU?” — replaced at submit time by **`python /app/describe_items.py`** for real work.
-- **Log configuration (good revisions):** send stdout to **`/aws/batch/job`** so lesson eight has a stream to open.
+That card is the contract. Batch tries to run a container that honors it. Your program exits zero when the CSV is written. Overrides and revisions are the decision to memorize. Change the S3 prefix or the command for one vendor folder, and you use container overrides on submit-job. No new revision. Change the image URI, the GPU count, the memory, or the job role for everyone, and you register a new revision. Overrides cannot repair a broken template. If the definition still asks for sixteen thousand three hundred eighty-four mebibytes, or omits jobRoleArn, every run fails the same way.
 
-That card **is** the contract. Batch promises to **try** to run containers that honor it; your app promises to exit zero when the CSV is written.
+On the screen, the left panel is the job definition, the field list you just heard, sitting still. The right panel is one run, a job ID and a status timeline, with a small overrides note stuck only on the command and the environment. Arrows leave the template toward many job icons, one per vendor folder.
 
-**Overrides vs revisions — the decision students must memorize.** Change **which S3 prefix** or **which command** for *one* vendor folder → **container overrides** on `submit-job`, no new revision. Change **image URI**, **GPU count**, **memory**, or **job role for everyone** → register a **new job-definition revision**. Overrides cannot fix a broken template: if the definition still asks for sixteen gig memory or omits `jobRoleArn`, every run fails the same way.
-
-**Visual for Remotion:** Left panel “Job definition (template)” with the field list above; right panel “Job (one run)” with job ID, status timeline, and a small “overrides” sticky on command + environment only. Animate an arrow from definition to many job icons labeled `describe-items-sample`, `describe-items-vendor-b`.
-
-Revision numbers and how a bad “latest” hurts students — that is the next clip.
+Registering that template always creates another revision number. The next clip is why the early numbers are the ones that bite.

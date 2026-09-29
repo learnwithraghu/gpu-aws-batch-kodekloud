@@ -1,21 +1,19 @@
 # Video 07 — Spot, on-demand, and the quota trap
-**Type:** Theory  
+**Type:** Theory
 **Runtime target:** ~3–4 minutes
+
+Read this straight through. It is the words for the recording.
 
 ---
 
-**What they are.**
+Spot and on demand are two ways to get the same shape of machine. A Spot instance is unused EC2 capacity, sold at a discount. AWS can interrupt it, with notice, when that capacity is needed somewhere else. An on demand instance is the normal per-second price, and AWS does not reclaim it to share capacity the way Spot can. The default environment in this course buys Spot, allocation strategy SPOT_CAPACITY_OPTIMIZED. The names are gpu-teaching-gpu-smoke-ce-spot and gpu-teaching-gpu-smoke-queue-spot. The fallback is the same instance type on demand, gpu-teaching-gpu-smoke-ce-on-demand and gpu-teaching-gpu-smoke-queue-on-demand. On demand is not automatic. A queue does not hop over to it because Spot is quiet.
 
-- **Spot instances** — Unused EC2 capacity sold at a discount; AWS can **interrupt** with notice when capacity is needed elsewhere.
-- **On-demand instances** — Standard pay-by-the-second; **no reclaim** for capacity sharing in the same way.
-- **Service quotas** — Account-level **limits** on how many vCPUs of a **family** you may run; **independent** of whether Batch CEs look healthy.
+Service quotas are account limits on how many vCPUs of a family you may run. They are independent of whether a compute environment looks healthy. g4dn is in the G and VT family, and that family has two codes. L-DB2E81BA is Running On-Demand G and VT instances. It has to be at least four before a g4dn.xlarge on demand job can start. L-3819A6DF is All G and VT Spot Instance Requests. This teaching account uses eight on that Spot quota. Many new accounts default on-demand G and VT to zero. Spot can have room while on demand is still zero.
 
-**Why this matters for GPU Batch.** **`g4dn`** is in the **G/VT** quota family. A queue bound to **on-demand** CE cannot launch if **on-demand G/VT quota is 0** — common on new accounts — even when the console shows CE **`VALID`**. Jobs sit **`RUNNABLE`** forever: **no instance, no logs**. Spot has a **different quota code** (**`L-3819A6DF`**); teaching accounts often have Spot headroom while on-demand G/VT is still zero.
+That zero is the trap. The on demand compute environment and queue can look VALID, and Healthy, and every job still stays RUNNABLE forever. No instance. No container. No CloudWatch logs. That is an account limit, not a Batch misconfiguration, and not a broken image. A different RUNNABLE, several minutes on the Spot queue, is almost always no Spot capacity right now. Lesson eight switches the queue. Treat gpu-teaching-gpu-smoke-queue-on-demand as a real fallback only after on-demand G and VT is at least four. Until the increase is approved, stay on the Spot queue.
 
-**Example.** Team submits to on-demand queue after Spot slow; still **`RUNNABLE`**. They grep Python. Fix: **`get-service-quota`** for **`L-DB2E81BA`** (on-demand G/VT) — value **0** → request increase to **≥ 4** vCPUs → wait for approval → then on-demand fallback is real.
+The path people actually walk is this. Spot feels slow, so the team submits to the on demand queue. The job is still RUNNABLE. They grep the Python. The check is get-service-quota for L-DB2E81BA. Value zero means request an increase to at least four vCPUs. This course often asks for eight, so one g4dn.xlarge fits with headroom. Four is one machine. Eight leaves room for that one g4dn.xlarge. In the console that is Service Quotas, Amazon EC2, region ap-northeast-1, Running On-Demand G and VT instances, request increase. Wait until the case is Approved and get-service-quota shows the new value. Until that number moves, the on demand queue is a picture of a fallback, and jobs sent there still never start. The helper helpers/watch_batch_job.sh prints this same quota when a job stays RUNNABLE for about two minutes. Read that line before you touch the image.
 
-**In this course.** Default **Spot queue**; **`watch_batch_job.sh`** prints quota when **`RUNNABLE`** persists.
+On the screen, two lanes run side by side, Spot and on demand. A red stop sign sits on the on demand lane, labeled quota equals zero.
 
-**Visual:** Two lanes Spot vs on-demand; red stop sign on on-demand lane labeled “quota = 0”.
-
-Demo: run the quota CLI — next.
+Next you run that quota command and read the number it returns.

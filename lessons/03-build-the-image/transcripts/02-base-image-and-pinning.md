@@ -1,19 +1,23 @@
 # Video 02 — Base image and dependency pinning
-**Type:** Theory  
+**Type:** Theory
 **Runtime target:** ~3–4 minutes
+
+Read this straight through. It is the words for the recording.
 
 ---
 
-**What the base image is.** A **parent container filesystem** declared in Dockerfile **`FROM`**. Our **`pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime`** image ships **Linux**, **CUDA 11.8 runtime libraries**, and **PyTorch built against that CUDA** — the hard compatibility triangle already solved by PyTorch maintainers.
+The base image is the parent filesystem, the line FROM in the Dockerfile. This course starts from pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime, PyTorch two point one point zero, CUDA eleven point eight, cuDNN eight, runtime. That image already ships Linux, the CUDA eleven point eight runtime libraries, and a PyTorch build compiled against that CUDA. The hard compatibility triangle is solved by the PyTorch maintainers before you write a line. You add only requirements-gpu.txt and the two lesson two files.
 
-**Why start from a GPU runtime base.** Building CUDA + cuDNN + PyTorch from scratch in every project is weeks of engineering. Batch teaching needs **“add requirements + copy scripts”** — same model as starting from **`node:20`** for a web app instead of compiling Node from source.
+Building CUDA, cuDNN, and PyTorch from scratch inside every Dockerfile is possible, and it's weeks of engineering. For teaching batch inference you want the short version. Start from a maintained PyTorch plus CUDA image, then install your requirements and copy your scripts. It's the same move as starting a web app from node, version twenty, instead of compiling Node from source on every project.
 
-**What we add.** **`pip install -r requirements-gpu.txt`** pins **`transformers==4.46.3`**, boto3, Pillow, etc. **`COPY`** lesson two files to **`/app`**.
+What this Dockerfile adds is small, and the versions are the point. It runs pip install with --no-cache-dir, from requirements-gpu.txt. That file pins transformers to version four point forty-six point three, written as transformers==4.46.3. It also installs Pillow, boto3, and python-dotenv. The comment in the requirements file says the pin is for torch two point one on this base image, and that newer transformers releases require PyTorch two point five or newer and break BLIP on Batch. Hugging Face libraries move fast, and they declare a minimum Torch. On this two point one base, an unpinned pip install transformers can resolve to a release that fails at import or disables itself. The GPU job then exits before it describes a photo. You get no CSV.
 
-**Why pin transformers.** Hugging Face libraries **move fast** and declare **minimum Torch versions**. On PyTorch 2.1, **`pip install transformers` without pin** might pull a release that **refuses to import** or disables GPU paths → container exits code 1 → no CSV. Pinning is how Pinterest-style teams **freeze** a working stack for reproducible batch jobs.
+Pinning is how you keep last week's working image from breaking when a fresh install resolves to a different major line. Teams that freeze a batch stack, Pinterest-style, do it for that reason. It's not decoration on the requirements file.
 
-**Example failure narrative.** Student unpins for “latest features,” rebuild succeeds, push succeeds, Batch **`FAILED`** in 30 seconds with **`ImportError`** in CloudWatch — not a Batch bug.
+Here's the failure if you delete the pin to chase a newer feature. The rebuild succeeds. The push succeeds. Batch marks the job FAILED in about thirty seconds. The container exits with code one. CloudWatch shows an ImportError. That's not a Batch scheduling bug. The image booted and the import of transformers died, which matches a release that refuses this PyTorch. Put the pin back, rebuild, and push again.
 
-**Visual:** Layer cake — PyTorch base (thick), pip pin (medium), your two .py files (thin).
+Follow that failure into the program. load_model reaches BlipProcessor.from_pretrained and BlipForConditionalGeneration.from_pretrained for Salesforce/blip-image-captioning-base. If transformers can't import on this PyTorch, main never gets to photos.list_photo_keys, and save_csv never runs. The vendor folder stays unread. descriptions/sample/descriptions.csv stays whatever it already was. The pin at four point forty-six point three is what keeps that import on a path the two point one image can run. Pillow and boto3 ride along in the same requirements file because the scripts decode images and call S3. python-dotenv is in that file too. The scripts themselves still read the job environment with os.environ.
 
-Build context safety — next clip.
+On the screen, draw a layer cake. The thick bottom layer is the PyTorch CUDA base. The middle layer is the pip install of the pinned requirements. The thin top layer is photos.py and describe_items.py. The pin sits in the middle, holding the base and the scripts together.
+
+The pin only helps if the build sends the right files and leaves the wrong ones out. Next you'll see what the build context is, and why .dockerignore keeps secrets out of those layers.

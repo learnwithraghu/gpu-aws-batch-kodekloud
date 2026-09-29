@@ -1,19 +1,23 @@
 # Video 03 — Networking for pulls and downloads
-**Type:** Theory  
+**Type:** Theory
 **Runtime target:** ~3–4 minutes
+
+Read this straight through. It is the words for the recording.
 
 ---
 
-**What it is.** **VPC networking** for Batch means: when an EC2 instance launches for your job, it lands in a **subnet** with a **route table**, **security groups**, and optionally a **public or private IP**. Those choices decide whether the instance can reach **ECR**, **S3**, the **internet** (for Hugging Face model downloads), and **CloudWatch Logs**.
+When Batch launches an instance for your job, that instance lands in a subnet. The subnet has a route table. The instance has a security group. It may or may not have a public IP. Those choices decide whether the machine can reach ECR, S3, the public internet, and CloudWatch Logs. The container can be perfect and still die before your Python starts, because the host cannot pull the image or cannot download the model.
 
-**Why it exists.** A perfectly built job definition fails in **`STARTING`** if the instance cannot pull the image — `CannotPullContainerError` — or if HTTPS to S3 or `huggingface.co` is blocked. These failures look like “AWS is broken” to beginners but are **routing and firewall** problems: no NAT gateway in a private subnet, wrong security group egress, NACL denying outbound TLS.
+This course needs four outbound paths. ECR, so the host can pull gpu-teaching, tag latest, the image from lesson four. S3, so the job can list and get the photos, and put the CSV. Hugging Face, at huggingface.co, so the first run inside the container can download the caption model weights. CloudWatch Logs, so stdout and stderr have somewhere to land once the job is actually starting. The region stays ap-northeast-1, Tokyo, so that data plane work stays in the same region as the buckets, the registry, and the compute environment.
 
-**Example — this course’s teaching pattern.** Instances in a **public subnet** with **assign public IP** can reach AWS endpoints and the public internet directly. Security group allows **outbound** traffic needed for HTTPS (443). On screen, draw the instance with arrows: **ECR** (image layers), **S3** (photos and CSV), **huggingface.co** (first-run weight download), **logs.** Region stays **`ap-northeast-1`** so none of these arrows cross the Pacific for data plane work.
+The teaching pattern is a public subnet, with a public IP on the instance, so those endpoints are reachable without private VPC endpoints. The live environments already use subnet subnet-b560b3fd, in availability zone ap-northeast-1a, and security group sg-bd00e4f5. The security group has to allow the outbound traffic the job needs, HTTPS on port 443 toward those services. A wrong subnet or locked-down egress shows up as a pull timeout or a model download failure. It does not show up as a Python syntax error.
 
-**Enterprise contrast (one sentence).** Netflix-scale setups often use **VPC interface endpoints** for ECR and S3 so traffic never leaves the Amazon network; that saves NAT cost and tightens security. We skip that complexity so the first GPU job succeeds with fewer moving parts.
+The failure names are worth memorizing. If the instance cannot pull the image, the job dies in STARTING with CannotPullContainerError. If HTTPS to S3 or to huggingface.co is blocked, the pull may succeed and the first model download still hangs or fails. Beginners read that as AWS is broken. It is routing and a firewall. A private subnet with no NAT gateway and no VPC endpoints cannot reach the internet. A security group with no outbound HTTPS cannot either. A network ACL that denies outbound TLS fails the same way, one layer lower, and it is easy to miss because the security group looks open.
 
-**In this course.** Lesson docs reference an existing VPC, subnet, and security group wired into the smoke compute environment. Your account may differ; the **invariant** is: from a Batch instance, prove **curl/https** paths to ECR and S3 work before debugging Python.
+Large platforms often put interface endpoints in the VPC for ECR and S3, so that traffic never leaves the Amazon network. That saves NAT cost and tightens the path. This course skips that complexity so the first GPU job has fewer moving parts. Do not add a private-only design in the middle of the lab and then debug the container. Use the subnet and security group already wired into the smoke environment.
 
-**Visual:** Map pin Tokyo; instance bubble; four outbound arrows with service icons. Red X variant: “private subnet, no NAT, no endpoints” with pull timeout message.
+Before you debug Python, prove the path. From a Batch instance, ECR and S3 have to answer on HTTPS. If describe on the compute environment says INVALID, read statusReason. A bad subnet or security group shows up there, and the pool never becomes a place you can submit work. If the environment is VALID and the job still cannot pull, the security group egress and the route are the next read, not the caption code.
 
-Three different IAM identities participate in the same launch — next.
+On the screen, a map pin on Tokyo, then one instance bubble. Four arrows leave it, labeled ECR, S3, huggingface.co, and logs. A second frame draws a red X on a private subnet with no NAT and no endpoints, and the caption on that frame is the pull timeout.
+
+Three different IAM identities act in that same launch. They are next, and they are not interchangeable.

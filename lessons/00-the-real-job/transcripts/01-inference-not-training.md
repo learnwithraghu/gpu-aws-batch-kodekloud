@@ -1,17 +1,21 @@
 # Video 01 — Inference, not training
-**Type:** Theory  
+**Type:** Theory
 **Runtime target:** ~3–4 minutes
+
+Read this straight through. It is the words for the recording.
 
 ---
 
-**What it is.** **Training** updates model **weights** from many labeled examples — backpropagation, optimizers, epochs. **Inference** runs a **fixed** model on **new** inputs and returns outputs — here, a caption string per photo. This course is **inference-only**.
+Training updates a model's weights. You show it many labeled examples, and the weights move. That movement is backpropagation, an optimizer, and a run of epochs. Inference is the other job. The model is already finished. You hand it new inputs, and it returns outputs. In this course each output is a short caption for one dish photo. This course is inference only. You do not fine-tune BLIP. You do not need a training loop, an optimizer, or a labeled dataset. The GPU's job is to run the same forward pass many times, once per photo, in small groups.
 
-**Why the distinction drives architecture.** Training needs long GPU runs, checkpoint storage, experiment tracking, and often multi-node setups. Inference for vendor catalogs needs **repeatable jobs**, **clear inputs/outputs**, and **scale-to-zero** between drops — the AWS Batch shape.
+That split is why the machines are shaped the way they are. Training wants long GPU runs, a place to store checkpoints, a way to track experiments, and often more than one machine. A vendor catalog wants a smaller shape. A folder arrives. A job runs. A file comes back. Then the GPU can disappear until the next drop. Repeatable jobs, a clear input, a clear output, and scale to zero between drops. That is the AWS Batch shape this course is building toward.
 
-**Example product story.** A restaurant group uploads ~30 dish photos to onboard a menu on a delivery app. The pipeline must return **one description per photo** for merchandisers to review — not retrain BLIP on their plates. The GPU runs the **same forward pass** many times; micro-batches of ~8 are memory management, not “eight separate products.”
+Picture a restaurant group putting a menu on a delivery app. They upload one folder of about twenty-five to thirty dish photos. Merchandisers need one description per photo so they can review the catalog. The pipeline is there to run the finished model on those plates. It is not there to retrain BLIP on them. The same forward pass runs again and again. About eight photos go through together so they fit in GPU memory. Those eight are memory management. The product is still one description per photo, and still one catalog, not eight separate products.
 
-**What we explicitly skip.** Fine-tuning, labeling workflows, hyperparameter search, distributed training loops.
+A few neighboring jobs stay outside this course. Fine-tuning. A labeling workflow. A hyperparameter search. A distributed training loop. The weights here stay frozen. A folder is minutes of work, where a training run is weeks.
 
-**Visual:** Two paths — Training (weights change, weeks) vs Inference (weights frozen, minutes per folder) — highlight Inference for “food catalog.”
+Put the vendor drop in the order it actually happens. One folder of dish photos arrives, about twenty-five to thirty pictures. The finished model writes one catalog line per photo. The food app reads that file. Between drops, the GPU machine does not stay on. A training setup would hold the GPU for epochs, store checkpoints, and keep notes on which experiment won. This pipeline stores captions. Follow one photo through the forward pass. The picture goes in, BLIP runs, a caption string comes out, and the weights at the end match the weights at the start. The next photo gets that same pass. When memory is tight, about eight photos share a pass. That group is only how the pictures fit. It is still one catalog.
 
-Why matrix math on images prefers GPUs — next.
+On the screen, two paths sit side by side. The training path shows weights changing across weeks. The inference path shows those weights frozen, and one food-catalog folder finishing in minutes. The highlight stays on the inference path, labeled for the food catalog.
+
+A photo is a large grid of numbers, and a caption is a lot of matrix math on that grid. Why that math prefers a GPU is next.
