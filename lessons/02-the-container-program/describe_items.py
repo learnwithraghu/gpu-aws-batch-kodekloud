@@ -15,6 +15,50 @@ GROUP_SIZE = int(os.environ.get("BATCH_SIZE", "8"))
 PROMPT = "a photography of"
 MODEL_NAME = "Salesforce/blip-image-captioning-base"
 
+# A food-like caption means the photo can go live. Anything else is rejected.
+# This catches obvious bad uploads. It does not prove the dish matches the menu.
+FOOD_WORDS = (
+    "food",
+    "dish",
+    "meal",
+    "plate",
+    "bowl",
+    "pizza",
+    "burger",
+    "sandwich",
+    "noodles",
+    "pasta",
+    "rice",
+    "soup",
+    "salad",
+    "chicken",
+    "beef",
+    "fish",
+    "sushi",
+    "taco",
+    "fries",
+    "bread",
+    "cake",
+    "dessert",
+    "fruit",
+    "vegetable",
+    "vegetables",
+    "meat",
+    "sauce",
+    "drink",
+    "coffee",
+    "tea",
+    "ramen",
+    "curry",
+    "steak",
+    "donut",
+    "cookie",
+    "egg",
+    "cheese",
+    "ice cream",
+    "icecream",
+)
+
 # "cuda" on the Batch GPU instance. "cpu" only if this file is started with no GPU.
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print("Device:", device, flush=True)
@@ -51,6 +95,14 @@ def describe_group(processor, model, images):
     return [text.strip() for text in texts]
 
 
+def photo_status(description):
+    """accepted if the caption looks like food, rejected otherwise."""
+    text = description.lower()
+    if any(word in text for word in FOOD_WORDS):
+        return "accepted"
+    return "rejected"
+
+
 def main():
     print("Loading caption model (first run may download weights)…", flush=True)
     processor, model = load_model()
@@ -71,8 +123,9 @@ def main():
 
         for key, description in zip(group, descriptions):
             uri = f"s3://{photos.BUCKET}/{key}"
-            rows.append((uri, description))
-            print(f"  {key} -> {description}")
+            status = photo_status(description)
+            rows.append((uri, description, status))
+            print(f"  {key} -> {description} [{status}]")
 
     # One folder in, one CSV out. The groups above do not become extra files.
     photos.save_csv(rows)

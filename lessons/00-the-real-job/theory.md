@@ -2,11 +2,17 @@
 
 Short reading before the rest of the course. No AWS commands here.
 
+## KodeFood and the photo problem
+
+KodeFood is a fast-food delivery app with millions of users and more than 2,000 vendors, with more onboarding every day. Vendors upload dish photos. Manual review does not scale.
+
+The design in this course is simple. Do not train on each vendor's menu. Run a finished caption model. If the caption is about food, accept the photo and keep that sentence as catalog text. If the caption is not about food, reject the photo. That catches obvious bad uploads. It does not prove the burger in the photo is the burger on the menu.
+
 ## Batch inference vs training
 
 Training updates model weights from labeled data. Inference runs a finished model on new inputs and produces answers.
 
-This course is inference only. A vendor folder of dish photos goes in. A short catalog sentence per photo comes out. You do not fine-tune BLIP, and you do not need a training loop, optimizer, or labeled dataset. The GPU’s job is to run the same forward pass many times, once per photo (in small groups).
+This course is inference only. A vendor folder of photos goes in. A short caption and a status per photo come out. You do not fine-tune BLIP, and you do not need a training loop, optimizer, or labeled dataset. The GPU’s job is to run the same forward pass many times, once per photo (in small groups). A few lines of Python mark each caption `accepted` or `rejected`.
 
 ## Why GPUs help image models
 
@@ -16,9 +22,9 @@ For a folder of about 25–30 photos, both can finish eventually. The GPU finish
 
 ## Always-on GPU vs on-demand batch
 
-A `g4dn.xlarge` left running all day costs money even when no vendor uploads anything. Food catalogs often arrive as rare drops: hours or days apart.
+A `g4dn.xlarge` left running all day costs money even when the queue is empty. KodeFood does not keep a GPU switched on per vendor.
 
-A batch design starts a GPU only when a folder is waiting, then lets capacity go back to zero. You pay for the minutes the job needs, not for idle time between drops. That is the shape of AWS Batch with `minvCpus` set to 0.
+A batch design starts a GPU only when folders are waiting, then lets capacity go back to zero. You pay for the minutes the job needs, not for idle time when nothing is queued. That is the shape of AWS Batch with `minvCpus` set to 0.
 
 ## One folder, one artifact
 
@@ -29,17 +35,17 @@ In this course the contract is:
 - Input: `images/<batch>/` in the images bucket
 - Output: `descriptions/<batch>/descriptions.csv` in the CSV bucket
 
-Groups of 8 inside the GPU are only how many photos fit in memory at once. They are not eight separate catalog files. The food app reads one CSV per vendor folder.
+Groups of 8 inside the GPU are only how many photos fit in memory at once. They are not eight separate catalog files. KodeFood reads one CSV per vendor folder.
 
 ## Catalog text as a product
 
-The food app does not open the image folder to invent titles. It reads rows:
+The app does not open the image folder to invent titles. It reads rows:
 
 ```csv
-image_s3_uri,item_description
+image_s3_uri,item_description,photo_status
 ```
 
-Each row ties a photo URI to a short description. That file is the product. If the CSV is wrong, the app is wrong — even if the GPU “ran fine.” Later lessons judge success by that object existing and having one row per photo.
+Each row ties a photo URI to a short description and an `accepted` or `rejected` status. Rejected rows stay in the file. The app uses the accepted rows for the menu. If the CSV is wrong, the app is wrong — even if the GPU “ran fine.” Later lessons judge success by that object existing and having one row per photo.
 
 ## Where AWS fits later
 

@@ -1,6 +1,6 @@
-# Food catalog descriptions on AWS Batch
+# KodeFood photo check on AWS Batch
 
-A vendor uploads one folder of dish photos (about 25–30). One GPU job writes one catalog CSV the food app can read. Each lesson adds one piece with the AWS CLI: the image, the registry, the buckets, the Batch environment, then the job. Each lesson also has a short theory reading.
+KodeFood is a fast-food delivery app. Vendors upload dish photos. One GPU job captions each photo and marks it `accepted` or `rejected`. A food-like caption accepts the photo for the menu. Anything else stays rejected in the CSV so the reason is visible. Each lesson adds one piece with the AWS CLI: the image, the registry, the buckets, the Batch environment, then the job. Each lesson also has a short theory reading.
 
 ```
 s3://<images-bucket>/images/<batch>/
@@ -8,8 +8,9 @@ s3://<descriptions-bucket>/descriptions/<batch>/descriptions.csv
 ```
 
 ```csv
-image_s3_uri,item_description
-s3://<images-bucket>/images/vendor-a/bowl.jpg,a food dish of noodles with vegetables
+image_s3_uri,item_description,photo_status
+s3://<images-bucket>/images/vendor-a/bowl.jpg,a food dish of noodles with vegetables,accepted
+s3://<images-bucket>/images/vendor-a/car.jpg,a car parked on the street,rejected
 ```
 
 Course outline: [syllabus.md](syllabus.md). Live queue, job definition, and bucket names: [`docs/aws-batch-setup.md`](docs/aws-batch-setup.md).

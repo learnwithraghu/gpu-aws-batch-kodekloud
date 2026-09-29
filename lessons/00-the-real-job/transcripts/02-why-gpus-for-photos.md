@@ -1,19 +1,17 @@
 # Video 02 — Why GPUs for captioning
 **Type:** Theory
-**Runtime target:** ~3–4 minutes
-
-Read this straight through. It is the words for the recording.
+**Runtime target:** ~3 minutes
 
 ---
 
-An image is a large grid of numbers. A caption model turns that grid into text. Inside the model, the work is layers of matrix operations, convolutions and attention, and the result is text tokens. A CPU is strong at sequential work and at logic that branches. It can do this math one operation at a time, or a few at a time. A GPU runs many of those similar operations together.
+Okay, so why a GPU for this?
 
-Both can finish a folder of about twenty-five to thirty photos. The CPU finishes eventually. The GPU finishes the folder in one short run. That is the wait a vendor feels when a catalog is due. It is also why renting a GPU for minutes can beat holding a CPU for hours. This course asks AWS Batch for a GPU instance, a T4, instead of a small CPU box. The claim stops there. It is this model, this batch size, and this latency target. It is not a claim that every AI job needs a GPU.
+A photo is a big grid of numbers. A caption model turns that grid into a sentence, and almost all of the work inside is the same kind of math. Matrix multiplies, convolutions, attention, until text comes out the other side.
 
-Walk one photo before the folder. The whole photo is a large grid of numbers, and the model treats that grid as a tensor. Captioning is many matrix steps on that tensor, convolutions and attention, until text tokens come out the other side. A CPU walks those steps mostly in a line. A GPU applies the same step to many numbers at once. Nothing about that requires a new model. It is the finished caption model, run hard, for a short time.
+A CPU is good at work that changes direction. If this, then that. It can do the matrix math too, but mostly a little at a time. A GPU is built to run the same operation across a huge pile of numbers at once. Think of one cook plating every dish alone, versus a line where several people do the same step on different plates. The cook is the CPU. The line is the GPU.
 
-Think of one chef plating every dish alone, and a line kitchen where many hands do the same step on different plates at once. The single chef is the CPU. The line is the GPU. Netflix encodes video frames on parallel hardware for the same reason. The frames are uniform math, and the point is throughput, not a clever branch on each frame. Your folder is that idea at catalog size. About eight photos move together so they fit in GPU memory. The GPU finishes the folder in one short batch job, which is what you want when a vendor is waiting on a catalog and you would rather rent the GPU for minutes than hold a CPU for hours. A small CPU box could still be asked to do this. This course asks AWS Batch for the GPU because the folder should be done in that one short run.
+Both will finish one KodeFood vendor folder of twenty-five or thirty photos. The CPU finishes later. The GPU finishes the folder in one short run. That is the wait the ops team feels when vendors are uploading, and it is why this course asks Batch for a GPU machine, a T4, instead of a small CPU box. I am not saying every AI job needs a GPU. I am saying this model, on this many photos, should be done in minutes.
 
-On the screen, a grid of pixel numbers becomes a tensor, then spreads across many GPU cores, and comes out the other side as a text caption. That path is one photo. The folder this course buys the GPU for is about twenty-five to thirty of those photos, done in one short run.
+About eight photos go through together. That number is memory. It is how many of those grids fit on the card at once. The folder is still one job, and each caption still becomes an accept or a reject.
 
-A GPU that stays powered all day is a different bill from a GPU that exists only while a folder is waiting. That cost, always-on versus scale to zero, is next.
+Next is the bill. KodeFood does not keep a GPU switched on per vendor. A shared pool that only exists while folders are waiting is a different cost from a machine left on all day.

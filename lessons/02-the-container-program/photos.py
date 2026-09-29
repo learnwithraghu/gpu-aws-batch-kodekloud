@@ -39,7 +39,7 @@ def download_photo(key):
 
 
 def save_csv(rows):
-    """Write one CSV. rows is a list of (image_s3_uri, item_description)."""
+    """Write one CSV. rows is (image_s3_uri, item_description, photo_status)."""
     # images/sample -> sample, so the file lands at descriptions/sample/descriptions.csv
     folder = PREFIX.split("/")[-1]
     out_key = f"descriptions/{folder}/descriptions.csv"
@@ -47,8 +47,13 @@ def save_csv(rows):
     # csv.writer quotes a description that contains a comma.
     buffer = io.StringIO()
     writer = csv.writer(buffer)
-    writer.writerow(["image_s3_uri", "item_description"])
+    writer.writerow(["image_s3_uri", "item_description", "photo_status"])
     writer.writerows(rows)
 
     s3.put_object(Bucket=CSV_BUCKET, Key=out_key, Body=buffer.getvalue().encode())
-    print(f"Wrote {len(rows)} descriptions to s3://{CSV_BUCKET}/{out_key}")
+    accepted = sum(1 for row in rows if row[2] == "accepted")
+    rejected = len(rows) - accepted
+    print(
+        f"Wrote {len(rows)} rows ({accepted} accepted, {rejected} rejected) "
+        f"to s3://{CSV_BUCKET}/{out_key}"
+    )

@@ -1,23 +1,21 @@
 # Video 06 — Demo: read the catalog CSV
 **Type:** Demo
-**Runtime target:** ~3–4 minutes
-
-Read this straight through. It is the words for the recording.
+**Runtime target:** ~3 minutes
 
 ---
 
-I want to prove the artifact, the way product and engineering would, not just the Batch status. The job from the previous lesson has to be SUCCEEDED before this file is the catalog. A green status on a different stem does not count. The app will read this object and nothing else.
+Alright. Last demo. Let's open the CSV. I want to prove the artifact, not just the Batch status. The job from the previous lesson has to be SUCCEEDED. A green status on a different stem does not count. KodeFood will read this object and nothing else.
 
-I am in the terminal. I load the env file with set -a, then source .env, then set +a, so S3_CSV_BUCKET is the CSV bucket name. The bucket name comes from that variable.
+I am in the terminal. I load the env file with set -a, source .env, set +a, so S3_CSV_BUCKET is set.
 
-I run aws s3 cp. The source is s3, then S3_CSV_BUCKET, then descriptions/sample/descriptions.csv. The destination is a single dash, so the file prints in the terminal instead of landing on disk. If I had submitted a different folder stem, I would change sample in that key to match. The prefix on the submit was images/sample, and the program turns that stem into this key.
+I run aws s3 cp. Source is s3, S3_CSV_BUCKET, descriptions/sample/descriptions.csv. Destination is a dash so it prints in the terminal. If I had submitted a different stem, I would change sample in that key. The submit prefix was images/sample, and the program turns that stem into this key.
 
-A healthy print starts with the header image_s3_uri, item_description. Then one row per photo the job described. Each image URI points at the images bucket, under images/sample, and ends in jpg, jpeg, or png. One row in the course example is the bowl photo, images/sample/bowl.jpg, with a description such as a food dish of noodles with vegetables. The sentences are readable captions, not empty fields, and not a second header. BATCH_SIZE eight did not create eight files. There is one CSV.
+A healthy print starts with header image_s3_uri, item_description, photo_status. Then one row per photo. Each image URI points under images/sample and ends in jpg, jpeg, or png. One course example is bowl.jpg with a food dish of noodles with vegetables, photo_status accepted. A car photo can say a car parked on the street and mark rejected. Rejected rows stay in the file. The app uses the accepted rows for the menu. BATCH_SIZE eight did not create eight files. There is one CSV.
 
-I run the same aws s3 cp again, same source, same dash, and I pipe it to wc -l. The number that comes back is the header plus the data rows. I subtract one. That is the number of photos the GPU described. I compare it to the jpg, jpeg, and png keys under images/sample, not to every object in the folder. A heic in that prefix will not have a row. Fewer rows than those supported keys means a skipped extension or the wrong stem. More rows than I expected means extra photos were already in the prefix. This program writes the CSV only after all of the selected photos succeed, so a short file is not a partial crash dump from the middle of the GPU loop.
+I run the same aws s3 cp again and pipe to wc -l. Subtract one for the header. That is how many photos the GPU described, accepted and rejected together. I compare it to jpg, jpeg, and png keys under images/sample, not every object in the folder. A heic will not have a row. Fewer rows than supported keys means a skipped extension or the wrong stem. More rows means extra photos were already in the prefix. This program writes the CSV only after all selected photos succeed, so a short file is not a partial crash dump.
 
-If I want a local copy, I run aws s3 cp a third time. Same source. The destination is ./descriptions.csv in the current directory. I can open that file and see the same header and the same rows. The copy is optional. The object in the CSV bucket is the one the app reads.
+If I want a local copy, I run aws s3 cp a third time to ./descriptions.csv. Optional. The object in the CSV bucket is what the app reads.
 
-I do not call describe-jobs to validate the schema. SUCCEEDED already told me the container exited zero. The columns and the count are an S3 fact. Logs in /aws/batch/job would show the Wrote line, and only if that job reached STARTING or RUNNING. They are the worker's log. They are not the menu.
+I do not call describe-jobs to validate the schema. SUCCEEDED already said exit zero. Columns and count are an S3 fact. Logs in /aws/batch/job would show each photo as key, arrow, caption, and accepted or rejected in brackets, plus a Wrote line with accepted and rejected counts from photos.save_csv. Those lines exist only after STARTING or RUNNING. They are the worker's log. They are not the menu.
 
-The GPU can scale away when the queue goes idle. The CSV stays in the bucket. That file, with those two columns, is what the food app ships against.
+The GPU can scale away when the queue goes idle. The CSV stays. That file, with those three columns, is what KodeFood ships against. That is the end of the course.

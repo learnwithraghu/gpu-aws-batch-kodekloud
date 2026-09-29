@@ -1,6 +1,6 @@
-# Food Catalog Descriptions with AWS Batch
+# KodeFood Photo Check with AWS Batch
 
-- **Course Description:** Turn a vendor folder of dish photos into one food-catalog CSV. Build the GPU image, push it to ECR, create the buckets, stand up an AWS Batch GPU environment, and submit one job with the AWS CLI. Each lesson includes a short theory reading (`theory.md`) that explains why that step exists.
+- **Course Description:** KodeFood vendors upload dish photos. Turn one vendor folder into a CSV with a caption and an accepted or rejected status per photo. Build the GPU image, push it to ECR, create the buckets, stand up an AWS Batch GPU environment, and submit one job with the AWS CLI. Each lesson includes a short theory reading (`theory.md`) that explains why that step exists.
 - **Audience:** Python developers who want to run a real GPU job on AWS Batch, one CLI step at a time.
 - **Course Length:** 10 lessons
 - **Reference Region:** ap-northeast-1 (Tokyo)
@@ -9,10 +9,10 @@
 
 - **Lesson 00: The Real Job**
 -  **[Theory] ->** [theory.md](lessons/00-the-real-job/theory.md) — batch inference, GPUs, on-demand vs always-on, one folder one artifact
--  **[Video] ->** A vendor folder of dish photos, one catalog CSV, and why the GPU should not stay on between drops
--  **[Demo] ->** Walk the input prefix and the output file, one row per photo
+-  **[Video] ->** KodeFood photo check: vendor uploads, caption then accept or reject, shared GPU pool
+-  **[Demo] ->** Walk the input prefix and the output file, one row per photo with photo_status
 -  **[Lab] ->** Read this lesson only. No AWS commands
--  **[Deliverable] ->** You can point at `images/<batch>/` and `descriptions/<batch>/descriptions.csv` and say why this is a batch GPU job
+-  **[Deliverable] ->** You can point at `images/<batch>/` and `descriptions/<batch>/descriptions.csv` and say why this is a batch GPU job for KodeFood
   - **AWS Services:** None
   - **Estimated Time:** 15 minutes
 
@@ -90,7 +90,7 @@
 
 - **Lesson 09: Read the Catalog**
 -  **[Theory] ->** [theory.md](lessons/09-read-the-catalog/theory.md) — apps read S3 not Batch, CSV as interface, when to re-run, end-to-end checklist
--  **[Video] ->** The CSV the food app reads: description and image URI on each row
+-  **[Video] ->** The CSV KodeFood reads: description, image URI, and photo_status on each row
 -  **[Demo] ->** `aws s3 cp` of `descriptions/sample/descriptions.csv`
 -  **[Lab] ->** Print the sample catalog and confirm one header plus one row per photo
 -  **[Deliverable] ->** The CSV printed locally, row count matching the uploaded photos

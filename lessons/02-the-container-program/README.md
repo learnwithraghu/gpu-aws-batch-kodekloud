@@ -37,7 +37,7 @@ Read top to bottom. Stop on each comment.
 1. **The three settings.** `S3_BUCKET`, `S3_CSV_BUCKET`, and `IMAGE_PREFIX` arrive from the job submission. They are not written in the file. `images/sample` is the example.
 2. **`list_photo_keys`.** One folder. Keep `.jpg`, `.jpeg`, and `.png`. Sort them so the CSV order does not change between runs. One `list_objects_v2` call covers a normal vendor drop of 25–30 photos.
 3. **`download_photo`.** S3 returns bytes. Pillow turns those bytes into a picture the model can see.
-4. **`save_csv`.** `images/sample` becomes the folder name `sample`. The object key is `descriptions/sample/descriptions.csv`. Two columns: `image_s3_uri`, `item_description`.
+4. **`save_csv`.** `images/sample` becomes the folder name `sample`. The object key is `descriptions/sample/descriptions.csv`. Three columns: `image_s3_uri`, `item_description`, `photo_status`.
 
 Ask: "Thirty photos. How many CSV files?" Answer: one.
 
@@ -46,7 +46,8 @@ Ask: "Thirty photos. How many CSV files?" Answer: one.
 1. **`device`.** On the `g4dn` this prints `cuda`. If CUDA is missing it prints `cpu` and the job is on the wrong machine.
 2. **`load_model`.** A small caption model (`Salesforce/blip-image-captioning-base`) is loaded and moved onto the GPU. `model.eval()` means we are not training.
 3. **`describe_group`.** One GPU pass. Every photo in the group gets the same prompt: `a photography of`. The model returns one sentence per photo. `num_beams=3` tries a few wordings. `torch.no_grad()` means we do not store training data. One sentence is enough. Do not open the model.
-4. **The loop in `main`.** Draw 30 photos as four groups: 8, 8, 8, 6. Each group is one call to `describe_group`. Eight is GPU memory, not a separate output file.
+4. **`photo_status`.** After each caption, a small food-word check marks the row `accepted` or `rejected`. No second model. Rejected rows stay in the CSV. The app uses the accepted rows.
+5. **The loop in `main`.** Draw 30 photos as four groups: 8, 8, 8, 6. Each group is one call to `describe_group`. Eight is GPU memory, not a separate output file.
 5. **The last line.** `photos.save_csv(rows)` writes the single file. The groups disappear into that one list of rows.
 
 Ask, and wait for answers:

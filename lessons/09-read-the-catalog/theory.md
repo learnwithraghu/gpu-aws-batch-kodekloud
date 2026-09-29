@@ -4,7 +4,7 @@ The GPU job is over. The product is an object in S3.
 
 ## Consuming Batch outputs
 
-The food app never calls `SubmitJob`. It never polls Batch statuses. It reads `descriptions/<batch>/descriptions.csv` from the CSV bucket (or a copy exported elsewhere).
+KodeFood never calls `SubmitJob`. It never polls Batch statuses. It reads `descriptions/<batch>/descriptions.csv` from the CSV bucket (or a copy exported elsewhere).
 
 That split matters in real systems: Batch is an offline worker. Downstream services depend on the artifact contract, not on the scheduler API. If the CSV is missing, the app is broken even though yesterday’s job “succeeded” on a different stem.
 
@@ -13,10 +13,12 @@ That split matters in real systems: Batch is an offline worker. Downstream servi
 Stable columns are an API:
 
 ```csv
-image_s3_uri,item_description
+image_s3_uri,item_description,photo_status
 ```
 
-Rename a column without updating the app and you break consumers. Adding columns carefully can be fine; silently changing meaning of `item_description` is not. Treat this file like a small public schema for the catalog.
+`photo_status` is `accepted` or `rejected`. Rejected rows stay in the file. The app uses the accepted rows for the menu.
+
+Rename a column without updating the app and you break consumers. Silently changing meaning of `item_description` or `photo_status` is not fine. Treat this file like a small public schema for the catalog.
 
 ## Row count as a check
 

@@ -48,8 +48,14 @@ BLIP can take a short text prefix and continue it while looking at the image. Th
 
 You do not need the BLIP paper to teach this. Students only need: prompt + generate args → the sentence in the CSV.
 
+## Accept or reject from the caption
+
+After generate, `photo_status` marks each caption `accepted` or `rejected`. A food-like sentence accepts the photo. A caption about a car, a selfie, or a logo rejects it. That is a few lines of Python on the caption text. It is not a second model, and it does not prove the dish matches the menu. Rejected rows stay in the CSV so the reason is visible. KodeFood uses the accepted rows for the menu.
+
 ## Idempotent outputs
 
 The output key is derived from the input prefix. `images/sample` becomes `descriptions/sample/descriptions.csv`.
+
+Columns are `image_s3_uri`, `item_description`, and `photo_status`.
 
 A second successful run for the same folder overwrites the same object. That is a product choice: the catalog always reflects the latest successful job for that stem. Failed runs should not leave a half-written contract; this job writes the CSV after all photos are described.
