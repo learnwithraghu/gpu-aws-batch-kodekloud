@@ -9,19 +9,19 @@
 
 ---
 
-Micro-batching assumes the model can talk to the GPU. That conversation needs a matched stack.
+Micro-batching only helps after the model can use the GPU. That requires a compatible software stack.
 
-CUDA is NVIDIA’s platform for running parallel code on the GPU. PyTorch, in our job, is the framework that loads BLIP and calls into CUDA. Transformers sits on top and gives us the BLIP processor and generate API. If those versions disagree, the container can fail at import — before a single photo is captioned.
+CUDA is NVIDIA’s platform for running parallel work on the GPU. PyTorch loads BLIP and calls CUDA. Transformers provides the BLIP processor and generation API. If these versions are incompatible, the container may fail during import, before it reads a photo.
 
-You could install all of that by hand on every machine. Production teams almost never do. They start from a maintained base image that already pairs a CUDA runtime with a CUDA-enabled PyTorch build. Our Dockerfile starts from `pytorch/pytorch` with CUDA 11.8 and cuDNN in the tag. That choice matches the T4 path we use on Batch.
+Our Dockerfile starts from `pytorch/pytorch` with CUDA 11.8 and cuDNN in the tag. That base already pairs a CUDA runtime with a CUDA-enabled PyTorch build for the T4 path used by this Batch job. We do not assemble that toolchain on each temporary instance.
 
-NVIDIA’s NGC catalog follows the same idea at larger scale: curated containers for frameworks so engineers do not rebuild CUDA toolchains from scratch for every project. Cloud GPU jobs inherit that habit. The host still needs NVIDIA drivers — on Batch, that comes from the NVIDIA ECS-optimized AMI. The container carries the libraries and the app. Drivers on the host, CUDA runtime and framework in the image. Both matter.
+There is also a host side to the stack. The NVIDIA ECS-optimized AMI supplies the GPU driver. The container supplies the CUDA runtime, framework, dependencies, and application. If `Device: cuda` is missing, trace both sides: first GPU and driver availability on the host, then CUDA and PyTorch compatibility in the image.
 
-Pinning dependencies is part of the same story. This course pins `transformers` to a version that works with the PyTorch 2.1 base. A floating `pip install` next month can pull a release that expects a newer torch and breaks a previously healthy image.
+Dependency pins protect that compatibility. This course pins `transformers` to a version that works with the PyTorch 2.1 base. An unpinned install can later select a release that expects a newer PyTorch version and break an image that previously built.
 
-So when we say “GPU application,” we mean more than two Python files. We mean a versioned stack that makes `Device: cuda` possible.
+So our GPU application is not just two Python files. It is a versioned stack that makes `Device: cuda` possible.
 
-How do we package that stack so every Batch run starts from the same filesystem? That is Docker — and it is the next video.
+Now we need to package that stack into the same filesystem for every run. The Docker lesson shows exactly what goes into the image.
 
 ---
 

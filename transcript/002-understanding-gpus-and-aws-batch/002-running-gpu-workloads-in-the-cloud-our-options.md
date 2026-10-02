@@ -8,19 +8,19 @@
 
 ---
 
-We know we need a GPU and careful micro-batches. In AWS alone there are several places that work could live. Let’s walk the menu with KodeFood’s shape in mind: a containerized job, a folder in, a CSV out, sparse arrivals, no need for an interactive shell.
+We need a GPU and controlled micro-batches. AWS gives us several places to run that work. Let’s compare them against the actual KodeFood shape: a containerized job, one folder in, one CSV out, sparse arrivals, and no interactive shell.
 
-Amazon EC2 with a GPU instance is the raw building block. You can start a `g4dn`, install drivers, pull an image, run Python, stop the box. Full control, full responsibility. Fine for experiments; noisy for a production queue of vendor folders unless you build your own scheduler.
+A GPU-backed Amazon EC2 instance is the raw building block. We can start a `g4dn`, install drivers, pull an image, run Python, and stop the instance. That gives us full control and full operational responsibility. It works for experiments. For a queue of vendor folders, we would also need to build scheduling and lifecycle management.
 
-AWS Lambda is wonderful for short event glue. It is a poor home for a multi-gigabyte CUDA image, a model download, and a multi-minute caption pass. Timeouts, disk, and GPU attachment simply do not match this teaching workload.
+AWS Lambda is useful for short event-driven glue. It does not fit this multi-gigabyte CUDA image, model download, and multi-minute caption pass. Its execution limits and lack of GPU attachment do not match this workload.
 
-Amazon ECS can run GPU tasks if you manage clusters, capacity, and services. Powerful when you already live in ECS. For “run this job when folders appear, then scale toward zero,” you still invent a lot of Batch’s job queue behavior yourself.
+Amazon ECS can run GPU tasks while we manage clusters and capacity. It is a strong option when a platform already operates ECS. For this job, we would still need to assemble much of the queue and scale-to-zero behavior around it.
 
-Amazon SageMaker shines for managed training and hosted endpoints. You *can* run processing jobs, but for a rare folder-sized inference with a clear start and end, it is often heavier machinery than we need.
+Amazon SageMaker supports managed training, hosted endpoints, and processing jobs. It can run this work, but its broader ML platform is more than we need for occasional folder-sized inference.
 
-AWS Batch sits in the sweet spot for us: submit a container job, let Batch place it on GPU capacity, let capacity fall when the queue drains.
+AWS Batch matches the shape closely. We submit a container job, Batch places it on GPU capacity, and capacity can fall when the queue drains.
 
-Which option would you defend in a design review? Next we answer directly why this course standardizes on AWS Batch for GPU workloads.
+In a design review, the important question is not which service is most capable. It is which service owns the operational work this job actually needs. Next, we’ll make the case for Batch directly.
 
 ---
 

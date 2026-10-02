@@ -9,19 +9,17 @@
 
 ---
 
-You just containerized the GPU application. On your laptop you can run Docker and see `gpu-teaching:latest`. That is not enough for AWS Batch.
+The GPU application now runs as `gpu-teaching:latest` on your laptop. AWS Batch still cannot use that local image.
 
-When Batch places a job on a GPU instance, that instance must pull the container image over the network and then start it. The worker cannot reach Docker Desktop on your machine. No registry pull means no container start, which means no captions and no CSV — even if your local build looks perfect.
+When Batch places the KodeFood job on a GPU instance, the worker must pull the image over the network before starting it. The worker cannot reach Docker Desktop on your machine. If the pull fails, Python never starts, so there are no captions or CSV.
 
-A container registry is the shared place those workers pull from. Think of it as the durable home for the program, the same way S3 is the durable home for photos. Local disk is for building. The registry is for running.
+A container registry is the shared source for those image layers. Local Docker is where we build and test. The registry is where Batch retrieves the program. S3 serves the same durable role for the photos and catalog data.
 
-This pattern is how cloud GPU fleets stay consistent. Platform teams publish job images to a registry so any autoscaled worker can start the same layers. The machine is disposable. The image tag or digest is the contract for “which program runs.”
+For this course, the registry is Amazon ECR in your account and region. The job definition stores an image URI. At startup, the EC2 instance authenticates with its instance role and pulls the layers. Only then does it run `python /app/describe_items.py`. Your laptop credentials do not belong on the GPU instance.
 
-For KodeFood in this course, that registry is Amazon ECR in your account and region. The job definition stores an image URI. At start time, the EC2 instance uses its instance role to authenticate, pulls the layers, and only then runs `python /app/describe_items.py`. Your laptop credentials never need to live on that GPU box.
+Notice the deployment boundary: a successful local build does not change what Batch runs. Only a successful push changes the image available from ECR. If a submitted job still behaves like yesterday’s code, compare the local build with the image that was actually pushed.
 
-Hold a sharp distinction in your head: built locally versus what Batch will run. Those become the same fact only after a successful push. Until then, submitting a job may still pull yesterday’s image — or fail if nothing is there.
-
-That's it here for registries: Batch workers do not inherit your laptop's Docker cache. They pull. Next we open Amazon ECR — repositories, tags, and digests — so you know what `:latest` actually means.
+Next, we will open that ECR reference and separate its repository, tag, and digest. Those three parts tell us exactly how `:latest` selects a program.
 
 ---
 

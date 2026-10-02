@@ -9,15 +9,15 @@
 
 ---
 
-In the last section you watched a job sit in RUNNABLE. That feeling — ready work, no GPU yet — is not a side quest. It is the production signal. Capacity is scarce, Spot comes and goes, quotas gate on-demand, and cold starts take minutes. So this section asks a different question: given those constraints, is the KodeFood architecture shaped for production, or did we only prove one happy path?
+In the last section, you saw a job remain RUNNABLE because no GPU was available. In a design review, we would not dismiss that as a lab inconvenience. It is an operating condition: Spot capacity changes, quotas can block on-demand instances, and a cold start can take minutes. The production question is whether the KodeFood design behaves predictably under those constraints.
 
-Start with the pieces you already built, end to end. Vendor photos land under an S3 prefix — `images/<stem>/`. A container image in Amazon ECR holds the caption program: list, download, BLIP inference, accept or reject, write `descriptions.csv`. AWS Batch owns the four objects: compute environment, queue, job definition, and the job you submit with overrides for that stem. CloudWatch `/aws/batch/job` is where the container truth lives when exit code 1 appears.
+Trace the system from input to output. Vendor photos arrive at `images/<stem>/` in S3. The image in Amazon ECR contains the caption program: list the files, download them, run BLIP inference, accept or reject each result, and write `descriptions.csv`. AWS Batch connects the compute environment, queue, job definition, and submitted job. The stem arrives as an override. If the container exits with code 1, start the incident review in CloudWatch at `/aws/batch/job`.
 
-Notice the design choices that matter under pressure. Storage is not glued inside the model file — S3 is the contract. The GPU is not always-on — `minvCpus` at zero means you pay for work, not for an idle g4dn waiting for the next vendor. Spot is the default path; on-demand is the fallback when RUNNABLE goes quiet. Memory on the job definition is sized to place, not to impress — 12288 MiB on `g4dn.xlarge`, not 16384.
+Now check the choices that reduce blast radius and idle cost. S3 is the durable contract; the model container is replaceable. With `minvCpus` set to zero, the GPU fleet can disappear when the queue is empty. Spot is the normal path. On-demand can serve as the capacity fallback only after the account’s G and VT quota reaches at least four vCPUs. The job requests 12288 MiB on `g4dn.xlarge`, because 16384 MiB cannot be placed on that instance after system overhead.
 
-That pattern shows up outside this course. Marketplace photo pipelines and media encoding farms treat images as durable objects and models as replaceable workers — queue independent units instead of keeping every encoder hot. Durable inputs, ephemeral GPU, one artifact out.
+This is the same pattern used in photo processing and media encoding: durable inputs, independent work items, ephemeral workers, and one durable result. During review, ask one diagnostic question: if this container disappears halfway through a folder, can we rerun the same stem without repairing state by hand?
 
-That's it here for the production picture: S3 in, ECR image, Batch queue and GPU CE, CSV out, then scale to zero. The next pressure is volume — how we go from one vendor folder to thousands of jobs without rewriting the application.
+That is the production baseline: S3 in, an ECR image on Batch, a CSV out, then scale to zero. Next we apply the same shape to thousands of vendor folders.
 
 ---
 

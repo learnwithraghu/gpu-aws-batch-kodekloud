@@ -9,17 +9,17 @@
 
 ---
 
-Export controls police the chips. AI regulations police the systems — and they still land on your infrastructure checklist.
+Export controls shape access to chips. AI regulations shape how systems using those chips are governed. Both reach the infrastructure team.
 
-The EU AI Act is the clearest large-market example. It takes a risk-based approach: prohibited uses, high-risk systems with conformity duties, transparency rules for certain AI, and obligations around general-purpose models at the top end. Dates phase in over time; read the Official Journal and the Commission’s pages for the schedule that applies to you. For platform teams, “high-risk” can mean logging, human oversight, dataset documentation, and post-market monitoring — requirements that need durable storage, access control, and sometimes Region pinning, not only a clever model.
+The EU AI Act is a prominent example. It uses a risk-based structure covering prohibited uses, high-risk systems, transparency duties, and obligations for some general-purpose models. Its requirements phase in, so teams must check the current official schedule. For a platform team, compliance may require logs, human oversight, dataset records, post-market monitoring, access controls, and Regional restrictions.
 
-Elsewhere the picture fragments. The U.S. has executive orders, agency guidance, and sector rules rather than one AI statute. China has generative AI and algorithm filing regimes. Singapore, UK, Canada, and others publish codes and safety frameworks. Financial and health regulators add domain rules on top. None of these say “you must use Batch,” but they do say “prove what ran, on which data, with which model version.”
+Other jurisdictions use different combinations of laws, agency guidance, filing regimes, sector rules, and safety frameworks. The details vary, but a common infrastructure need is evidence: what ran, which data it used, and which model version produced the result.
 
-That is why our course obsesses over artifacts. S3 inputs, CSV outputs, job IDs, CloudWatch logs, immutable image digests in ECR — those are compliance building blocks. If a regulator asks how a vendor photo was rejected, you want a stem, a job, a model identity, and a row — not a forgotten notebook.
+KodeFood already creates useful evidence. S3 holds the inputs and CSV outputs. Batch records a job ID. CloudWatch keeps execution logs. An immutable ECR digest can identify the container. The BLIP model revision must also be pinned or recorded; the container digest alone cannot identify weights downloaded at runtime. Together, those artifacts can explain how a vendor photo was processed far better than an untracked notebook.
 
-GPU infrastructure becomes the evidence plane. Training runs may need longer retention. Inference batches need reproducibility. Cross-border processing may be restricted even when GPUs are cheaper elsewhere.
+Infrastructure becomes part of the evidence plane. Training records may need long retention. Inference batches need reproducibility. Cross-border processing may remain restricted even when another Region is cheaper.
 
-So regulation turns architecture into accountability. Next we go deeper on one slice of that — data residency and sovereignty when AI crosses borders.
+Regulation turns architecture decisions into accountability records. Next we focus on data residency and sovereignty across borders.
 
 ---
 

@@ -9,19 +9,19 @@
 
 ---
 
-You submit. The job is correct. Still minutes pass before the first log line from BLIP. That gap is cold start, and on GPU Batch it is usually several stacked waits — not one.
+The job is correctly submitted, but several minutes pass before BLIP writes its first log line. That gap is a cold start, and on GPU Batch it is usually several waits stacked together.
 
-First the compute environment may be at zero. EC2 must launch a `g4dn.xlarge`, boot the NVIDIA ECS-optimized AMI, and register the ECS agent. That alone can take minutes when Spot has to find a pool.
+First, the compute environment may be at zero. EC2 must find and launch a `g4dn.xlarge`, boot the NVIDIA ECS-optimized AMI, and register the ECS agent. Spot capacity can add minutes to this stage.
 
-Then the container image pulls from ECR. Our teaching image is multi-gigabyte: CUDA, PyTorch, transformers, application code. First pull on a fresh instance dominates. Later jobs on a warm host may reuse layers and feel faster.
+Second, the container image pulls from ECR. The teaching image is multi-gigabyte and contains CUDA, PyTorch, transformers, and the application. A first pull on a fresh instance can dominate startup time. A later job on a warm host may reuse layers.
 
-Then the process starts and loads the model. BLIP weights move onto GPU memory. Only after that does photo iteration begin. If weights download from the network on first use, add another stretch.
+Third, the process starts and loads the model. BLIP weights move into GPU memory before photo iteration begins. If those weights download on first use, network transfer adds another delay.
 
-Production inference platforms treat cold start as a first-class cost. AWS Lambda has documented cold starts for CPUs; GPU Batch cold starts are heavier because the machine and the image are both large. Some teams keep `minvCpus` above zero to hide AMI boot — they pay idle GPU time to buy latency. Our course keeps min at zero to protect the teaching bill, so you feel the full cold path.
+There is a direct cost trade-off. Keeping `minvCpus` above zero can hide AMI boot time, but it pays for an idle GPU. This course keeps `minvCpus` at zero to control the teaching bill, so the lab exposes the full cold path.
 
-Measure wall clock from submit to first RUNNING log, then from RUNNING to first caption. You will see infrastructure time and model time separately — and you will stop blaming `describe_items.py` for the AMI boot.
+In the lab, measure two intervals: submission until the job reaches `RUNNING`, then `RUNNING` to the first caption log. The first interval is dominated by capacity and startup. The second exposes model initialization and application work.
 
-That's it here for cold starts: AMI boot, image pull, and model load are real time before the first caption. Sometimes the wait is worse — the job never leaves RUNNABLE. Next we unpack what capacity and quotas are doing while you wait.
+That separates AMI boot, image pull, and model load instead of assigning the entire delay to `describe_items.py`. Next, we investigate the more serious symptom: a job that never leaves `RUNNABLE`.
 
 ---
 

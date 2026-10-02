@@ -9,21 +9,21 @@
 
 ---
 
-Four names show up in every “how should we run GPUs on AWS?” meeting. They are not four flavors of the same thing. They solve different operating problems. Let’s put them next to KodeFood so the choice is concrete.
+Four services usually enter an AWS GPU design review: Batch, ECS, EKS, and SageMaker. They are not interchangeable. Each places a different operating responsibility on the team. We will compare them against the KodeFood workload.
 
-AWS Batch is a scheduler for batch work. You define jobs, queues, and compute environments. Batch decides when to launch EC2 GPU capacity, places containers, retries, and can scale toward zero. You already lived this: submit, RUNNABLE, RUNNING, SUCCEEDED, CSV on S3. Batch can orchestrate on ECS or EKS underneath — but you think in jobs, not in always-on services. Best when work is queued, finite, and restartable.
+AWS Batch schedules finite work. You define jobs, queues, and compute environments; Batch launches EC2 GPU capacity, places containers, handles retries, and can scale toward zero. KodeFood follows the lifecycle from SUBMITTED to RUNNABLE, RUNNING, and SUCCEEDED, with the CSV stored in S3. Batch may use ECS or EKS underneath, but the operator thinks in jobs rather than always-on services. It fits queued, restartable work.
 
-Amazon ECS is container orchestration. You run tasks and services on EC2 or Fargate. For GPUs you use EC2 with GPU-optimized AMIs — Fargate still does not give you NVIDIA GPUs the way Batch GPU jobs need. ECS shines for long-running caption APIs, sidecars, and service meshes where something must stay warm. You own more of the “keep the fleet healthy” story than Batch does for pure batch.
+Amazon ECS orchestrates tasks and services. GPU workloads run on EC2 with GPU-optimized AMIs; Fargate is not the NVIDIA GPU option for this design. ECS fits a long-running caption API, sidecars, or a service mesh that must remain warm. In return, the team owns more of the fleet-health and service-availability work.
 
-Amazon EKS is Kubernetes on AWS. Same GPU node problems — drivers, device plugins, bin-packing — plus the Kubernetes control plane your platform team already operates. Choose EKS when the company standardized on Pods, CRDs, and GitOps, and batch is one workload among many. Batch on EKS exists for teams who want Batch’s queue semantics on Kubernetes capacity. Pure EKS without Batch means you build or adopt a queue yourself — Volcano, Kueue, or custom controllers.
+Amazon EKS is Kubernetes on AWS. The team manages GPU nodes, drivers, device plugins, and bin-packing within its Kubernetes platform. EKS is a strong choice when Pods, CRDs, and GitOps are already the company standard and batch is one workload among many. Batch on EKS adds Batch queue semantics to Kubernetes capacity. Without it, the team must provide scheduling through tools such as Volcano, Kueue, or custom controllers.
 
-Amazon SageMaker is the managed ML platform — training, processing, endpoints, experiments, model registry. Use it when the product is the ML lifecycle, not when you already have a Docker image and only need “run this container on a GPU when a folder appears.” Overkill for KodeFood’s CSV job; underkill if you pretend a training studio is a general batch scheduler.
+Amazon SageMaker manages the ML lifecycle: training, processing, endpoints, experiments, and model registration. It is appropriate when those capabilities are part of the requirement. For KodeFood, we already have a container and need it to run when a folder appears, so the broader ML platform would add responsibilities without solving a new problem.
 
-KodeFood choices: overnight caption backfill → Batch. Interactive “check this photo now” → ECS or SageMaker real-time with a warm model. Platform already on Kubernetes → EKS, maybe Batch-on-EKS. Fine-tuning with managed experiments → SageMaker Training.
+The mapping is straightforward. Overnight caption backfills go to Batch. Interactive photo checks need ECS or a SageMaker real-time endpoint with a warm model. A Kubernetes-centered platform points toward EKS, possibly with Batch on EKS. Managed fine-tuning experiments point toward SageMaker Training.
 
-All four still share scarce GPUs, uneven Regions, and a bill for idle silicon. The scheduler changes; the constraint does not.
+All four still face scarce GPUs, uneven Regional inventory, and the cost of idle devices. The service changes the control plane, not the physical constraint.
 
-That’s the fork for this infrastructure chapter. Zoom out next — why the world fights over the same accelerators, and why your Batch design matters more when capacity is geopolitical and economic, not just a console checkbox.
+That closes the service decision. Next we widen the view and examine why GPU capacity is also a supply-chain, economic, and policy concern.
 
 ---
 

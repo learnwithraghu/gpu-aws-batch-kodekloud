@@ -8,19 +8,19 @@
 
 ---
 
-We picked `g4dn.xlarge`. Now the purchase question: Spot or on-demand?
+We’ve chosen `g4dn.xlarge`. Now we need a purchase model: Spot or on-demand.
 
-On-demand GPU instances are the straightforward path. You pay the listed price; capacity is more predictable. For a teaching account or a production fallback queue, on-demand is the steady stove.
+On-demand GPU instances use the listed price and generally offer more predictable access to capacity. That makes an on-demand queue useful when timing matters or as a production fallback.
 
-Spot capacity is unused EC2 offered at a discount. Batch can launch Spot GPU instances for your compute environment and save real money on bursty inference. The tradeoff is availability. Spot may be scarce in a region or get interrupted. A job can sit in `RUNNABLE` for a long time not because your image is broken, but because no Spot `g4dn` showed up.
+Spot uses spare EC2 capacity at a discount. Batch can launch Spot GPU instances for bursty inference, but availability is not guaranteed. Capacity may be scarce in a region, and running instances can be interrupted. A job may sit in `RUNNABLE` because no Spot `g4dn` is available—not because the image is broken.
 
-In this course the default teaching path is Spot. That matches KodeFood’s economics: vendor folders are batch work that can often wait a bit for cheaper capacity. We also keep an on-demand queue in mind as a fallback once the account is allowed to run on-demand G and VT instances.
+This course starts with Spot. KodeFood’s vendor folders are batch work and can usually wait for lower-cost capacity. We keep an on-demand queue as a fallback once the account is allowed to run on-demand G and VT instances.
 
-How should you choose day to day? If a catalog refresh can tolerate delay and you are watching cost, start Spot. If a launch is blocked on capacity or you need a reliable demo in the next few minutes, move to on-demand — after quotas allow it. Many teams keep both queues wired and treat failover as an operational play, not a redesign.
+For daily decisions, start with the workload deadline. If a catalog refresh can wait, Spot is reasonable. If capacity delay blocks a launch or time-sensitive demonstration, use on-demand after confirming the quota. Keeping both queues available turns that switch into an operational choice instead of an architecture change.
 
-Also remember interruption risk on Spot. A long training job fears reclaim more than our short caption pass does, but you should still design the CSV write to finish cleanly after all photos are described.
+Spot interruption still matters. Our short caption pass has less exposure than a long training job, but the CSV should only be finalized after all photos are described.
 
-That's it here for Spot versus on-demand on GPU: cheaper capacity with interruption risk, versus a steadier price when you cannot wait. But neither model helps if your quotas say zero. Next we face GPU quotas and capacity constraints directly.
+Purchase choice is only half the capacity story. Next, let’s inspect the quotas and regional constraints that can prevent either path from launching.
 
 ---
 

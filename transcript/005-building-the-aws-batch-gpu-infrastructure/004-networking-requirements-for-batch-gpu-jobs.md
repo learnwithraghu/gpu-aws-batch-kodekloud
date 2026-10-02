@@ -9,17 +9,17 @@
 
 ---
 
-Roles grant permission. Networking grants a path. A GPU instance with perfect IAM still fails if it cannot leave the subnet to pull your image or download model weights.
+Roles grant permission. Networking provides the path. If a GPU instance has correct IAM but cannot pull the image or download model weights, start with its outbound network path.
 
-Batch places instances into the VPC, subnet, and security group you configure on the compute environment. Those choices are baked in when the environment is created. For KodeFood, that is a subnet in one Availability Zone and a security group that allows egress so the host can reach Amazon ECR, S3, CloudWatch Logs, and — on first model load — Hugging Face for BLIP weights.
+Batch places instances in the VPC, subnet, and security group configured on the compute environment. Those choices are set when the environment is created. KodeFood uses a subnet in one Availability Zone and a security group that allows egress. The host must reach Amazon ECR, S3, CloudWatch Logs, and, on the first model load, Hugging Face for BLIP weights.
 
-Think in egress paths, not in “open the internet casually.” The instance needs outbound HTTPS to AWS APIs and registries. Without a public IP, NAT gateway, or VPC endpoints, the ECS agent cannot pull from ECR and your job never truly starts. With egress blocked, you get pull timeouts and missing logs that look like Batch problems but are network problems.
+Think in specific egress paths. The instance needs outbound HTTPS to the required AWS APIs and registries. Without a public IP, NAT gateway, or VPC endpoints, the ECS agent cannot pull from ECR and the job never truly starts. Pull timeouts and missing logs can look like Batch failures even when the root cause is networking.
 
-GPU jobs add one more dependency: model artifacts. Our image may still fetch BLIP weights on cold start if they are not fully baked in. That download needs outbound reachability too. Teams that lock down production VPCs solve this with VPC endpoints for S3 and ECR, plus a controlled path for any remaining model host — least network access that still lets the workload complete.
+GPU jobs add model artifacts to the dependency list. If BLIP weights are not fully baked into the image, the cold start fetches them over the network. A locked-down VPC can use endpoints for S3 and ECR, plus a controlled path to any remaining model host. The goal is the least network access that still lets the workload complete.
 
-Notice what you do not need for this course: inbound SSH for day-to-day caption runs. Batch and the agent manage the instance. Your laptop talks to the Batch and S3 APIs; the job talks out from the VPC.
+We do not need inbound SSH for normal caption runs. Batch and the agent manage the instance. Your laptop calls the Batch and S3 APIs, while the job makes outbound connections from the VPC.
 
-That's it here for networking: reach ECR, S3, models, and logs, or a perfect job definition still dies silent. Next — job queues and how Batch schedules across them.
+When a job cannot pull or produces no startup logs, verify reachability to ECR, S3, the model host, and CloudWatch. Next, we move one layer up to job queues and scheduling.
 
 ---
 

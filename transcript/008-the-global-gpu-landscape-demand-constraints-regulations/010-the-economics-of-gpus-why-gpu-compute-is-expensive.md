@@ -9,17 +9,17 @@
 
 ---
 
-Open the EC2 pricing page for a GPU instance next to a similar CPU instance. The gap looks rude until you price the stack behind it.
+A GPU instance costs far more than a comparable CPU instance because its hourly price carries an expensive physical stack.
 
-Start with the bill of materials. An NVIDIA data-center GPU can cost many thousands of dollars at the card; a full multi-GPU server lands in the tens or hundreds of thousands before networking. Hyperscalers buy at scale and still need return on that CapEx. Your hourly rate amortizes chips, NICs, optics, racks, power, cooling, buildings, and the people who keep them alive. Scarcity raises clearing prices — classic supply and demand on a multi-year manufacturing lag.
+A data-center GPU can cost thousands of dollars, while a multi-GPU server can cost tens or hundreds of thousands before networking. Cloud providers must recover that capital expense. The hourly rate also covers network interfaces, optics, racks, power, cooling, facilities, and operations. Limited supply adds a scarcity premium.
 
-Then utilization. A CPU fleet for web APIs can run hot with many tenants. A GPU held for a warm chatbot may sit at low duty cycle between requests — and you still pay. That is why Batch’s scale-to-zero and Spot matter for KodeFood: you convert “own a fraction of an expensive machine forever” into “rent it for the caption window.” Spot discounts exist because you accept interruption; on-demand premiums buy certainty. Reserved and savings plans help steady training farms, not bursty vendor onboarding.
+Utilization determines whether that price produces value. A GPU kept warm for an interactive service may sit idle between requests while billing continues. KodeFood avoids that pattern by renting capacity for the caption window and scaling toward zero afterward. Spot lowers the price in exchange for interruption risk. On-demand capacity is more predictable, but it can still be unavailable. Reservations and savings commitments suit steady workloads better than bursty vendor onboarding.
 
-Software taxes hide in the image. Large CUDA bases, model weights pulled at runtime, longer cold starts — all burn GPU minutes before the first useful caption. Micro-batching and keeping I/O off the critical path are economic moves, not only engineering aesthetics.
+Software overhead also consumes paid minutes. Large CUDA images, model downloads, and cold starts delay the first useful caption. Micro-batching and moving I/O away from the GPU's critical path improve unit economics.
 
-Public references — NVIDIA earnings, cloud pricing pages, and analyses from groups like a16z or SemiAnalysis — repeat the refrain: AI CapEx is enormous; inference unit economics decide who profits. Your CSV pipeline is a unit-economics story in miniature.
+The KodeFood CSV makes the unit visible: GPU cost per folder, or per accepted caption. That measure connects infrastructure choices to product economics.
 
-So GPU expense is CapEx scarcity plus idle risk. The finale asks where this goes — more GPUs forever, or better efficiency — and how what you built already votes.
+GPU expense combines capital cost, scarcity, and idle risk. The final lesson asks whether the industry answers with more hardware, better efficiency, or both.
 
 ---
 

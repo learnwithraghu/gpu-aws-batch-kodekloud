@@ -9,17 +9,17 @@
 
 ---
 
-Open our Dockerfile mentally. PyTorch CUDA base image. BLIP via Transformers. Drivers on the ECS GPU-optimized AMI. That stack is not “generic GPU.” It is the NVIDIA ecosystem — and CUDA is the hinge.
+The KodeFood stack uses a PyTorch CUDA base image, BLIP through Transformers, and drivers from the ECS GPU-optimized AMI. This is not a generic accelerator stack. It belongs to the NVIDIA ecosystem, with CUDA at its center.
 
-CUDA is NVIDIA’s parallel computing platform: compilers, libraries, and a programming model that lets software talk to NVIDIA GPUs. cuDNN accelerates deep learning primitives. NCCL moves gradients across multi-GPU training. TensorRT optimizes inference graphs. PyTorch and TensorFlow primarily execute through these paths on NVIDIA hardware. When we say “the model runs on GPU,” we usually mean “kernels scheduled through CUDA.”
+CUDA provides compilers, libraries, and a programming model for NVIDIA GPUs. cuDNN accelerates deep-learning operations. NCCL supports communication in multi-GPU training. TensorRT optimizes inference graphs. PyTorch and TensorFlow use these paths on NVIDIA hardware. In this stack, “run on GPU” usually means scheduling kernels through CUDA.
 
-That creates gravity. Engineers learn CUDA tools. ISVs certify on NVIDIA. Cloud regions stock NVIDIA SKUs first. Switching to AMD, Intel, or custom silicon is not impossible — ROCm, oneAPI, and AWS Neuron exist — but it is a port, a validation tax, and sometimes a research project. Startups and course teams default to CUDA because the shortest path from Hugging Face to a working container goes there.
+This creates ecosystem gravity. Engineers learn CUDA tools, software vendors certify against NVIDIA, and cloud providers stock NVIDIA instances. Alternatives such as ROCm, oneAPI, and AWS Neuron exist, but moving requires porting and validation. CUDA remains the shortest path for many Hugging Face applications.
 
-NVIDIA’s business model compounds the moat: sell the chips, rent the stack. DGX systems, NGC containers, AI Enterprise software — same orbit. Regulators and competitors notice; the ecosystem still ships your captions tomorrow morning.
+NVIDIA reinforces the ecosystem with DGX systems, NGC containers, and AI Enterprise software. Competitors and regulators pay attention because the hardware and software advantages strengthen each other.
 
-For KodeFood students the takeaway is sober. You did not pick CUDA for brand loyalty. You picked the path where BLIP, PyTorch, and AWS GPU AMIs already agree. That agreement is infrastructure. It also means capacity crisis and export controls aimed at NVIDIA-class accelerators hit your architecture whether you buy from NVIDIA directly or rent through AWS.
+KodeFood uses CUDA because BLIP, PyTorch, and the AWS GPU AMI already agree on that interface. That compatibility is infrastructure. It also means shortages or export controls affecting NVIDIA-class accelerators can affect the application even when the hardware is rented through AWS.
 
-That’s it here for the software lock-in story. Next we look at where those GPUs actually appear — Region by Region, cloud by cloud.
+The software path narrows the hardware choices. Next we look at how those choices vary across Regions and cloud providers.
 
 ---
 

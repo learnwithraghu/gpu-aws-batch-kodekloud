@@ -8,17 +8,17 @@
 
 ---
 
-Batch’s compute environment only helps if we pick an instance shape that matches the work. Let’s choose deliberately.
+The compute environment can only place our job if we choose an instance shape that matches it. Let’s make that choice deliberately.
 
-AWS offers several GPU families. Broadly, `g4dn` instances pair NVIDIA T4 GPUs with practical amounts of host memory — strong for inference and graphics-style workloads. `g5` instances step up to NVIDIA A10G GPUs with more performance and usually more cost. Training-oriented families exist too; they are overkill for captioning thirty menu photos.
+AWS has several GPU families. `g4dn` instances pair NVIDIA T4 GPUs with useful amounts of host memory and suit inference and graphics workloads. `g5` instances use NVIDIA A10G GPUs for more performance, usually at higher cost. Training-oriented families also exist, but they are more capacity than we need for thirty menu photos.
 
-For KodeFood we standardize on `g4dn.xlarge`: four vCPUs, sixteen GiB of host memory, one T4. That is enough to hold BLIP and micro-batches of eight. In the job definition we ask for the whole machine’s useful CPU and one GPU, and we cap container memory at twelve thousand two hundred eighty-eight MiB so placement succeeds. Asking for sixteen thousand three hundred eighty-four MiB looks tidy on paper and fails in practice — the host cannot give the container every byte.
+KodeFood uses `g4dn.xlarge`: four vCPUs, sixteen GiB of host memory, and one T4 GPU. That is enough for BLIP with micro-batches of eight. The job definition requests one GPU and twelve thousand two hundred eighty-eight MiB of container memory. We do not request sixteen thousand three hundred eighty-four MiB, because the host must reserve memory for the operating system and ECS agent.
 
-Notice the decision rule. Match GPU generation to the model size and latency you need, match host memory to the container plus the OS, and prefer the smallest instance that finishes the folder comfortably. Jumping to `g5` without a measured need mostly buys a larger bill. For captioning a few dozen menu photos, the T4 is the right altitude.
+The selection rule is straightforward. Match the GPU to the model and latency target. Leave enough host memory for both the container and operating system. Then choose the smallest instance that finishes the folder comfortably. Moving to `g5` without measurements adds cost before it solves a demonstrated problem.
 
-One more practical note: in Batch we treat one catalog job as owning that whole `g4dn.xlarge`. We are not packing several GPU jobs onto one box in this course. That keeps placement simple while you learn the pipeline.
+In this course, one catalog job owns the whole `g4dn.xlarge`. We do not pack several GPU jobs onto one instance. That keeps placement behavior easier to reason about.
 
-That’s it here for instance choice. Even the right `g4dn` still forces another fork: do we buy that capacity as Spot or on-demand? Next we compare those two purchase models for GPU compute.
+The instance shape is set. Next, we’ll decide whether to obtain that `g4dn` capacity through Spot or on-demand.
 
 ---
 

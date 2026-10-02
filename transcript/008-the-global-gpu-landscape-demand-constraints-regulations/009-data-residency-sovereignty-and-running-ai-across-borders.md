@@ -9,15 +9,15 @@
 
 ---
 
-Suppose Tokyo Spot is dry and Seoul has G instances. Can KodeFood simply process Japanese vendor photos in another country? Maybe technically. Maybe not legally. Data residency and sovereignty are the rules about where data may live and who may compel access to it.
+Suppose Tokyo Spot capacity is unavailable while Seoul has G instances. KodeFood may be able to move the job technically, but the data may not be allowed to move. Residency governs where data is stored or processed. Sovereignty also considers which jurisdiction can compel access.
 
-Residency usually means “this personal or regulated data stays in-Region.” GDPR does not ban all transfers, but it constrains them — adequacy decisions, standard contractual clauses, transfer impact assessments. Sector rules can be stricter: financial records, health data, tax identifiers. Sovereignty conversations go further — governments wanting local operations, local keys, or assurance that foreign law enforcement cannot quietly reach the disks. AWS answers with Regions, Local Zones, and offerings like AWS European Sovereign Cloud for customers with heightened requirements; other hyperscalers have parallel programs.
+Residency requirements often keep personal or regulated data in an approved Region. GDPR permits some transfers under defined safeguards, while financial, health, or tax rules may be stricter. Sovereignty requirements can add local operations, local encryption keys, or protection from foreign legal access. Cloud providers respond with Regions, Local Zones, and sovereign-cloud offerings.
 
-For GPU pipelines the trap is accidental egress. A job in Region A that pulls training data from Region B, writes embeddings to a global bucket, or phones home to a model API in a third country has moved data even if the engineer only “wanted capacity.” Logs and crash dumps can leak payloads too. Keep images, CSV catalogs, ECR mirrors, and CloudWatch in the approved Region unless legal and security signed off on the path.
+GPU pipelines can create accidental egress. A job may pull data from another Region, write embeddings elsewhere, call an API in a third country, or include payloads in logs and crash dumps. Keep images, CSV catalogs, ECR mirrors, and CloudWatch logs in the approved Region unless legal and security teams approve another path.
 
-Practical pattern for marketplace photos: classify the data. Public menu shots may travel more freely than government ID selfies. KodeFood’s teaching set is vendor food photos — still treat location as a first-class design choice, not an afterthought when RUNNABLE hurts.
+Start by classifying the data. Public menu photos may have fewer restrictions than identity documents. KodeFood uses vendor food photos, but processing location should still be an explicit design choice rather than an emergency response to RUNNABLE jobs.
 
-That's it here for residency: where bytes and models live is a product decision, not only a compliance checkbox. Underneath every Region choice sits another constraint — the price of the silicon itself. Next: why GPU compute feels expensive even in the cloud.
+Where data and models live is both a product and compliance decision. Next we examine the economics behind the Regional GPU price.
 
 ---
 

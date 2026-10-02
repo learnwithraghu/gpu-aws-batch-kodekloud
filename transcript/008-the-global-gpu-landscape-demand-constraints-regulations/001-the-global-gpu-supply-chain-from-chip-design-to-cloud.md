@@ -9,17 +9,17 @@
 
 ---
 
-Your Batch job pulls an image from ECR and runs on a GPU in an AWS Region. That sentence hides a planet-scale supply chain. Walk it once so capacity problems stop feeling like random console weather.
+The KodeFood job pulls an image from ECR and runs on a GPU in an AWS Region. Behind that simple action is a global supply chain. Seeing the chain makes a capacity shortage less mysterious.
 
-It starts with architecture and software. NVIDIA designs the GPU and ships CUDA — the programming model almost every PyTorch stack assumes. Competitors exist — AMD Instinct, Intel Gaudi, cloud custom silicon like AWS Trainium and Inferentia, Google TPUs — but the CUDA ecosystem still dominates many AI codebases, including ours with BLIP on PyTorch.
+The chain begins with architecture and software. NVIDIA designs GPUs and supplies CUDA, the programming model used by many PyTorch stacks. AMD Instinct, Intel Gaudi, AWS Trainium and Inferentia, and Google TPUs provide alternatives. CUDA still dominates many AI codebases, including our BLIP and PyTorch path.
 
-Those designs become silicon at advanced foundries. TSMC fabricates a huge share of leading-edge chips in Taiwan, with packaging and memory partners in a tight regional web. ASML’s lithography machines, HBM memory from a few suppliers, substrates, and testing — each step has few factories and long lead times. A war, earthquake, or export rule at any hop shows up months later as “no G instances in this Region.”
+Advanced foundries turn designs into silicon. TSMC fabricates a large share of leading-edge chips in Taiwan. A small group of suppliers also provides lithography equipment, high-bandwidth memory, substrates, packaging, and testing. Each stage has long lead times and limited substitutes. Disruption at one stage can later appear to a cloud customer as missing instance capacity.
 
-Finished accelerators go into boards and servers — often NVIDIA HGX or partner systems — then into hyperscaler data centers. AWS, Microsoft Azure, Google Cloud, and others buy at enormous scale, install racks, wire networking and liquid cooling, and finally rent you a `g4dn` or `p5` by the hour. Cloud is not “virtual GPUs from nowhere.” It is someone else’s capital expenditure, amortized into your Spot bid.
+Finished accelerators move into boards and servers, then into cloud data centers. Providers install racks, networking, power, and cooling before offering instances such as `g4dn` or `p5`. A cloud GPU is physical capital rented by the hour. Even a Spot bid depends on years of investment upstream.
 
-Apple, Tesla, and others also design custom accelerators — same foundry dependencies. The chain is global; the bottlenecks are local and few.
+Custom accelerators from companies such as Apple and Tesla still depend on many of the same foundries and suppliers. The chain is global, but several bottlenecks are concentrated.
 
-So when KodeFood waits RUNNABLE, you are waiting on that chain plus regional inventory. Next: why demand outran supply — and why that imbalance became normal.
+When KodeFood waits in RUNNABLE, Regional inventory is the immediate cause, with this supply chain behind it. Next we look at why demand moved faster than supply.
 
 ---
 

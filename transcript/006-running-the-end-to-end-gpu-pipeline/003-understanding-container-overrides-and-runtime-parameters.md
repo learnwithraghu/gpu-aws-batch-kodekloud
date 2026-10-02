@@ -9,19 +9,21 @@
 
 ---
 
-The job definition is the stable recipe. Container overrides are the per-run knobs. If you rebuild the definition for every vendor folder, you will drown in revisions.
+The job definition is the stable contract. Container overrides supply the values that change for one run. We do not register a new definition for every vendor folder.
 
-At submit time, KodeFood overrides the command to `python /app/describe_items.py` and passes environment variables the script already understands: `S3_BUCKET`, `S3_CSV_BUCKET`, `IMAGE_PREFIX`, and `BATCH_SIZE`. Same image, same memory, same GPU requirement — different stem. Today `images/sample`, tomorrow another vendor prefix. No Docker rebuild required for a new folder of photos. `BATCH_SIZE` only changes how many images ride in one GPU forward pass; it does not change which bucket is authoritative.
+At submission time, KodeFood overrides the command with `python /app/describe_items.py`. It also passes the environment variables the script understands: `S3_BUCKET`, `S3_CSV_BUCKET`, `IMAGE_PREFIX`, and `BATCH_SIZE`.
 
-That is the point of the S3 contract you built earlier. Prefixes parameterize work. Overrides deliver those parameters into the process environment. The job role still governs what S3 allows; overrides only choose which keys to touch inside that allowance. Wrong prefix with a healthy role still yields an empty catalog — the permissions worked; the path did not.
+The image, memory, and one-GPU requirement stay fixed. Only the stem changes: `images/sample` for one run, another vendor prefix for the next. A new folder of photos does not require a Docker rebuild. `BATCH_SIZE` changes how many images go through one GPU forward pass; it does not change the authoritative bucket.
 
-Teams that run thousands of Batch array or parameterized jobs — genomics pipelines, media transcodes, retail catalog refreshers — rely on this split. Shopify-scale and smaller shops alike: pin the heavy definition, vary the lightweight submit payload.
+This is where the S3 contract helps. Prefixes parameterize the work, and overrides deliver those parameters to the process. The job role still controls what S3 permits. Overrides only select keys within that permission boundary. If the role is healthy but the prefix is wrong, permissions can succeed while the catalog remains empty.
 
-Be careful what you override. Changing memory or GPU count in a careless override can recreate the sixteen-gibibytes placement trap. Prefer varying data parameters, not resource shape, unless you intend a new capacity profile.
+This split also supports larger parameterized workloads: keep the heavy execution contract stable and vary the small submission payload.
 
-So when someone asks “how does one job definition caption many vendors?” the answer is overrides plus prefixes — not a new registration per folder.
+Be deliberate about resource overrides. Changing memory or GPU count can recreate the placement trap. In particular, do not replace `12288` MiB with `16384` MiB on `g4dn.xlarge`. Prefer varying data parameters unless you intentionally designed a different capacity profile.
 
-Next we confront the clock: even a correct submit pays cold-start time before the first caption appears.
+One definition can therefore caption many vendors: the prefix and runtime values change, while the execution contract remains stable.
+
+Next, we account for the time between a correct submission and the first caption.
 
 ---
 

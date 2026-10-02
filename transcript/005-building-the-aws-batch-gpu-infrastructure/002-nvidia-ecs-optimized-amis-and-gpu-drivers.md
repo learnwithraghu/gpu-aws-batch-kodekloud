@@ -9,19 +9,19 @@
 
 ---
 
-Batch can launch an instance and still give you a useless GPU box. The difference is the AMI — the machine image that boots before your container exists.
+Suppose Batch launches a `g4dn.xlarge`, but `torch.cuda.is_available()` is false. The instance type is correct, so the next check is the AMI: the machine image that boots before the container exists.
 
-GPU containers do not ship the host driver. PyTorch and CUDA inside the image talk to the NVIDIA driver on the host through the container runtime. If the host has no driver, or an incompatible stack, `torch.cuda.is_available()` fails even though you paid for a T4.
+GPU containers do not supply the host driver. PyTorch and CUDA inside the image talk through the container runtime to the NVIDIA driver on the host. If that driver is missing, or the stack is incompatible, CUDA detection fails even though the machine has a T4.
 
-That is why our compute environments use an NVIDIA ECS-optimized AMI — in the live setup, the Amazon Linux 2023 NVIDIA ECS variant. It is built for ECS and Batch: the ECS agent is there, the NVIDIA driver is there, and the GPU is visible to containers that request it. You are not installing drivers by hand on every cold start.
+That is why our compute environments use an NVIDIA ECS-optimized AMI. In the live setup, this is the Amazon Linux 2023 NVIDIA ECS variant, `ECS_AL2023_NVIDIA`. It includes the ECS agent and NVIDIA driver, and exposes the GPU to containers that request it. We are not installing drivers by hand on every cold start.
 
-Notice the split of responsibility. The AMI owns host drivers and the agent. Your ECR image owns the application, PyTorch, and the CUDA user-space libraries that match that stack. Get either side wrong and the caption job dies before BLIP loads a single photo.
+Keep the responsibility split clear. The AMI owns the host driver and ECS agent. The ECR image owns the application, PyTorch, and the matching CUDA user-space libraries. If either side is wrong, the caption job can fail before BLIP loads a photo.
 
-This pattern shows up anywhere teams run GPU containers on EC2 or ECS. NVIDIA’s own container guidance assumes a driver on the host and libraries in the image. AWS Batch managed environments simply pick an AMI that already follows that contract so you can focus on the job definition.
+This is the standard GPU-container contract: driver on the host, user-space libraries in the image. The managed Batch environment gives us an AMI that already supports that contract.
 
-For KodeFood, treat the AMI as part of the infrastructure contract, not as an afterthought. When a smoke job runs `nvidia-smi` successfully, you have proven the host side. When `describe_items.py` sees CUDA, you have proven the image side as well.
+In the lab, use two checks. A successful `nvidia-smi` smoke job proves the host side. When `describe_items.py` sees CUDA, it also proves the image side.
 
-That’s it here for the AMI and drivers. Next we separate three IAM roles — service, instance, and job — because each one fails differently when it is missing.
+With the GPU path established, we can separate the three IAM roles. Each role has a different responsibility and a different failure symptom.
 
 ---
 

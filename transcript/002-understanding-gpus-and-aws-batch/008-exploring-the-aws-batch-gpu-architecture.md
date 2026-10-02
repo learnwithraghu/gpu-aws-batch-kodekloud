@@ -8,17 +8,19 @@
 
 ---
 
-Let’s pause and assemble everything from this section into one mental map.
+Let’s assemble the section into one path.
 
-KodeFood’s work unit is still a vendor stem: photos under `images/<stem>/`, catalog at `descriptions/<stem>/descriptions.csv`. The program that produces that catalog is a container. Inside it, CPU-side code talks to S3; GPU-side code runs BLIP in micro-batches of eight and marks accepted or rejected.
+KodeFood’s work unit is a vendor stem. Photos live under `images/<stem>/`, and the catalog is written to `descriptions/<stem>/descriptions.csv`. A container produces that catalog. Inside it, CPU-side code communicates with S3. GPU-side code runs BLIP in micro-batches of eight, and application logic marks each caption accepted or rejected.
 
-Around that container sits AWS Batch. The job definition names the image, one GPU, safe memory, and roles. You submit a job with the stem as an override. The job waits in a queue — Spot by default. A managed compute environment may start a `g4dn.xlarge` on an NVIDIA ECS-optimized AMI, but only if quotas and capacity allow. The instance profile pulls from ECR; the job role reaches S3. When the CSV is written and the queue is quiet, capacity can fall toward zero.
+AWS Batch surrounds that container. The job definition specifies the image, one GPU, safe memory, and roles. We submit a job with the stem as an override, and it waits in a queue—Spot by default. If quotas and capacity allow, the managed compute environment can start a `g4dn.xlarge` on an NVIDIA ECS-optimized AMI.
 
-If something sticks, use the map. No logs often means the job never left `RUNNABLE` — think Spot scarcity or G/VT quota. A placement error often means memory was set too high for the host. A container exit points you at application logs once the GPU actually ran. Architecture literacy turns those symptoms into short checklists instead of guesswork.
+The instance profile lets the host pull from ECR and write logs. The job role lets the container reach S3. After the CSV is written and the queue becomes quiet, capacity can fall toward zero.
 
-You now have the architecture story without having built the application guts yet. What does the code inside that container actually do, file by file? How is storage logic separated from the model loop?
+When something stalls, trace the path in order. No logs often means the job never left `RUNNABLE`; check Spot capacity and G/VT quota. A placement error often points to a memory request that is too large for the host. A container exit means the machine started, so application logs are now the right place to look.
 
-That question opens section three. Next we start building the GPU application Batch will run — beginning with understanding our program’s entrypoint and responsibilities.
+That gives us the architecture without hiding the failure boundaries. The remaining question is what the code inside the container does, file by file, and how it separates storage from the model loop.
+
+Section three starts there. We’ll open the application at its entrypoint and trace each responsibility.
 
 ---
 

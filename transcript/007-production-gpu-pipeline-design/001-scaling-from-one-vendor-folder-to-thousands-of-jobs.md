@@ -9,17 +9,17 @@
 
 ---
 
-You captioned one stem — `images/sample` in, one CSV out. KodeFood does not ship one vendor. Onboarding, menu refreshes, and re-checks mean hundreds or thousands of folders. The question is not “can the model handle more photos?” It is “how do you turn one proven job into many units of work without reinventing Batch?”
+We have proved one unit of work: `images/sample` goes in and one CSV comes out. Production adds vendor onboarding, menu refreshes, and rechecks, so that unit repeats hundreds or thousands of times. In design review, the question is not whether BLIP can see more photos. It is how we scale submission while keeping each failure contained.
 
-Two patterns dominate. First: many submits. A small orchestrator — Lambda, Step Functions, or a script — lists vendor stems and calls `submit-job` once per stem, each with its own `IMAGE_PREFIX` override. Same job definition, same image, different folder. Failures stay isolated: vendor A’s AccessDenied does not kill vendor B.
+There are two practical patterns. The first is independent submissions. A small orchestrator—Lambda, Step Functions, or a script—lists vendor stems and calls `submit-job` once per stem, with a separate `IMAGE_PREFIX` override. The image and job definition stay fixed. An AccessDenied for vendor A does not stop vendor B.
 
-Second: array jobs. AWS Batch can submit one parent that expands into many child indices. You map index to stem — from a list in S3, or from a naming convention — and each child still runs the same container. Arrays shine when the work units are uniform and you want one submit API call plus shared retry policy. Many independent submits shine when stems arrive continuously and you want per-vendor priority or different queues.
+The second pattern is an array job. One parent expands into indexed children. Each index maps to a stem from an S3 manifest or a naming convention, and each child runs the same container. Arrays fit a known, uniform batch with a shared retry policy. Independent submissions fit continuous arrivals, per-vendor priority, or routing to different queues.
 
-Either way, keep the unit of work the same: one folder, one CSV. Do not smash thousands of photos into one container “to save cold starts.” That creates long-running monsters and worse Spot interruption pain. Uber’s Michelangelo writing biases toward small, restartable tasks — similar advice to what we are applying here, at a very different scale. Further reading has that article if you want their production framing.
+Keep the recovery boundary at one folder and one CSV. Combining thousands of photos in one container may save a few cold starts, but it creates a long-running job with a large retry cost when Spot interrupts it. The same small, restartable-task principle appears in systems such as Uber’s Michelangelo.
 
-Thousands of jobs also amplify RUNNABLE waits, logs, and quotas — so track queue depth and define re-submit rules for poison stems.
+At this scale, queue depth, quota pressure, and log volume become incident signals. Define a retry ceiling and a quarantine path for a poison stem before the first large backfill.
 
-Scale is mostly submission shape, not a new model. Next: what happens when those jobs compete — parallelism, queues, and whether the GPU is actually busy.
+The model has not changed; the submission and recovery design has. Next we review how those jobs compete for GPUs and whether the devices are doing useful work.
 
 ---
 

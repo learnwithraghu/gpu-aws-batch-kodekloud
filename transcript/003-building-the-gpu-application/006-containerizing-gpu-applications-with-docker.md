@@ -9,17 +9,17 @@
 
 ---
 
-We have the application and the CUDA-PyTorch stack. Docker is how we freeze both into one runnable unit.
+We now have the application and its CUDA-PyTorch stack. Docker packages both as one runnable unit.
 
-A GPU Batch job needs the same filesystem every time it starts: CUDA runtime libraries, PyTorch, transformers, `photos.py`, and `describe_items.py`. A container packages that app-side stack so a fresh `g4dn` does not require you to SSH in and pip-install by hand. The image is the program. S3 remains the data.
+Every GPU Batch job needs the same application filesystem: CUDA runtime libraries, PyTorch, transformers, `photos.py`, and `describe_items.py`. The container provides that filesystem on a fresh `g4dn` instance. The image holds the program; S3 holds the data.
 
-Our Dockerfile is deliberately thin. Start from the PyTorch CUDA runtime base. Install the pinned GPU requirements. Copy the two lesson scripts into `/app`. Layer order matters for caching: change only `describe_items.py`, and Docker reuses the heavy pip layer. Change requirements, and pip runs again. First builds feel slow. Code-only rebuilds should feel much faster.
+Our Dockerfile stays small. It starts from the PyTorch CUDA runtime base, installs the pinned GPU requirements, and copies both scripts into `/app`. The order supports layer caching. If only `describe_items.py` changes, Docker can reuse the expensive dependency layer. If requirements change, that layer must build again. Expect the first build to be slow and code-only rebuilds to be faster.
 
-There is one flag you must not forget on Apple Silicon laptops: `--platform linux/amd64`. Batch’s `g4dn.xlarge` is x86_64. Without the platform flag, Docker may build arm64 by default. That image can push cleanly and still fail when the GPU instance tries to run it. The mismatch shows up at job time, not at build time.
+On an Apple Silicon laptop, include `--platform linux/amd64`. Batch’s `g4dn.xlarge` is x86_64. Without that flag, Docker may produce an arm64 image. The push can succeed, but the Batch worker cannot run it. If the container fails before Python starts with an architecture error, inspect the image platform.
 
-Also remember what a local tag is not. `gpu-teaching:latest` on your laptop means your machine has an image. AWS Batch cannot pull from your laptop. Until the image lives in a registry the instance can reach, the job definition is pointing at something else — or at nothing useful.
+A local tag is also not a deployable image. `gpu-teaching:latest` on your laptop only identifies an image in the local Docker cache. AWS Batch cannot pull from that cache.
 
-So why did we containerize? Same entrypoint, same dependencies, every run. The open question now is where that image must live so a worker in your account can pull it. That is the start of the next section: container registries, and why Batch depends on them.
+The container now gives us a repeatable entrypoint and dependency set. In the next section, we move it to a registry that GPU workers can reach.
 
 ---
 

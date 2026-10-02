@@ -9,19 +9,19 @@
 
 ---
 
-A compute environment is a policy. A waiting job is a request. The interesting moment is when Batch turns that policy into a real `g4dn.xlarge`.
+A compute environment is a policy. A waiting job is a request. Now let us follow the point where Batch tries to turn both into a real `g4dn.xlarge`.
 
-Here is the chain. You submit a job to a queue bound to one or more compute environments. Batch looks at the job’s needs — vCPUs, memory, one GPU — and asks whether an instance can take it. If desired capacity is zero, Batch raises desired capacity and calls EC2 to launch a matching instance: Spot or on-demand, allowed types, subnet, security group, instance profile.
+You submit the job to a queue bound to one or more compute environments. Batch reads the request: vCPUs, memory, and one GPU. It then asks whether an allowed instance can take it. If desired capacity is zero, Batch raises it and asks EC2 for a matching instance, using the configured capacity type, allowed instance types, subnet, security group, and instance profile.
 
-For Spot, Batch often uses a capacity-optimized allocation strategy. That prefers pools with more spare capacity; it does not guarantee a machine. If Spot is thin in the Availability Zone, the launch fails or never places, and your job waits even though the queue is healthy.
+For Spot, Batch often uses a capacity-optimized allocation strategy. It prefers pools with more spare capacity, but it cannot guarantee a machine. If Spot capacity is thin in the Availability Zone, the launch can fail to place. The job then waits even though the queue is healthy.
 
-On a successful launch, EC2 boots the AMI, the ECS agent registers with the Batch-managed cluster, and only then can the container start. From your laptop it looks like “the job moved.” Underneath it was scale-up, launch, registration, then placement.
+On a successful launch, EC2 boots the AMI. The ECS agent registers with the Batch-managed cluster. Only then can Batch place and start the container. From your laptop, this appears as a job changing state. Underneath, the order was scale-up, launch, registration, and placement.
 
-Companies that run large Spot GPU fleets live in this same loop: queue depth drives desired capacity, capacity drives EC2, EC2 either appears or it does not. KodeFood’s lesson jobs are small, but the mechanism is identical.
+Here is one useful prediction: if the queue is healthy but no Spot instance appears, which job state should you expect to persist? Keep that answer in mind for the lifecycle lesson.
 
-If you remember one sentence from this video, make it this: Batch does not magically have GPUs; it requests them from EC2 under the rules you put on the compute environment.
+The operating principle is simple: Batch does not already have GPUs. It requests them from EC2 under the rules on the compute environment.
 
-Next we open the AMI itself — why the NVIDIA ECS-optimized image matters before any container can see a GPU.
+Next, we inspect the AMI and the host-side pieces required before a container can see the GPU.
 
 ---
 

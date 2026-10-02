@@ -8,17 +8,17 @@
 
 ---
 
-We framed the need: folders of vendor photos in, captions and accept-or-reject out. So how do we get those captions?
+We have a folder of vendor photos and need captions plus accept-or-reject decisions. There are two reasonable ways to get those captions.
 
-Idea one is tempting. Call a hosted large language model or vision API for every image. You send the photo, get a sentence back, and write a few lines of glue code. No GPU fleet to manage. On a quiet Tuesday with ten photos, that feels elegant.
+The first is a hosted language or vision API. Send an image, receive a sentence, and keep the integration small. There is no GPU fleet to operate. For ten occasional photos, that can be a good fit.
 
-Now stretch it. Thousands of images a day. Per-image pricing. Rate limits. Network round trips. Data leaving your account into someone else’s endpoint. You also inherit their latency and their outage window. For a catalog pipeline that can wait a few minutes, an always-online chat-style API is often more machine than you need — and more cost than a short batch run.
+Now change the scale to thousands of images a day. We need to account for per-image pricing, rate limits, network round trips, data crossing into another endpoint, and the provider’s latency and availability. None of those make hosted APIs wrong. They are simply tradeoffs we should name.
 
-Idea two is to self-host a caption model. Load a finished vision model such as BLIP, run it on your images, and keep the accept-or-reject rule in your own Python. You control the prompt, the batch size, the output CSV shape, and where the bytes live. The tradeoff is real: you need somewhere to run a GPU for those minutes, plus a container image that knows how to talk to that GPU.
+The second option is to self-host a finished caption model such as BLIP. We run it on our images and keep the accept-or-reject rule in Python. That gives us control over batching, the CSV contract, and where the image bytes travel. In return, we need a container that can use a GPU and somewhere to run it.
 
-For KodeFood in this course, we choose the self-hosted path. Not because APIs are wrong everywhere, but because our workload is batch inference with a clear start and end. Vendors drop folders. We process them. We write `descriptions.csv`. Then we want the expensive capacity to go away.
+For this KodeFood job, we’ll use the self-hosted path. The workload is batch inference with a clear beginning and end. A vendor folder arrives. We process it, write `descriptions.csv`, and release the expensive capacity.
 
-You might wonder why that second path keeps mentioning special hardware at all. Why can’t an ordinary server just “look” at the photos? That question is older than KodeFood. Next we go back to why graphics needed special hardware in the first place.
+That leaves a useful question: why does the self-hosted path need special hardware? Next, we’ll trace why image work moved beyond ordinary CPU processing in the first place.
 
 ---
 

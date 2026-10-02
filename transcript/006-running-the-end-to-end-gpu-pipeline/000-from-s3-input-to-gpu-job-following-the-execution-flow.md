@@ -9,19 +9,19 @@
 
 ---
 
-Infrastructure is in place. Now follow one vendor folder from object storage all the way to a finished catalog row — not as a diagram, as a sequence you can predict.
+The infrastructure is ready. Now we will follow one vendor folder from S3 to a finished catalog row. Keep the sequence clear, because each hop has a different failure symptom.
 
-Start with bytes on S3. Photos sit under something like `images/<stem>/` in the images bucket. That prefix is the unit of work. Your laptop — or a pipeline step — uploads or syncs those objects first. Batch does not invent the photos; it only captions what is already there.
+Start with the input. Photos are already under `images/<stem>/` in the images bucket. That prefix is the unit of work. Your laptop, or an earlier pipeline step, uploads or syncs those objects. Batch captions what exists under the prefix; it does not create the input.
 
-Next you submit a job to the Spot GPU queue, naming the caption job definition. At submit time you point the container at that stem: buckets, `IMAGE_PREFIX`, batch size, and the command `python /app/describe_items.py`. Batch accepts the submission and begins finding capacity in the compute environment behind the queue.
+Next, submit to `gpu-teaching-gpu-smoke-queue-spot` and name `gpu-teaching-caption-job`. The submission points the container at the stem by passing the bucket names, `IMAGE_PREFIX`, `BATCH_SIZE`, and the command `python /app/describe_items.py`. Batch accepts the request and looks for capacity in the compute environment behind the queue.
 
-When an instance is up and the container starts, the job role lets the process list and download under that prefix, run BLIP on the GPU, and write `descriptions/<stem>/descriptions.csv` to the catalog bucket. Logs land in CloudWatch under `/aws/batch/job`. Your laptop can poll job status without ever sitting inside the container.
+When the instance is ready and the container starts, `gpu-teaching-batch-job-role` lets the process list and download objects under the prefix. BLIP runs on the GPU, and the process writes `descriptions/<stem>/descriptions.csv` to the catalog bucket. Container logs go to `/aws/batch/job`. Your laptop polls the Batch status; it does not need a shell inside the container.
 
-At larger scale, marketplace catalog work often follows the same shape DoorDash engineering describes: durable storage in, async compute, structured catalog out. Ours is similar, compressed to one folder and one CSV so you see every hop. Further reading points at their blog for that wider context.
+The pattern is durable input, asynchronous compute, and structured output. This lab keeps it to one folder and one CSV so every hop remains visible. The wider industry reference remains in Further reading.
 
-Hold the order in your head: S3 input ready, submit with overrides, Batch places on GPU capacity, container reads and writes S3, you read the CSV. If any hop is skipped — empty prefix, wrong queue, stale image — the failure mode changes.
+Before we run it, predict the first check for each symptom: an empty catalog, a job waiting in `RUNNABLE`, or a container failing after startup. Then use the sequence: verify S3 input, submit with overrides, wait for GPU placement, inspect the container logs, and read the CSV.
 
-Next we slow down on the status field itself — the lifecycle from SUBMITTED through SUCCEEDED — so you know what each state is allowed to mean.
+Next, we slow down on the status field, from `SUBMITTED` through `SUCCEEDED`, and map each state to the checks it supports.
 
 ---
 

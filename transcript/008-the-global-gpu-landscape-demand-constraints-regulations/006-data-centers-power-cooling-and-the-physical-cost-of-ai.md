@@ -9,15 +9,15 @@
 
 ---
 
-A GPU job feels like JSON and containers. In the building, it is watts, water, and transformers. Understanding that physical layer explains why capacity cannot appear overnight even when the purchase order is signed.
+A GPU job appears as JSON and containers. Inside the data center, it is also electricity, cooling, and grid capacity. That physical layer explains why signed purchase orders do not create capacity overnight.
 
-Modern AI servers draw far more power per rack than classical web fleets. NVIDIA’s data-center GPUs are rated in hundreds of watts each; full HGX boards push kilowatts; dense racks need liquid cooling, not just raised-floor air. The International Energy Agency’s work on energy and AI, plus hyperscaler sustainability reports from AWS, Microsoft, and Google, all point the same direction: AI workloads are a material driver of new electricity demand, and grid interconnection queues can be longer than chip lead times.
+Modern AI servers draw much more power per rack than conventional web fleets. Individual data-center GPUs consume hundreds of watts, and multi-GPU systems consume kilowatts. Dense racks increasingly need liquid cooling. AI workloads now contribute materially to electricity demand, while grid connections can take longer to secure than chips.
 
-Cooling is the twin constraint. Air hits limits; direct-to-chip liquid and immersion show up in new designs. Water usage and local permitting become community issues — you will see news from Virginia, Dublin, Singapore, and others about data-center growth versus residential power and water. The “cloud” has a zip code.
+Cooling is a second constraint. Air cooling reaches practical limits, so new facilities use direct-to-chip liquid systems or immersion. Water use and permitting can put data-center growth in conflict with local power and water needs. The cloud always occupies a physical place.
 
-Carbon accounting follows. Providers publish Power Usage Effectiveness and carbon-free energy goals. Your Batch job’s footprint is tiny alone and real in aggregate. Scale-to-zero is not only a cost feature — idle GPUs still desire power if the instance is up. Turning capacity off when KodeFood’s queue is empty is an energy decision as much as a billing one.
+Providers therefore track measures such as Power Usage Effectiveness and publish clean-energy goals. One KodeFood Batch job has a small footprint, but repeated jobs add up. Scale-to-zero reduces both cost and energy use because an idle running instance still consumes power.
 
-That's it here for the physical bill: watts, cooling, and buildings constrain AI as much as chip roadmaps. Policy constrains it too. Next we open the geopolitics drawer — who is allowed to buy which accelerators.
+Chips are only one limit; power, cooling, and buildings set limits too. Next we turn to policy and who may buy or access advanced accelerators.
 
 ---
 

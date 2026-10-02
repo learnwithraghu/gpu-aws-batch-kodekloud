@@ -9,15 +9,15 @@
 
 ---
 
-GPUs are not evenly poured across the map. Instance families, generations, and Spot depth differ by Region and by cloud. Your course lives in `ap-northeast-1` for a reason — it is a real Region with G-family stock — but “AWS has GPUs” never meant “every AZ has the SKU you want tonight.”
+GPU capacity is uneven. Instance families, hardware generations, and Spot depth differ by Region, Availability Zone, and cloud provider. KodeFood runs in `ap-northeast-1`, but the presence of G-family instances in AWS does not guarantee that the required SKU is available in every pool.
 
-On AWS, check the instance type pages and the Service Quotas console per Region. Newer training giants — P5, P5e — land first in a handful of Regions. Older G4 and G5 spread wider but still thin out under load. Local Zones and Wavelength have different stories again. Batch only launches what the compute environment allows and what the AZ can sell. Multi-Region DR for GPU jobs is a product decision: replicate the image and data, accept that failover Region may have different capacity and pricing.
+On AWS, instance availability and Service Quotas are Regional. New training families such as P5 and P5e first appear in a limited set of Regions. G4 and G5 are more widely distributed, but can still become scarce. Local Zones and Wavelength have separate inventories. Batch can launch only the instance types allowed by the compute environment and available in its configured locations.
 
-Other clouds rhyme. Azure’s N-series, Google Cloud’s A2/A3 and TPU pods, Oracle’s GPU shapes — each publishes regional matrices that change as inventory arrives. Independent trackers and status pages through the AI boom showed the same pattern: launch Regions rich, secondary Regions hungry, Spot flaky everywhere.
+Other providers follow the same pattern. Azure N-series, Google Cloud A2 and A3 instances and TPU pods, and Oracle GPU shapes all have Regional matrices that change as inventory expands. Major launch Regions tend to receive capacity first, while Spot remains variable.
 
-For KodeFood, regional choice also interacts with data residency — more on that soon — and with latency to S3. Keeping images, ECR, and Batch in one Region avoids cross-Region egress and surprise latency. If Tokyo Spot is dry, a second queue in another Region only helps if you also staged the photos there or accepted the transfer cost.
+For KodeFood, failover is more than creating a second queue. Images, the ECR image, and output storage must also be available in the fallback Region, or the system must accept transfer latency and cost. Data-residency rules may further limit that move.
 
-So availability is a matrix, not a boolean. Design for “preferred Region, documented fallback,” not for magical global GPU fluid. Where do those racks live physically, and what do they cost the planet? That is next — power, cooling, and the physical bill for AI.
+Availability is a matrix, not a yes-or-no property. A sound plan names the preferred Region, the permitted fallback, and the data-movement cost. Next we examine the power and cooling behind those Regional pools.
 
 ---
 

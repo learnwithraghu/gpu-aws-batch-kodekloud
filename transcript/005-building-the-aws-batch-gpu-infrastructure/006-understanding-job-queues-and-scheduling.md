@@ -9,17 +9,17 @@
 
 ---
 
-Compute environments own machines. Job queues own the waiting line. You never submit a caption job “to a GPU” directly — you submit to a queue, and the queue is ordered against one or more compute environments.
+Compute environments define the machines. Job queues hold the waiting work. We do not submit a caption job directly to a GPU. We submit it to a queue, and that queue is connected to one or more ordered compute environments.
 
-A queue has a state — enabled or disabled — and a priority ordering of compute environments. Batch takes runnable jobs from the queue and tries to place them on capacity from those environments in order. For KodeFood we keep it simple: a Spot GPU queue bound to the Spot compute environment is the default path. A separate on-demand queue exists as a fallback when Spot will not place.
+A queue is enabled or disabled, and it has an order for its compute environments. Batch takes `RUNNABLE` jobs and tries to place them on capacity from those environments in order. KodeFood uses `gpu-teaching-gpu-smoke-queue-spot` as the default path. A separate queue, `gpu-teaching-gpu-smoke-queue-on-demand`, is the fallback when Spot will not place.
 
-Priority between queues matters when several queues share capacity. Higher-priority queues get scheduling preference. Inside one teaching queue with one environment, life is simpler: jobs wait their turn for the single `g4dn.xlarge` the environment is allowed to run under its max vCPUs.
+Queue priority matters when several queues share capacity. Higher-priority queues receive scheduling preference. Our teaching path is simpler: one queue and one environment, with jobs waiting their turn for the single `g4dn.xlarge` allowed by the environment's maximum vCPUs.
 
-Why separate Spot and on-demand queues instead of one queue with both environments? Operational clarity. When a job sits waiting, you know which capacity story you opted into. You can point lesson scripts at the Spot queue name and only switch the queue when you deliberately want on-demand. Many production Batch shops isolate fleet types the same way — different queues for different cost and availability profiles.
+Separate Spot and on-demand queues make the selected capacity path explicit. The lesson scripts point to the Spot queue by default. We switch the queue only when we deliberately choose on-demand and have confirmed that its quota can launch the instance.
 
-Scheduling is not fair-share magic for our smoke size. It is: is the queue enabled, is there a matching environment with room, and did EC2 actually give you an instance? If any answer is no, the job waits.
+For this small workload, ask one scheduling question: is the queue enabled, connected to a matching compute environment with room, and able to receive an instance from EC2? If any part is no, the job waits.
 
-That’s the queue’s job — hold work until capacity can take it. Next we define what “the job” means in concrete terms: the GPU job definition that names the image, memory, GPU count, environment variables, and logging.
+The queue holds work until capacity can take it. Next, we inspect the GPU job definition: image, memory, GPU count, environment variables, role, and logging.
 
 ---
 

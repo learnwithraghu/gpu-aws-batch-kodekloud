@@ -8,19 +8,19 @@
 
 ---
 
-We compared EC2, Lambda, ECS, SageMaker, and Batch. Here is why Batch wins for KodeFood’s caption pipeline.
+We compared EC2, Lambda, ECS, SageMaker, and Batch. For KodeFood, four characteristics make Batch a good fit.
 
-First, the work is a job, not a server. Each vendor stem is one unit of work with a defined image, CPU, memory, and GPU requirement. You submit; you wait for succeeded or failed; you read the CSV. Batch’s vocabulary matches that mental model.
+First, this is a job, not a server. Each vendor stem is one unit of work with defined container image, CPU, memory, and GPU requirements. We submit it, wait for a succeeded or failed state, and then read the CSV. Batch’s model matches that lifecycle.
 
-Second, scale-to-zero matters. Vendor uploads are bursty. Leaving a `g4dn` idle overnight burns money. Batch compute environments in this course set minimum vCPUs to zero so desired capacity can return to nothing when the queue is empty. You pay for the minutes the GPU is needed.
+Second, scale-to-zero matters. Vendor uploads are bursty, and an idle `g4dn` still costs money. In this course, the Batch compute environments set minimum vCPUs to zero. When the queue is empty, desired capacity can return to zero.
 
-Third, Batch already speaks containers and queues. Our program ships as a Docker image in Amazon ECR. Batch pulls it onto an NVIDIA-ready AMI, attaches one GPU, and runs `python /app/describe_items.py`. We do not SSH in to “just run it once.”
+Third, Batch works with containers and queues. Our program is a Docker image in Amazon ECR. Batch pulls it onto an NVIDIA-ready AMI, attaches one GPU, and runs `python /app/describe_items.py`. There is no SSH step in the normal job path.
 
-Fourth, overrides keep one image flexible. The same job definition can process `images/sample/` today and another stem tomorrow by changing environment variables at submit time — buckets, prefix, batch size — without rebuilding.
+Fourth, submit-time overrides keep one image reusable. The same job definition can process `images/sample/` today and a different stem tomorrow. We change environment variables for buckets, prefix, and batch size without rebuilding the image.
 
-That combination — queued container jobs, GPU placement, and idle capacity that can disappear — is why production teams often pick Batch for offline inference and data processing. Interactive notebooks and always-on APIs can live elsewhere. Batch is not trying to replace every GPU product; it is trying to win this shape of work.
+The result is a focused platform for finite GPU work: queued containers, GPU placement, and capacity that can disappear when the work is done. Interactive notebooks and always-on APIs solve different problems.
 
-That's it here for the Batch choice: finite GPU jobs, queues, and scale-to-zero when the folder is done. Next we name the four objects you will keep hearing for the rest of the course.
+Next, let’s name the four Batch objects that carry this job from submission to completion.
 
 ---
 

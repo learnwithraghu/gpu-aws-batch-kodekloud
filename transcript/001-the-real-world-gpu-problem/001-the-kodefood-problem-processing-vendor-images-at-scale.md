@@ -8,19 +8,19 @@
 
 ---
 
-We just met KodeFood and its vendor menus. Now let’s put numbers on the pain.
+We’ve met KodeFood and its vendor menus. Now let’s put some numbers behind the problem.
 
-Imagine one vendor onboarding day. That kitchen uploads a folder of about twenty-five to thirty dish photos. That alone is manageable for a human. Now multiply by hundreds of new and updating vendors in a week. Suddenly you are staring at thousands of images that all need a quick judgment: is this actually food that belongs on a menu, and what short text should sit next to it?
+One vendor uploads about twenty-five to thirty dish photos. A person could review that folder. But multiply it by hundreds of new and updating vendors in a week. Now thousands of images need two quick answers: does this belong on a food menu, and what short description should go with it?
 
-Manual review does not scale here. A reviewer can open tabs for a while. Then the queue grows overnight. New vendors wait. Bad photos slip into the live menu. Good photos sit unpublished.
+Manual review starts to fail at that scale. The queue grows overnight. New vendors wait. Bad photos can reach the live menu, while good photos sit unpublished.
 
-Notice what KodeFood needs from each photo. Not a perfect critique. A practical check: one short sentence, then accepted if it looks food-like, rejected if not. Rejected rows stay in the catalog file so operations can see why.
+Notice that KodeFood does not need an art critique. It needs a practical result for each image: one short sentence, then accepted if the caption looks food-like, or rejected if it does not. Rejected rows remain in the catalog so operations can inspect them.
 
-That pattern shows up beyond our fictional app. Uber’s writing on scaling ML platforms describes the same pressure: huge volumes cannot wait on humans labeling every row. We are not copying Uber — we are solving a smaller, similar shape. Photos in storage, automation labels them, the app reads structured results. Further reading has that Uber piece if you want their framing.
+Let’s make one prediction. If image arrival outpaces human review, the backlog must grow even when every reviewer is working correctly. That tells us this is a scaling problem, not a training problem for the review team.
 
-So the problem statement is sharp. One vendor folder in. One CSV of captions and accept-or-reject decisions out. Do that on demand, without leaving expensive machines running when the queue is empty.
+So the contract is clear. One vendor folder goes in. One CSV of captions and accept-or-reject decisions comes out. We run it on demand, without leaving expensive machines idle when the queue is empty.
 
-That's it here for the scale problem: humans cannot open every photo, and the catalog still needs trust. Next: call a hosted model per image, or run our own caption model as a self-hosted application?
+With the problem bounded, we can compare two solutions: call a hosted model for each image, or run our own caption model.
 
 ---
 

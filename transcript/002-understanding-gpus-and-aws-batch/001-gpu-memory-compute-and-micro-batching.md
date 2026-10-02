@@ -8,17 +8,17 @@
 
 ---
 
-We separated CPU orchestration from GPU math. The next limit students hit is not “is there a GPU?” but “how much can it hold at once?”
+We’ve separated CPU orchestration from GPU math. The next question is not only whether a GPU exists, but how much work it can hold at once.
 
-GPU memory — often called VRAM — is finite and separate from the instance’s system RAM. Loading BLIP onto a T4 already consumes a chunk. Each photo you pass through the model adds activations for that forward pass. If you hand the GPU all thirty vendor photos in one call, you can exhaust memory or thrash. The job fails or crawls for a reason that looks mysterious until you think in working sets.
+GPU memory, or VRAM, is finite and separate from the instance’s system RAM. Loading BLIP onto a T4 consumes part of it. Each photo in a forward pass adds activations. If we send all thirty vendor photos in one call, the GPU can run out of memory or spend its time struggling with an oversized working set.
 
-Our application’s answer is micro-batching. The default `BATCH_SIZE` is eight. Thirty photos become groups of eight, eight, eight, and six. Each group is one GPU pass. Captions append to one list. At the end, still one CSV. Micro-batches are a memory tactic, not eight separate product artifacts.
+Our application uses micro-batching. The default `BATCH_SIZE` is eight, so thirty photos become groups of eight, eight, eight, and six. Each group takes one GPU pass. Its captions are appended to one list, and the job still produces one CSV. The micro-batches are a memory strategy, not separate product outputs.
 
-Compute and memory travel together. A bigger batch can raise GPU utilization — more work per kernel launch — but only until VRAM says stop. For KodeFood on a `g4dn.xlarge`, eight is a practical fit for this caption model. You can tune the environment variable later; you should not pretend memory is infinite.
+A larger batch can improve GPU utilization because each kernel launch carries more work. That only helps until VRAM becomes the limit. For BLIP on KodeFood’s `g4dn.xlarge`, eight is a practical fit. We can tune the environment variable later, but we cannot treat memory as unlimited.
 
-Also keep system RAM in mind. The instance still downloads images and builds the CSV on the CPU side. GPU memory is for the model and the active micro-batch. Confusing those two pools is how teams oversize the wrong resource.
+Keep system RAM separate in your mental model. The CPU side still downloads images and builds the CSV. GPU memory holds the model and active micro-batch. If this distinction is wrong, you can easily add host memory while the real limit remains VRAM.
 
-You might wonder where this job should run once we accept that we need a GPU with enough memory for short bursts. Lambda? A long-lived ECS service? SageMaker? Raw EC2? Batch? Next we survey those cloud options with this workload in mind.
+Now that we know the resource shape, let’s decide where the job should run: Lambda, ECS, SageMaker, raw EC2, or Batch.
 
 ---
 

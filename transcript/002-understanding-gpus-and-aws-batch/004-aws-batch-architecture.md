@@ -8,21 +8,21 @@
 
 ---
 
-We chose AWS Batch. Now let’s name the four objects so they stop blending together.
+We chose AWS Batch. Now let’s separate its four main objects.
 
-Start with the job definition. Think of it as the recipe. It pins the container image — for us, the GPU teaching image in ECR — plus vCPUs, memory, GPU count, the job role that may read and write S3, logging configuration, and the default command. Our live recipe asks for one GPU and twelve thousand two hundred eighty-eight MiB of memory, not the full sixteen gibibytes of a `g4dn.xlarge`, because the host needs room for the operating system and the ECS agent. Register a definition once; revise it when the recipe changes.
+Start with the job definition. Think of it as the recipe. It specifies the container image—in our case, the GPU teaching image in ECR—along with vCPUs, memory, GPU count, the job role for S3 access, logging, and the default command. Our live definition requests one GPU and twelve thousand two hundred eighty-eight MiB of memory. It does not request the full sixteen gibibytes on a `g4dn.xlarge`, because the operating system and ECS agent also need host memory. When the recipe changes, we register a new revision.
 
-Next is the job. A job is one cook of that recipe. You submit “process this stem,” and Batch creates a job with overrides for environment variables like the image prefix. Many jobs can share one definition.
+A job is one run of that recipe. We submit “process this stem,” and Batch creates a job with overrides such as the image prefix. Many jobs can use the same definition.
 
-Jobs do not jump straight onto machines. They wait in a job queue. The queue is the line. You can have a Spot queue as the default cheap path and an on-demand queue as a steadier fallback. Priority and which compute environments the queue may use are bound here.
+Before a job reaches a machine, it waits in a job queue. Think of the queue as the line. We can use a Spot queue as the lower-cost default and an on-demand queue as a steadier fallback. Queue configuration controls priority and which compute environments are available.
 
-The compute environment is the kitchen that can appear and disappear. It declares which instance types are allowed — we focus on `g4dn.xlarge` — Spot or on-demand, networking, the instance profile that pulls from ECR and writes logs, and how far capacity may scale. Managed environments let Batch launch and terminate EC2 capacity for you. With minimum vCPUs at zero, an empty queue can drain the kitchen lights.
+The compute environment supplies the machines. It defines allowed instance types—we focus on `g4dn.xlarge`—the Spot or on-demand purchase model, networking, the instance profile for ECR and logs, and scaling limits. A managed environment lets Batch launch and terminate EC2 capacity. With minimum vCPUs set to zero, an empty queue can allow that capacity to drain.
 
-Let’s trace one happy path. You submit a job to the Spot queue. The job becomes runnable when the definition’s GPU and memory requirements can be placed. The compute environment starts a GPU instance with an NVIDIA ECS-optimized AMI. The agent pulls the image, starts the container with one GPU, and your script writes the CSV. When nothing else is waiting, desired capacity can fall again.
+Let’s trace the normal path. We submit a job to the Spot queue. When its GPU and memory requirements can be placed, the compute environment starts a GPU instance with an NVIDIA ECS-optimized AMI. The agent pulls the image and starts the container with one GPU. The script writes the CSV. When no work remains, desired capacity can fall again.
 
-If you remember only one sentence: definition is the recipe, job is one run, queue is the line, compute environment is the kitchen. Keep that map handy — we will hang instance choice, Spot, and quotas on it next.
+Keep this map handy: the definition is the recipe, the job is one run, the queue is the line, and the compute environment supplies the kitchen.
 
-How do you pick the stove inside that kitchen? Next we look at GPU EC2 families and why a T4 on `g4dn` fits this inference job.
+Next, we’ll choose the GPU instance inside that compute environment and see why a T4 on `g4dn` fits this inference job.
 
 ---
 

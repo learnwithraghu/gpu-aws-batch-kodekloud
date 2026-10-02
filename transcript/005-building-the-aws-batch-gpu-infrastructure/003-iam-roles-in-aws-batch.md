@@ -9,21 +9,19 @@
 
 ---
 
-Drivers get the GPU working. IAM decides who is allowed to touch what. In Batch you do not have one role. You have three actors, and mixing them up is the fastest way to get a confusing AccessDenied.
+Drivers make the GPU usable. IAM decides which actor may do which work. Batch has three relevant roles, and an `AccessDenied` becomes much easier to diagnose once you identify the actor that failed.
 
-First, the Batch service role — typically the service-linked role `AWSServiceRoleForBatch`. This is Batch itself managing compute environments: creating ECS clusters, scaling EC2, attaching capacity. If this role is wrong, environments never become healthy. You will not get as far as a caption container.
+First is the Batch service role, typically the service-linked role `AWSServiceRoleForBatch`. Batch uses it to manage compute environments, create ECS clusters, scale EC2, and attach capacity. If this role is wrong, the environment does not become healthy. The caption container never gets a chance to start.
 
-Second, the instance role, attached through an instance profile — in our account that is `ecsInstanceRole`. The EC2 host and the ECS agent use it. They need to pull the image from Amazon ECR and write container logs to CloudWatch. They do not need permission to read vendor photos or write `descriptions.csv`. Keep that narrow. The instance role is about running containers, not about your business data.
+Second is the instance role, attached through an instance profile. In our account, that is `ecsInstanceRole`. The EC2 host and ECS agent use it to pull the image from Amazon ECR and write container logs to CloudWatch. They do not need permission to read vendor photos or write `descriptions.csv`. This role runs containers; it does not grant access to the workload data.
 
-Third, the job role — set as `jobRoleArn` on the job definition. The container assumes this role while `describe_items.py` runs. For KodeFood that role lists and reads the images bucket and writes the catalog CSV bucket. Without it, the instance can pull ECR just fine and the job still dies on S3 AccessDenied the moment photos.py lists a prefix.
+Third is the job role, set as `jobRoleArn` on the job definition. The container assumes `gpu-teaching-batch-job-role` while `describe_items.py` runs. That role lists and reads the images bucket and writes the catalog CSV bucket. Without it, the host can pull from ECR, but the process fails with S3 `AccessDenied` when `photos.py` lists the prefix.
 
-Why three roles instead of one fat role on the instance? Least privilege and blast radius. If every container inherited full S3 power from the instance profile, any job definition mistake becomes a data-plane incident. Separating job credentials is the same idea Amazon documents for ECS task roles: the task gets application permissions; the instance gets agent permissions.
+The separation limits privilege and blast radius. The workload receives application permissions through the job role. The host receives agent permissions through the instance role. We do not give every container broad S3 access through the instance profile.
 
-You will see this split in production Batch shops and in ECS services alike. Different teams name it “platform role” versus “job role,” but the shape is the same: orchestrator, host, workload.
+Use the symptom to choose the check. An environment stuck `INVALID` points to the service role. Image-pull or logging failures around `STARTING` point to the instance role. An `AccessDenied` inside Python points to the job role on the active job-definition revision. After re-registering a definition, confirm that the new revision still carries `jobRoleArn`.
 
-For this course, remember the failure map. Environment stuck invalid — check the service role. Image pull or log failures at STARTING — check the instance role. AccessDenied inside the Python process — check the job role on the active job-definition revision. When you re-register a definition, confirm the new revision still carries `jobRoleArn`; silent omissions recreate last month’s bug.
-
-That’s the IAM triangle. Next we put the instance on a network path that can actually reach ECR, S3, Hugging Face for the model, and CloudWatch Logs.
+Those three roles cover orchestrator, host, and workload. Next, we verify that the host has a network path to ECR, S3, Hugging Face, and CloudWatch Logs.
 
 ---
 

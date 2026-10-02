@@ -8,17 +8,17 @@
 
 ---
 
-At the end of section one we had captions and accept-or-reject decisions. That decision path only stays fast if the heavy vision math lands on the right kind of chip. So let’s make the CPU versus GPU contrast concrete for KodeFood.
+At the end of section one, we had captions and accept-or-reject decisions. Let’s make the CPU and GPU roles in that path concrete.
 
-A CPU is optimized for flexible control flow. A few powerful cores. Great at orchestration: list objects in S3, download files, open images, write a CSV, talk to APIs. Our `photos.py` side of the job is essentially CPU work even when a GPU is present.
+A CPU is built for flexible control flow, using a few powerful cores. It is well suited to orchestration: listing objects in S3, downloading files, opening images, writing a CSV, and calling APIs. The `photos.py` side of our job is CPU work even when a GPU is attached.
 
-A GPU is optimized for throughput on uniform math. Thousands of smaller cores. Great at the BLIP forward pass: take image tensors, run matrix multiplies, emit token sequences for captions. That is what `describe_items.py` wants when `torch` reports `cuda`.
+A GPU is built for throughput on uniform math, using thousands of smaller cores. It is well suited to the BLIP forward pass: receive image tensors, run matrix multiplications, and emit caption tokens. That is the path `describe_items.py` uses when `torch` reports `cuda`.
 
-What actually changes when you move the caption loop to a GPU? Wall-clock time for a thirty-photo folder drops from “eventually” to “one short run.” You also change the failure modes. Now you care about GPU memory, drivers, and whether the container can see the device. A CPU-only box will still run the same Python — just slowly, and only if you accept that path.
+Moving the caption loop to a GPU changes more than speed. A thirty-photo folder can finish in a short run, but we also gain new failure modes. GPU memory can fill up. Drivers can be incompatible. The container may not see the device. The same Python can run on CPU if that fallback is allowed, but it will be slower.
 
-For this course we treat the split as intentional design, not magic. Keep I/O and policy on the CPU side of the process. Keep tensor inference on the GPU. Ask AWS for a GPU instance when a folder is waiting, not because every line of Python needs CUDA.
+Treat this as an intentional split. I/O and policy stay on the CPU side. Tensor inference uses the GPU. We ask AWS for a GPU when a folder is waiting, not because every line of Python needs CUDA.
 
-That's it here for CPU versus GPU at the mental-model level: same math, different shape of machine. The practical question opens next — how much of that GPU memory can you fill at once, and why we caption a handful of photos at a time instead of loading the whole folder in one shot.
+The next constraint is memory. Let’s see how much work the GPU can hold at once, and why we send a few photos at a time instead of the whole folder.
 
 ---
 

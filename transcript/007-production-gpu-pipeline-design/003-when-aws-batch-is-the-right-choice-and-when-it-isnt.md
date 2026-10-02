@@ -9,15 +9,15 @@
 
 ---
 
-Batch earned its place in this course for a specific shape of work. You have a queue of independent units — one vendor folder each. You want containers with GPUs. You want AWS to launch capacity when jobs appear and scale toward zero when the queue drains. You can tolerate minutes of cold start. Retries and Spot interruptions are acceptable if a failed stem can re-run cleanly. That is KodeFood captioning. That is also a lot of overnight analytics, rendering, and batch inference in the wild.
+Batch fits this course because the work has a clear shape. Each vendor folder is independent. The container needs a GPU, but it does not need one permanently. Capacity can launch when jobs arrive and return toward zero when the queue drains. A few minutes of startup is acceptable, and a failed stem can run again after a Spot interruption. KodeFood captioning fits that profile, as do many rendering, analytics, and batch-inference systems.
 
-When is Batch the wrong hammer? Synchronous APIs — “caption this photo in 200 milliseconds” — need a warm service on ECS, EKS, or a managed endpoint, not a cold job boot. If your org already runs on Kubernetes operators and GitOps, pure EKS may fit the operating model better. If data scientists need managed training loops, experiments, and built-in metrics, SageMaker Training is often the shorter path.
+Batch is a poor fit for a synchronous request such as “caption this photo in 200 milliseconds.” That requires a warm service on ECS, EKS, or a managed endpoint. An organization already operating Kubernetes through operators and GitOps may prefer EKS. A team that needs managed training loops, experiments, and built-in metrics may reach production faster with SageMaker Training.
 
-AWS’s own guidance is blunt: Fargate is simpler until you need GPUs — and GPU Batch jobs need EC2-backed environments. “Serverless-looking” does not mean Fargate for this workload. “ML on AWS” does not automatically mean SageMaker when you already have a container and a queue.
+One platform constraint is easy to miss: GPU Batch jobs require an EC2-backed compute environment. Fargate may simplify CPU workloads, but it is not the GPU path here. Likewise, an ML workload does not automatically require SageMaker when the real need is to schedule an existing container.
 
-Batch case studies on AWS’s site rhyme: large volumes of similar jobs, Spot-friendly cost, operators who want scheduling without owning a cluster day-to-day. Match that pattern and Batch pays off. Fight it and you will wrestle RUNNABLE states forever.
+The successful Batch pattern is consistent: many similar jobs, tolerance for Spot economics, and a team that wants scheduling without operating a cluster day to day. If a design requires permanently warm capacity or request-level latency, repeated RUNNABLE incidents are a symptom of the wrong abstraction.
 
-Ask yourself one sentence: is this work a job or a service? Next we put Batch beside ECS, EKS, and SageMaker so that sentence gets sharper.
+Use one review question: is this work a finite job or a continuously available service? Next we compare Batch, ECS, EKS, and SageMaker with that boundary in mind.
 
 ---
 

@@ -8,17 +8,17 @@
 
 ---
 
-We know why a GPU helps caption photos. Let’s trace one vendor folder through the product, end to end.
+We know why a GPU helps with captioning. Now let’s trace one vendor folder through the full job.
 
-Input lives in object storage under a simple prefix: `images/<stem>/` inside the images bucket. About twenty-five to thirty jpg, jpeg, or png files for that batch. Output is equally strict: `descriptions/<stem>/descriptions.csv` in the CSV bucket. One folder in. One catalog file out.
+The input is under `images/<stem>/` in the images bucket. Each batch contains about twenty-five to thirty jpg, jpeg, or png files. The output has an equally strict location: `descriptions/<stem>/descriptions.csv` in the CSV bucket. One folder in, one catalog file out.
 
-Inside the job, two stories share one process. Storage code lists the prefix, downloads bytes, and later writes the CSV. GPU code loads BLIP, describes photos in small groups — eight at a time by default so they fit in GPU memory — and returns sentences. Then `photo_status` looks at each caption. If food-like words appear, the row is accepted. If the caption sounds like a car, a selfie, or a logo, it is rejected. Rejected rows stay in the file so the reason is visible. Accepted rows feed the menu text.
+Inside the job, storage work and model work share one process. The storage code lists the prefix, downloads image bytes, and later writes the CSV. The GPU code loads BLIP and describes photos in small groups. The default is eight at a time so the active batch fits in GPU memory.
 
-The CSV columns are the contract the app trusts: the image URI, the item description, and the photo status. KodeFood does not open the raw folder to invent titles at request time. It reads this file. If the CSV is wrong, the product is wrong — even if the GPU “ran fine.”
+Then `photo_status` checks each caption. Food-like words produce an accepted row. A caption that sounds like a car, selfie, or logo produces a rejected row. We keep rejected rows in the file so operations can inspect the result. Accepted rows supply the menu text.
 
-Hold that picture. You now have the real-world problem, the self-hosted caption choice, and the accept-or-reject outcome. What still feels fuzzy is the hardware split itself: what actually changes when this work runs on a CPU versus a GPU?
+The CSV is the product contract: image URI, item description, and photo status. KodeFood does not generate titles from the raw folder during a customer request. It reads this file. If this contract is wrong, the product is wrong even when the GPU job reports success.
 
-That’s the door into section two. Next we compare CPU and GPU for this workload — not as slogans, but as what changes for memory, speed, and how we batch photos.
+We now have the end-to-end path. In section two, we’ll separate the CPU and GPU responsibilities and see how memory and batch size affect that path.
 
 ---
 

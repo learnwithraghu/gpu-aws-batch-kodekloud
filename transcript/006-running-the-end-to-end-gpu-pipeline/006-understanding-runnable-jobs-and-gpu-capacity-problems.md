@@ -9,17 +9,17 @@
 
 ---
 
-RUNNABLE means “ready to run, waiting for a place to run.” It does not mean your caption script is executing. There is no container yet, so there are no application logs to chase.
+`RUNNABLE` means ready to run, but waiting for a place to run. The caption script is not executing. There is no container yet, so do not start by searching for application logs.
 
-Two capacity stories dominate our teaching account. Spot: the queue is healthy, the job definition is fine, but EC2 has no `g4dn.xlarge` Spot capacity in that zone right now. The job waits. On-demand: if the account’s Running On-Demand G and VT instances quota is zero, Batch cannot launch the fallback instance either — RUNNABLE forever with a quiet log group.
+Start with the selected queue and its capacity type. On the default Spot path, `gpu-teaching-gpu-smoke-queue-spot` can be healthy while EC2 has no `g4dn.xlarge` Spot capacity in that Availability Zone. The job waits.
 
-A third cousin looks similar: the job asks for more memory than the instance can register. Sixteen gibibytes on a sixteen-gibibyte `g4dn.xlarge` yields a resource misconfiguration and never places. That is why the caption definition stays at twelve thousand two hundred eighty-eight MiB.
+The fallback is not automatically available. On `gpu-teaching-gpu-smoke-queue-on-demand`, Batch still cannot launch a `g4dn.xlarge` if the account's Running On-Demand G and VT instances quota, `L-DB2E81BA`, is zero. In this teaching account it has been zero. The job remains `RUNNABLE`, with no container and no application logs. Use on-demand only after that quota is at least 4. The Spot G and VT quota, `L-3819A6DF`, is 8.
 
-How do you debug without guessing? Check Service Quotas for G and VT Spot and on-demand. Describe the compute environment and queue. Confirm the job definition revision and memory. Use a watch helper or `describe-jobs` for status reason. Only after the job reaches STARTING or RUNNING do you open `/aws/batch/job`.
+A resource mismatch produces a similar wait. Revision `:1` requests `16384` MiB on a 16 GiB `g4dn.xlarge`, but ECS cannot register all host memory for the task. The status reason is `MISCONFIGURATION:JOB_RESOURCE_REQUIREMENT`. Use `gpu-teaching-caption-job:4` or later with `12288` MiB.
 
-GPU scarcity is not unique to this course. Hyperscalers and startups alike report Spot interruptions and quota walls on G-family capacity. The skill is recognizing RUNNABLE as a capacity signal, not an application stack trace.
+Diagnose in a fixed order. Use `aws batch describe-jobs` or `helpers/watch_batch_job.sh` to read the status reason. Describe the queue and compute environment. Confirm the active job-definition revision, `12288` MiB memory, and one-GPU request. Then check the relevant G and VT quota and current Spot availability. Open `/aws/batch/job` only after the job reaches `STARTING` or `RUNNING`.
 
-You can now walk KodeFood from prefix to SUCCEEDED — and explain the waits. Section seven zooms out to production design: scaling from one vendor folder to many jobs, utilization, and when Batch is the right tool versus adjacent AWS GPU options.
+You can now distinguish an application failure from a capacity wait: no container means there is no application stack trace yet. With that failure map in place, the next section moves from one vendor folder to production-scale design and utilization.
 
 ---
 

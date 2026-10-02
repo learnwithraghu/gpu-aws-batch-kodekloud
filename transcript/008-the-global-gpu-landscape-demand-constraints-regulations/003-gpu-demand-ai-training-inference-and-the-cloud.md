@@ -9,17 +9,17 @@
 
 ---
 
-Not all GPU demand looks the same. Training and inference fight for the same chips with different shapes — and the cloud sells both by the hour.
+GPU demand has two main shapes: training and inference. They often compete for the same silicon, but they use it differently.
 
-Training is the heavy lift. You update model weights across many GPUs for days or months. Clusters want fast interconnect — NVLink, InfiniBand-class fabrics — synchronized steps, and checkpoints. One foundation-model run can lock thousands of accelerators. That is why P5-class and similar training SKUs book out, and why labs sign multi-year cloud deals. Training demand is lumpy, prestigious, and sticky.
+Training updates model weights across many GPUs for days or months. It needs fast interconnects such as NVLink and InfiniBand-class fabrics, synchronized computation, and checkpoints. A foundation-model run can occupy thousands of accelerators. This makes high-end training capacity scarce and encourages multi-year commitments.
 
-Inference is the long tail. After weights exist, every user request or batch job runs the forward pass. Latency-sensitive apps keep models warm on endpoints. Batch inference — our KodeFood path — loads a model, processes a folder, exits. Individually small; in aggregate, inference can exceed training FLOPs once a model is popular. Goldman Sachs, McKinsey, and hyperscaler blogs have all argued that inference spend grows as products ship, even if training headlines dominate.
+Inference uses trained weights to produce results. Latency-sensitive applications keep models warm. Batch inference, like KodeFood, loads a model, processes a folder, and exits. Each run is small compared with frontier training, but popular products repeat inference continuously. In aggregate, that demand can become larger than training demand.
 
-Cloud demand is the sum plus everything else: graphics, classical HPC, video encode, recommendation ranking. Your `g4dn` is an inference-and-graphics sweet spot, not a frontier training box — which is why it fits captioning and why it still competes with game streaming and other G-family users.
+Cloud demand also includes graphics, scientific computing, video encoding, and recommendation systems. The `g4dn` is suited to inference and graphics rather than frontier training. That makes it appropriate for captioning, but it also puts KodeFood in the same capacity pool as other G-family users.
 
-For architecture, the split is a decision tool. Are you fine-tuning BLIP for months? Think training reservations and managed training platforms. Are you captioning vendor folders all day? Think Batch, Spot, scale to zero — do not hold a training cluster for product inference. Mixing the two on one always-on fleet is how teams waste money and still miss SLAs.
+The distinction guides architecture. Long-running BLIP fine-tuning may justify reservations and a managed training platform. Captioning vendor folders points to Batch, Spot, and scale-to-zero. Combining both on one permanent fleet can waste capacity while serving neither workload well.
 
-So demand is not one number. It is training spikes plus inference oceans. Next: why so much of that ocean still speaks NVIDIA’s language — CUDA.
+Training creates concentrated peaks; inference creates a broad, persistent load. Next we examine why much of both still runs through CUDA.
 
 ---
 

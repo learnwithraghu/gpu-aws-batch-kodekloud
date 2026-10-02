@@ -9,15 +9,15 @@
 
 ---
 
-Chips move through trade law as carefully as through factories. Since 2022, the U.S. Bureau of Industry and Security — BIS — has tightened export controls on advanced semiconductors and manufacturing tools bound for certain destinations, with updates through subsequent years. High-end AI GPUs, and sometimes “tuned” variants below a performance threshold, sit in that policy crosshair. Allies coordinated; China and others answered with their own procurement and industrial policies. The details change — always read the current Federal Register and BIS notices — but the shape is stable: leading AI accelerators are dual-use technology in the eyes of governments.
+Advanced chips move through trade law as well as factories. Since 2022, the U.S. Bureau of Industry and Security has tightened controls on advanced semiconductors and manufacturing tools for certain destinations. The rules have continued to change and can include modified products designed around performance thresholds. Other governments have coordinated controls or responded with their own procurement and industrial policies. Current BIS notices and the Federal Register remain the authoritative sources.
 
-What does that mean for a cloud engineer? Hyperscalers must comply when placing hardware and when offering certain instances in certain Regions or to certain customers. Product availability can lag or differ by geography for legal reasons, not only for inventory. If you build a global SaaS on GPU inference, your Region matrix may be constrained by export classification as much as by latency. NVIDIA has publicly discussed complying with U.S. rules and shipping compliant SKUs; that is geopolitics showing up in the EC2 dropdown.
+For cloud engineers, this can affect where providers place hardware and which customers may access particular instances. A Regional product gap may reflect legal restrictions as well as inventory. A global inference service therefore has to evaluate export classification alongside latency and capacity.
 
-Allied industrial policy cuts the other way — U.S. CHIPS programs, the EU Chips Act, Japan and Korea investments — rebalancing foundry capacity over years. Short term, controls tighten supply for some buyers while everyone else still queues for the same wafers.
+Industrial policy also funds new supply. Programs in the United States, European Union, Japan, and Korea aim to expand semiconductor capacity, but the effect takes years. In the short term, buyers still compete for a limited number of wafers.
 
-KodeFood in Tokyo on a G4-class instance is not a sanctions case study. The lesson still lands: assume accelerator access can be policy-gated, document where you run, and avoid architectures that require unrestricted access to the absolute newest training SKU in every country.
+KodeFood on a G4-class instance in Tokyo is not a sanctions case study. The useful lesson is narrower: accelerator access can be policy-gated. Document the Regions and instance families the service requires, and avoid depending on the newest training SKU in every market.
 
-Who regulates the models those GPUs run? That is the next lecture — AI Acts and what they imply for infrastructure teams.
+Trade rules govern hardware access. Next we examine how AI regulation governs the systems running on that hardware.
 
 ---
 

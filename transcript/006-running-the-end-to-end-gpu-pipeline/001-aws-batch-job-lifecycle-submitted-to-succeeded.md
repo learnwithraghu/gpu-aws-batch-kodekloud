@@ -9,19 +9,19 @@
 
 ---
 
-Once you submit, the job becomes a state machine. Learn the states and you stop treating every long wait as “the Python is slow.”
+After submission, the job moves through a state machine. Read the current state before deciding that Python is slow.
 
-SUBMITTED means Batch accepted the request. PENDING is early bookkeeping — dependencies and internal handoff. RUNNABLE means the job is eligible to run but does not yet have a container on a machine. This is the state where capacity problems hide. No GPU instance yet means no application logs yet.
+`SUBMITTED` means Batch accepted the request. `PENDING` covers early bookkeeping, dependencies, and internal handoff. `RUNNABLE` means the job is eligible, but no container has been placed on a machine. Capacity problems appear here. With no container, there are no application logs.
 
-STARTING is the handoff onto an instance: agent placement, image pull beginning. RUNNING means the container is up and your command is executing — BLIP load, photo loop, CSV write. From RUNNING you end in SUCCEEDED or FAILED. Failed jobs still leave status reasons, exit codes, and often a log stream you can open.
+`STARTING` is the handoff to an instance: placement and image pull. `RUNNING` means the container is up and the command is executing: BLIP load, photo loop, and CSV write. The terminal state is `SUCCEEDED` or `FAILED`. A failed job still provides a status reason, an exit code, and often a log stream.
 
-Notice what each state is allowed to tell you. RUNNABLE forever is rarely a bug in `describe_items.py`. RUNNING with exit code one is where you open CloudWatch. SUCCEEDED without a CSV is an application or prefix mistake even though Batch is happy.
+Let the state narrow the diagnosis. A job stuck in `RUNNABLE` has not started `describe_items.py`; check capacity, quotas, and resource fit. A `RUNNING` job that exits with code 1 is ready for CloudWatch inspection. A `SUCCEEDED` job without a CSV points to application behavior or the selected prefix, even though Batch considers the command successful.
 
-AWS documents this lifecycle the same way for CPU and GPU jobs. GPU only makes the RUNNABLE and STARTING stretches more expensive in wall-clock time because instances are scarcer and images are larger.
+The lifecycle is the same for CPU and GPU jobs. GPU jobs often spend longer in `RUNNABLE` and `STARTING` because instances are scarcer and images are larger.
 
-Map it once for KodeFood: submit caption job, watch RUNNABLE until Spot appears, STARTING while the multi-gigabyte image pulls, RUNNING while captions generate, SUCCEEDED when the catalog object exists.
+For this lab, watch `RUNNABLE` while Batch seeks Spot capacity, `STARTING` while the multi-gigabyte image pulls, and `RUNNING` while captions are generated. Confirm both `SUCCEEDED` and the expected catalog object.
 
-That's it here for the lifecycle map: each state has a meaning, and RUNNABLE is not the same as running. Now the practical fork — how one job definition serves many vendor prefixes without registering a new revision every time.
+That state map is our first diagnostic tool. Next, we use one job definition for many vendor prefixes without registering a new revision for every run.
 
 ---
 

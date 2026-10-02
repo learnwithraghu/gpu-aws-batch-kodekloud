@@ -8,17 +8,17 @@
 
 ---
 
-We just traced GPUs from drawing pixels to running parallel math. Now ask the sharper question: why does *this* KodeFood job need one?
+We’ve traced the GPU from pixel work to parallel math. Now let’s apply that model to this KodeFood job.
 
-Our application does not train a new model on each vendor’s menu. Training would update weights from labeled data, with optimizers and long runs. We do inference. A finished caption model — BLIP in our repo — looks at each photo and emits a short sentence. Then a few lines of Python check for food-like words and mark accepted or rejected.
+The application is not training a new model for every vendor. Training would update model weights from labeled data, using optimizers over long runs. Our job performs inference. BLIP is already trained. It looks at each photo and emits a short caption. Then Python checks for food-like words and marks the row accepted or rejected.
 
-Under that caption call sits matrix math. Each image becomes a large grid of numbers. The model pushes those numbers through many layers. A CPU can finish a folder of thirty photos eventually. A GPU finishes the same folder in one short burst because it runs those parallel operations together. For KodeFood, that difference is the difference between a snappy catalog refresh and a crawl.
+The caption step contains the heavy matrix math. Each image becomes a grid of numbers that passes through many model layers. A CPU can process a folder of thirty photos, but it does the work slowly. A GPU runs many of those operations in parallel and finishes the folder in a shorter burst.
 
-Also notice what we are *not* buying. We are not renting an always-on GPU chat endpoint. We want a machine for the minutes a folder is processing, then we want capacity to fall back toward zero. That shape — on-demand batch inference — is why GPUs plus a scheduler matter more than “any cloud VM.”
+Also notice what we do not need. We do not need an always-on GPU endpoint. We need GPU capacity while a folder is being processed, then we want that capacity to fall back toward zero. That is the shape of on-demand batch inference.
 
-Companies that ship visual search, moderation, or recommendations make the same distinction: train rarely, infer often, GPUs where the tensor work lives. Netflix’s classic recommendations writing is a different product than menu photos — but the hardware lesson rhymes. Further reading has that Tech Blog piece if you want the longer story.
+The failure mode depends on where we run. On a local machine, CPU fallback makes captioning—not S3 listing or CSV writing—the bottleneck. In our Batch design, the job requests a GPU. If no GPU capacity is available, the job remains unplaced and the caption step never starts. That distinction will help us separate application logic from compute problems later.
 
-That's it here for why this workload wants a GPU: vision math is the same family of parallel work graphics chips were built for. Next we walk the end-to-end flow from one image folder to the CSV KodeFood actually reads.
+So the GPU has a narrow, important role: accelerate the model’s vision math. Next, let’s trace one image folder all the way to the CSV KodeFood reads.
 
 ---
 

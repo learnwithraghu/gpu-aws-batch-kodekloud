@@ -9,15 +9,15 @@
 
 ---
 
-You can submit a thousand jobs in a minute. That does not mean a thousand GPUs appear. Parallelism in Batch is negotiated between three things: how many jobs are RUNNABLE, how many instances the compute environment may launch, and how many GPUs those instances actually have. On our path, one `g4dn.xlarge` carries one GPU, and the job definition pins one GPU per container. So one running job per machine. Throughput equals how many machines Batch can place — subject to Spot, quota, and `maxvCpus`.
+Submitting a thousand jobs does not create a thousand GPUs. Batch parallelism is bounded by three numbers: RUNNABLE jobs, instances the compute environment may launch, and GPUs on those instances. Our `g4dn.xlarge` has one GPU, and the job definition requests one GPU per container. That gives us one running job per instance. Throughput is therefore limited by placement, Spot supply, quota, and `maxvCpus`.
 
-Queues are the control surface. Priority between queues decides who gets capacity first. Fair-share scheduling can stop one team from monopolizing a shared CE. For KodeFood you might run a high-priority on-demand queue for menu go-live deadlines and a Spot queue for overnight backfills. Same job definition, different urgency. That is parallelism with intent, not “fire everything at once.”
+Queues express operating intent. Queue priority decides which work receives capacity first. Fair-share scheduling prevents one workload from consuming a shared compute environment. KodeFood could use a high-priority on-demand queue for menu launches and a Spot queue for overnight backfills. The job definition stays the same; urgency changes.
 
-Utilization is the quiet metric. A GPU idle while photos download is paid for but unused. That is why micro-batching inside the job matters — keep the device busy once the model is loaded — and why cold starts hurt. NVIDIA’s DCGM guidance and production inference teams push the same idea: measure device activity and memory, not only “job succeeded.”
+Utilization tells us whether that capacity was useful. A GPU waiting for photos to download is billed but idle. Micro-batching helps keep the device active after the model loads, while cold starts reduce useful time. Measure GPU activity and memory through tools such as NVIDIA DCGM; a SUCCEEDED status alone cannot show wasted capacity.
 
-Anti-patterns to avoid: packing CPU-only prep onto GPU instances, memory so high the job never places, and `maxvCpus` so low that parallelism dies while Spot still has room.
+Watch for three common causes during an incident: CPU-only preparation running on GPU instances, a memory request that prevents placement, and `maxvCpus` set below the intended concurrency.
 
-That's it here for utilization thinking: parallel jobs only help if the GPU is busy with useful work and the queue is not fighting itself. That raises a sharper product question — when Batch is the right tool for that pattern, and when it is not.
+Parallelism helps only when the queue admits work and the GPU stays busy. Next we decide when that operating model belongs on Batch and when another service is a better fit.
 
 ---
 

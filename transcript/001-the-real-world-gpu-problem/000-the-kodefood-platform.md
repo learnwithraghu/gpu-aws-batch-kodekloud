@@ -10,17 +10,17 @@
 
 Welcome to Building Production GPU Workloads on AWS.
 
-In this course we build something real — one product problem all the way into a GPU job on AWS Batch.
+We’re going to follow one product problem all the way into a GPU job on AWS Batch.
 
-The company in our story is KodeFood, a fast-food delivery app. Millions of people open it every day. Behind that screen sit more than two thousand vendors, and more join all the time. Each vendor needs menu photos. Those pictures are how customers decide what to tap.
+Our example company is KodeFood, a fast-food delivery app. Millions of people use it, and more than two thousand vendors supply its menus. Each vendor needs menu photos. Those photos help customers decide what to order.
 
-Photos do not arrive perfect. A vendor uploads what they have — a clear plate of food, or a selfie, a logo, a random phone shot. KodeFood still has to show a catalog customers trust. So the platform’s job is broader than “store an image.” It turns messy uploads into a short description and a clear accepted or rejected status.
+But vendor uploads are messy. One folder may contain a clear plate of food, a selfie, a logo, or a random phone shot. KodeFood still needs a catalog customers can trust. So storing the image is only the first step. The platform must produce a short description and a clear accepted or rejected status.
 
-What we build is similar — not the same — to how real delivery platforms treat menu photos as product quality. DoorDash has written publicly about Drive photo quality in that spirit. A link for that article sits under Further reading if you want it later. Our path is a teaching-sized version: messy uploads in, usable catalog signals out.
+We’ll build a teaching-sized version of that flow. Messy uploads go in. Usable catalog signals come out.
 
-That is the thread for every section. Photos in. Captions and decisions out. A GPU in the middle, because looking at images at scale is not ordinary CPU work.
+Keep that thread in mind through every section: photos in, captions and decisions out, with a GPU handling the image work in the middle.
 
-Next we look hard at the image problem at scale — why manual review fails, and why KodeFood needs an automated path.
+Next, let’s put some scale behind the problem and see where manual review starts to break down.
 
 ---
 

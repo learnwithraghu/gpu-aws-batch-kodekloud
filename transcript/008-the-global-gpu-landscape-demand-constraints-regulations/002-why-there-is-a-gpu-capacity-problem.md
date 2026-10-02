@@ -9,17 +9,17 @@
 
 ---
 
-You felt the capacity problem as a status: RUNNABLE with no instance. Zoom out and the same problem has three layers — manufacturing, cloud inventory, and account limits — stacked on top of each other.
+For KodeFood, the capacity problem appeared as RUNNABLE with no instance. That status can come from three layers: manufacturing supply, cloud inventory, and account limits.
 
-Manufacturing first. Leading-edge wafers, HBM memory, and advanced packaging cannot scale as fast as chatbots went viral. Building a fab takes years and tens of billions of dollars. TSMC, memory makers, and OSAT partners publish capacity expansions, but those are multi-year curves, not weekend autoscaling. When every hyperscaler orders at once, someone waits.
+Manufacturing is the slowest layer. Leading-edge wafers, high-bandwidth memory, and advanced packaging cannot expand on software timelines. A fabrication plant takes years and billions of dollars to build. Capacity grows over multi-year cycles, so simultaneous orders from cloud providers create queues.
 
-Cloud inventory second. Even after chips exist, they must be racked, powered, cooled, and networked in a specific Availability Zone. AWS may have P5s in one Region and thin G4 stock in another. Spot capacity is leftover on-demand — great price, unpredictable depth. Your lesson Spot queue going quiet while Tokyo still has “GPUs somewhere” is exactly this: local pool empty, not planet empty.
+Cloud inventory is the next layer. Chips must be installed, powered, cooled, and networked in a particular Availability Zone. One Region may have P5 capacity while another has limited G4 stock. Spot draws from spare capacity, so its price is attractive and its depth is unpredictable. An empty Tokyo pool does not mean the world has no GPUs.
 
-Account limits third. Service Quotas — like on-demand G and VT instance limits — can be zero or tiny on a new account even when the Region has machines. You request increases; approval is not instant. That is policy capacity on top of physical capacity.
+Account limits form the third layer. Service Quotas for on-demand G and VT families may be zero or small in a new account, even when AWS has hardware in the Region. A quota increase takes time. This is administrative capacity layered over physical capacity.
 
-Add training clusters that hold thousands of GPUs for months. Those reservations remove flex inventory smaller jobs could have used. Reuters, Bloomberg, and company earnings calls through 2023–2025 repeated the theme: AI demand outpaced supply; delivery times stretched; cloud GPU waitlists became normal.
+Large training clusters can reserve thousands of GPUs for months, reducing flexible inventory for smaller jobs. During the AI expansion of 2023–2025, demand outpaced delivery and cloud waitlists became common.
 
-That's it here for the capacity squeeze: demand arrived faster than fabs, power, and cloud racks could answer. Next we split that demand into training versus inference — because they compete for the same silicon differently.
+When a job stalls, diagnose the layers in order: job requirements, account quota, Regional inventory, then the broader supply constraint. Next we separate training demand from inference demand.
 
 ---
 

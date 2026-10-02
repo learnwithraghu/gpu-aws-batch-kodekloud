@@ -9,19 +9,19 @@
 
 ---
 
-You just walked the AWS Batch GPU architecture — queues, compute environments, job definitions. So far that story had an empty center: what command actually runs when a GPU machine starts?
+You have seen the AWS Batch GPU architecture: queues, compute environments, and job definitions. Now let’s put the real KodeFood job in the middle. What command runs when a GPU machine starts?
 
-Now we build that application. For KodeFood, Batch does not start a mystery binary. It starts one Python entrypoint: `python /app/describe_items.py`. That file is the caption job. It loads the BLIP model, walks a vendor photo folder, writes captions, and marks each photo accepted or rejected for the menu.
+Batch starts one Python entrypoint: `python /app/describe_items.py`. That script loads the BLIP model and reads one vendor photo folder. It generates captions, marks each photo accepted or rejected, and produces one catalog CSV.
 
-Notice what that means for you as an engineer. The job definition points at a container image. The image contains `/app/describe_items.py`. When capacity appears, the container starts, that script runs, and the product outcome is one catalog CSV — not a long-lived service, not an interactive notebook.
+Notice the execution path. The job definition points to a container image. That image contains `/app/describe_items.py`. When GPU capacity is ready, the container starts and runs the script. This is a finite batch job. It is not a service or an interactive notebook.
 
-Delivery marketplaces treat catalog quality the same way in spirit. What we build is similar to DoorDash’s public engineering story around catalog and quality — not a copy of their stack. One vendor folder in, one `descriptions.csv` out, food-word rule on the caption. Further reading has their engineering blog when you want that wider context.
+For KodeFood, the contract is deliberately small: one vendor folder in, one `descriptions.csv` out. A simple food-word rule checks each generated caption.
 
-The script on your laptop is only the source. After we push to Amazon ECR, Batch runs whatever was baked into the image at `/app/`. Edit locally and forget to rebuild, and the next job still runs yesterday’s code. Hold that idea — we will keep returning to it.
+The file on your laptop is only source code. Batch runs the copy baked into the image at `/app/`. If you edit the script but do not rebuild and push the image, the next job still runs the old code. That symptom belongs to the image delivery path, not to the GPU.
 
-So the mental model is simple. Batch schedules GPU capacity. The application is `describe_items.py`. Everything else — S3 helpers, Docker, CUDA — exists to make that entrypoint succeed the same way every time.
+Keep this mental model: Batch schedules the capacity, and `describe_items.py` performs the work. S3 helpers, Docker, and CUDA support that entrypoint.
 
-Where does that leave storage? Captioning needs photos on the way in and a CSV on the way out. The next video splits that storage work from the GPU work so each piece stays readable.
+Next, we will separate storage operations from model processing. That split will give us a clear first place to look when this job fails.
 
 ---
 

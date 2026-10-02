@@ -9,15 +9,15 @@
 
 ---
 
-You just compared Batch, ECS, EKS, and SageMaker. Under every option sat the same scarce machine: a GPU instance that may not be there when your job turns RUNNABLE. This section zooms out. Why does one vendor photo pipeline in Tokyo care about global infrastructure politics? Because the accelerator in that g4dn is part of a worldwide bottleneck.
+Batch, ECS, EKS, and SageMaker all depend on the same thing: an available accelerator. When the KodeFood job remains RUNNABLE in Tokyo, a small application is meeting a global infrastructure constraint.
 
-A decade ago, GPUs were “graphics cards” and a niche for scientific computing. Today they are the default engines for training foundation models, running inference at user scale, simulating proteins, pricing risk, and recommending the next video. The same chip class that draws frames in a game now draws attention maps in a transformer. Nations talk about GPU clusters the way they once talked about shipyards or semiconductor fabs — as strategic capacity.
+A decade ago, GPUs were associated mainly with graphics and specialized scientific computing. Today they train foundation models, serve inference, simulate proteins, price risk, and rank recommendations. The same class of chip that renders a game can calculate attention in a transformer. That range of uses has turned GPU clusters into strategic capacity.
 
-Public signals are loud. Hyperscalers publish capital plans heavy on accelerators. Labs compete for cluster time. Governments fund AI factories and sovereign clouds. When NVIDIA frames the GPU as the engine of AI factories, compute is the scarce input — not an afterthought.
+Cloud providers are investing heavily in accelerators. Research labs compete for cluster time. Governments fund AI factories and sovereign clouds. Compute is no longer a background resource; it is a constrained input to economic and national plans.
 
-For KodeFood the lesson is practical. Your design — scale to zero, Spot first, finite jobs, inference not endless training — is how ordinary product teams survive in that world. You do not need a supercluster to caption vendor dishes. You need reliable access to a little GPU for a little while, then nothing. That is infrastructure literacy: know what is scarce, then build so scarcity does not bankrupt the product.
+KodeFood shows the practical response. It uses finite inference jobs, prefers Spot capacity, and scales toward zero. Captioning vendor dishes does not need a supercluster. It needs a small amount of reliable GPU time, followed by no GPU bill at all.
 
-Critical infrastructure means power grids, networks, and now accelerators. Treat them that way in architecture reviews. Next we follow one chip from design to the cloud rack — who actually builds the path your Batch job depends on.
+Treat accelerator capacity as a dependency, not an assumption. Next we follow the supply chain from chip design to the cloud rack that runs the Batch job.
 
 ---
 

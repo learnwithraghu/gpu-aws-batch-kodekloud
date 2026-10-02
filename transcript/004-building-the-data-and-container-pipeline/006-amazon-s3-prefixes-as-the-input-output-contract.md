@@ -9,19 +9,17 @@
 
 ---
 
-Two buckets give you places to put data. Prefixes decide which objects this job is allowed to see.
+The two buckets provide durable locations. Prefixes define the objects for one KodeFood job.
 
-S3 keys are flat strings. `images/sample/bowl.jpg` is not a filesystem folder — tools just group on the slash. Our application still treats `images/<stem>/` as a folder contract. `photos.py` lists with `IMAGE_PREFIX`. Only keys under that prefix become caption work. Photos at the bucket root, or under another stem, are invisible to a job aimed at `images/sample`.
+S3 keys are flat strings. `images/sample/bowl.jpg` is not a filesystem path, even though tools display slashes like folders. Our application treats `images/<stem>/` as a logical input contract. `photos.py` lists objects using `IMAGE_PREFIX`, so only matching keys become caption work.
 
-The output key is derived from the same stem. `images/sample` becomes `descriptions/sample/descriptions.csv` in the CSV bucket. One folder in, one catalog file out. A second successful run overwrites the same object so the catalog reflects the latest good job for that vendor stem.
+For example, a job with `IMAGE_PREFIX=images/sample` cannot see photos at the bucket root or under another vendor stem. The output key comes from the same stem: `images/sample` maps to `descriptions/sample/descriptions.csv` in the CSV bucket. One input prefix produces one catalog file. A later successful run overwrites that object with the latest result.
 
-This is why upload path and submit override must agree. Sync photos to `images/vendor-b`, then submit with `IMAGE_PREFIX=images/sample`, and you get a healthy container staring at an empty list — or the wrong list. The GPU can be fine. The contract was wrong.
+The upload path and submit override must agree. If photos are under `images/vendor-b` but the job receives `IMAGE_PREFIX=images/sample`, the container may start normally and still find no work, or process the wrong vendor. That is a data-contract problem, not a GPU problem.
 
-Supported extensions are part of that contract too. The code keeps `.jpg`, `.jpeg`, and `.png`. A GIF or HEIC in the folder is skipped without a row. If you expect thirty rows and get twenty-eight, check extensions before blaming CUDA.
+File extensions are also part of the contract. The code accepts `.jpg`, `.jpeg`, and `.png`. It skips GIF and HEIC objects without creating rows. If thirty uploaded files produce twenty-eight rows, check the extensions and prefix before investigating CUDA.
 
-So the data plane is now clear: ECR for the program, S3 prefixes for input and output. What still missing is the scheduler that ties them to a GPU — compute environments, queues, and job definitions.
-
-How does AWS Batch find a machine, attach the right roles, and start that container on a real GPU? That is section five — building the Batch infrastructure.
+We can now trace the data plane: Batch pulls the program from ECR, reads images from one S3 prefix, and writes one CSV to the derived output key. The next section adds the scheduler: compute environments, queues, roles, and job definitions that place this container on a GPU.
 
 ---
 

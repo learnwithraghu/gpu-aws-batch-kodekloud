@@ -9,17 +9,19 @@
 
 ---
 
-Batch needs a registry. On AWS, our registry is Amazon ECR. Three words get mixed constantly — repository, tag, and digest — so let’s separate them.
+Batch pulls our image from Amazon ECR. Let’s separate three terms that describe what it pulls: repository, tag, and digest.
 
-A repository is a named place that holds images. In this course that name is `gpu-teaching`. An image is the actual content: layers plus metadata, addressed by a digest — a content hash. A tag is a movable label that points at one digest. When people say `gpu-teaching:latest`, they mean “whatever digest the label `latest` currently points to in that repository.”
+A repository is a named collection of images. Here, the repository is `gpu-teaching`. The image content consists of layers and metadata. ECR identifies that exact content with a digest, which is a content hash. A tag is a movable label that points to a digest.
 
-Push again and `latest` can move. The old digest still exists as immutable content, but the label walked forward. That is convenient for teaching: rebuild, push, submit, and the next job picks up new code without editing the job definition. It is also easy to surprise yourself. Yesterday’s successful run and today’s submit may not be the same bytes if someone pushed in between.
+So `gpu-teaching:latest` means the digest currently selected by the `latest` tag in that repository. Push a new build with the same tag, and `latest` moves. The earlier digest remains immutable, but the label now selects different bytes.
 
-Production teams often pin a digest or an immutable version tag — a git SHA, `v3`, a build number — so a known-good job can be reproduced exactly. Mutable `:latest` means “whatever was pushed last.” Choose consciously.
+That behavior is convenient in this course. We rebuild, push, and submit without changing the job definition. It also affects diagnosis. Two jobs submitted against `:latest` may run different image content if a push happened between them.
 
-Auth splits in two. Your laptop pushes with a short-lived ECR login password. The GPU instance pulls with `ecsInstanceRole`. Never bake long-lived access keys into the image. The first CUDA-plus-PyTorch push is large; later code-only pushes reuse unchanged layers and stay thin.
+For repeatable production runs, teams often pin a digest or use an immutable version tag such as a git SHA, `v3`, or a build number. Use `:latest` only when you intend to follow the most recent push.
 
-We will skip the push demos for a moment in this theory track. Ask yourself first: once the program lives in ECR, where do the photos and the CSV live? Storage design is next — two buckets, clear roles, durable I/O for a temporary GPU.
+Authentication also has two paths. Your laptop pushes with a short-lived ECR login password. The GPU instance pulls with `ecsInstanceRole`. Long-lived access keys should never be baked into the image. The first CUDA-plus-PyTorch push is large; later code-only pushes can reuse unchanged layers.
+
+The program now has a durable home. Next, we will give the input photos and output CSV their own durable storage while the GPU instance remains temporary.
 
 ---
 

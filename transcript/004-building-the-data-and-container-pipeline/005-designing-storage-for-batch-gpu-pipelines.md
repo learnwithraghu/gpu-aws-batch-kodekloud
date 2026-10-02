@@ -9,17 +9,17 @@
 
 ---
 
-ECR holds the program. The GPU instance is temporary. When Batch scales in, local disk on that machine is gone. So photos and the catalog CSV cannot live only inside the container.
+ECR holds the program, but the GPU instance is temporary. When Batch removes that instance, its local disk disappears. The vendor photos and catalog CSV therefore need durable storage outside the container.
 
-Object storage is the durable side of the pipeline. The job downloads images, runs BLIP, and uploads one CSV. The next vendor drop is more objects under a prefix — you do not bake photos into the AMI or into image layers. Code changes mean rebuild and push. New photos mean upload only.
+S3 provides that durable side of the KodeFood pipeline. The job downloads images, runs BLIP, and uploads one CSV. A new vendor delivery adds objects under a prefix. We do not rebuild the AMI or container image to add photos. Code changes require a rebuild and push; data changes require an upload.
 
-This course uses two buckets on purpose. One holds vendor images — mostly read by the job. The other holds catalog output — written by the job, read by the app. You could use one bucket with two prefixes. Separate buckets make IAM easier to explain — read on one, write on the other — and make it harder to mix raw uploads with curated catalog files by accident.
+This course uses two buckets. One stores vendor images and is mostly read by the job. The other stores catalog output, which the job writes and the application reads. One bucket with separate prefixes could also work. Two buckets make the permissions clearer: read from one and write to the other. They also reduce the chance of mixing raw uploads with curated catalog files.
 
-Create them in the same region as Batch. Cross-region traffic adds latency and cost, and it muddies a teaching story that should stay one-region clear. Bucket names are globally unique across AWS, which is why course names usually include a stable suffix so creation does not collide with someone else’s `my-photos`.
+Keep both buckets in the same region as Batch. Cross-region access adds latency and cost. Bucket names must also be globally unique across AWS, so the course names include a stable suffix.
 
-Notice the product boundary. The container image is CUDA, PyTorch, and your scripts. S3 is every vendor folder you will ever caption with that same image. Airbnb’s Bighead write-up draws that line at marketplace scale — model packaging versus data — similar to what we are doing, not a copy of their platform. Further reading has the Bighead article when you want their version of the story.
+Notice the system boundary. The container image contains CUDA, PyTorch, and our scripts. S3 contains every vendor folder processed by that same image. If the container finishes but the CSV is missing, inspect the output bucket, key, and write permission before looking at GPU utilization.
 
-That's it here for storage shape: durable buckets, temporary GPU in the middle. Next — S3 prefixes as the input and output agreement the job lists and writes.
+We now have durable storage on both sides of temporary compute. Next, we will define the exact S3 prefixes the job reads and writes.
 
 ---
 

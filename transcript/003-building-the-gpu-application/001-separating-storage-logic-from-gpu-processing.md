@@ -9,19 +9,17 @@
 
 ---
 
-We said Batch runs `describe_items.py`. Open that story one layer deeper and you will see two files, not one.
+Batch runs `describe_items.py`, but the application has two clear responsibilities. Let’s trace them before we look at the model.
 
-`photos.py` owns storage. It lists photo keys under an S3 prefix, downloads each object into an image, and writes the finished catalog CSV. There is no CUDA call in that file. No model load. No generate step. If listing fails, if IAM denies GetObject, if the CSV upload fails — you look here first.
+`photos.py` owns storage. It lists photo keys under an S3 prefix, downloads each object as an image, and writes the completed catalog CSV. It does not load a model or call CUDA. If the logs show an empty prefix, `AccessDenied`, or a failed CSV upload, start with this file and the S3 permissions.
 
-`describe_items.py` owns the GPU path. It loads BLIP, runs inference in groups, applies the food-word accept or reject rule, and calls into `photos.py` for list, download, and save. Batch still starts one process. Imports connect the two files. The split is for humans reading the failure, not for two containers.
+`describe_items.py` owns the GPU path. It loads BLIP, runs inference in groups, and applies the food-word accept or reject rule. It calls `photos.py` to list, download, and save. Batch still starts one process in one container. Python imports connect the files.
 
-Why bother? Because production GPU jobs mix two failure modes that look the same from the outside: “the job failed.” One mode is data path — wrong bucket, empty prefix, AccessDenied. The other is model path — CUDA missing, out of memory, bad generate settings. When storage and GPU live in one tangled script, every red exit becomes a guessing game.
+This split gives us a useful diagnostic boundary. A wrong bucket or missing object is a data-path problem. Missing CUDA, an out-of-memory error, or invalid generation settings are model-path problems. Both can end with the same failed job status, so the log symptom tells you which layer to inspect.
 
-Real pipeline teams draw the same line. Uber’s Michelangelo platform wrote openly about keeping data pipelines apart from training and inference. We are borrowing that separation idea at course scale — not their platform. Keep I/O readable, keep the model readable. Further reading has the Michelangelo article if you want the original framing.
+Environment variables connect runtime data to the application. Bucket names and `IMAGE_PREFIX` arrive when we submit the job. The same image can process `images/sample` today and another vendor stem tomorrow. No rebuild is needed; only the override changes.
 
-Environment variables glue the split together. Buckets and `IMAGE_PREFIX` arrive at submit time. The same image can caption `images/sample` today and another vendor stem tomorrow without a rebuild. Only the override changes.
-
-That's it here for the split: S3 and CSV stay out of the GPU path. Next — how BLIP captions a photo, and why we never train in this job.
+Keep storage and CSV handling on one side, and model execution on the other. In the next lesson, we will follow one photo through BLIP and see why this job performs inference rather than training.
 
 ---
 

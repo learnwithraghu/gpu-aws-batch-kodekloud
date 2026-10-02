@@ -8,17 +8,19 @@
 
 ---
 
-Spot versus on-demand only matters if your account is allowed to run the instances. Quotas are where many first GPU jobs get stuck.
+Spot versus on-demand matters only after the account is allowed to run the instance. This is where many first GPU jobs get stuck.
 
-EC2 Service Quotas include limits for G and VT instance families — the pool that covers `g4dn` and similar GPU types. Two numbers matter in this course. One limits running on-demand G and VT capacity. Another covers Spot G and VT requests. Brand-new accounts often show on-demand G and VT at zero. Your Batch queue can look valid. Your compute environment can look healthy. Every job still sits in `RUNNABLE` forever: no instance, no container, no CloudWatch logs. That is an account limit, not a broken Dockerfile.
+EC2 Service Quotas include limits for the G and VT instance families, which cover `g4dn` and similar GPU types. Two quotas matter here: one for running on-demand G and VT capacity, and another for Spot G and VT requests. New accounts often have an on-demand G and VT quota of zero.
 
-Regional capacity is the second constraint. Even with quota headroom, a busy region may lack Spot GPUs at the moment you submit. The symptom looks similar — long `RUNNABLE` — but the fix differs. Spot scarcity asks for patience or a failover to on-demand. Quota zero asks for a Service Quotas increase and an approved case before on-demand can save you.
+In that state, the Batch queue can be valid and the compute environment can be healthy, while every job remains in `RUNNABLE`. No instance starts. No container runs. No CloudWatch application logs appear. That is an account-capacity limit, not evidence of a broken Dockerfile.
 
-For KodeFood teaching we stay on Spot until on-demand G and VT is high enough to fit at least one `g4dn.xlarge` — think at least four vCPUs of quota, with a little headroom if you can get it. Check the quota in Service Quotas before you burn an afternoon debugging Python that never got a machine.
+Regional availability is a separate constraint. Even with enough quota, a region may not have Spot GPUs available when we submit. The symptom can look similar, but the response is different. Spot scarcity may call for patience or an on-demand fallback. A zero quota requires an approved Service Quotas increase before on-demand can help.
 
-When you request an increase, ask for what the instance needs, wait for approval, and only then treat the on-demand queue as a real fallback.
+For this KodeFood environment, we stay on Spot until the on-demand G and VT quota can fit at least one `g4dn.xlarge`: at least four vCPUs, with some headroom if available. Check that quota before debugging application code that has not reached a machine.
 
-That’s it here for quotas. Next we pull the whole picture together — a mental map of the AWS Batch GPU architecture we will build on in section three.
+If a job has no logs and stays `RUNNABLE`, first ask whether it was ever placed. That one check keeps quota and capacity issues separate from container failures.
+
+Next, we’ll assemble the complete AWS Batch GPU path before moving into the application.
 
 ---
 

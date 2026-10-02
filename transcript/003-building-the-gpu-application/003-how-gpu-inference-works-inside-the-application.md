@@ -9,19 +9,19 @@
 
 ---
 
-Storage is in `photos.py`. The GPU story lives in `describe_items.py`. Let’s trace what happens after the model loads.
+Storage stays in `photos.py`. GPU processing lives in `describe_items.py`. Let’s trace one group of KodeFood photos after the model loads.
 
-First the job picks a device: `cuda` when a GPU is present, otherwise `cpu`. On Batch with a healthy `g4dn`, you want Device: cuda in the logs. Then it loads Salesforce’s BLIP image-captioning base model and moves the weights onto that device.
+First, the job selects a device: `cuda` when a GPU is available, otherwise `cpu`. On a healthy Batch `g4dn` job, the logs should say Device: cuda. If they say cpu, inspect GPU exposure and the software stack before tuning the model. The job then loads Salesforce’s BLIP image-captioning base model and moves its weights to the selected device.
 
-Right after load, the code calls `model.eval()`. That one line matters. Some layers behave differently while training — dropout is the classic example. Eval mode tells PyTorch: we are describing photos, not updating weights. There is no optimizer and no loss. We are generating text, not teaching the model new dishes.
+Next, the code calls `model.eval()`. Some layers, including dropout, behave differently during training, and eval mode switches them to inference behavior. The code has no optimizer or loss calculation, while `torch.no_grad()` in the next step disables gradient tracking.
 
-For each small group of images, a processor turns pixels and a short prompt into tensors on the GPU. Then `model.generate` runs under `torch.no_grad()`. No grad skips the backprop graph. That saves memory and matches the product: captions in a CSV, not a training run.
+The processor converts each small group of images and a short prompt into tensors on the GPU. Then `model.generate` runs inside `torch.no_grad()`. Disabling gradient tracking avoids building the backpropagation graph and reduces memory use. That is the right behavior for producing captions, not training a model.
 
-The prompt is a short photography-style prefix. Generate uses a few beams, a short token cap, and a repetition penalty so captions stay concise. Prompt plus generate settings produce the sentence that lands in the catalog.
+Generation uses a photography-style prompt, a few beams, a short token limit, and a repetition penalty. Together, those settings shape the sentence written to the catalog.
 
-After that, a small Python check looks for food-like words. Match means accepted; otherwise rejected. That rule is not a second model, and it does not prove the dish matches the menu. It catches obvious bad uploads — a selfie, a car, a logo — so KodeFood can prefer food-looking photos.
+Finally, a Python check looks for food-like words. A match is accepted; anything else is rejected. This rule does not verify that the dish matches the menu. It only filters obvious non-food uploads such as a selfie, car, or logo.
 
-You might wonder: if inference is one forward generate pass, why not send all thirty photos at once? That question is about GPU memory, and it is exactly where we go next — micro-batching.
+We now have the full inference path. The remaining question is how many photos should share one call to `model.generate`. That takes us to GPU micro-batching.
 
 ---
 

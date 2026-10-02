@@ -9,17 +9,17 @@
 
 ---
 
-You closed the last section with a clean contract: vendor photos live under an S3 prefix, captions land under another. The container knows how to walk that contract. What it does not have yet is a place to run.
+We already have a clean contract: vendor photos live under one S3 prefix, and captions land under another. The container knows how to follow that contract. What it still needs is a place to run.
 
-That place is a compute environment. In AWS Batch, a compute environment is the pool of machines Batch is allowed to grow and shrink for you. For KodeFood we use managed compute environments. Managed means Batch creates and tears down the EC2 instances. You do not SSH in to start a GPU box before every vendor folder.
+That place is a compute environment. In AWS Batch, it defines the pool of machines Batch may grow and shrink for you. KodeFood uses managed compute environments, so Batch creates and removes the EC2 instances. We do not SSH in and start a GPU machine for each vendor folder.
 
-Our teaching setup keeps `minvCpus` at zero. When the queue is empty, desired capacity is zero — no idle `g4dn.xlarge` between jobs. When a caption job lands, Batch scales up. When the job finishes, capacity can fall back toward zero. That scale-to-zero pattern fits bursty catalog work better than an always-on GPU fleet.
+Our teaching setup keeps `minvCpus` at zero. An empty queue means zero desired capacity, so no `g4dn.xlarge` sits idle between jobs. When a caption job arrives, Batch scales up. When it finishes, capacity can return toward zero. That scale-to-zero pattern fits bursty catalog work and keeps the lab bill controlled.
 
-Notice what you declare on the environment, not on the Python script. Instance type — typically `g4dn.xlarge` with one NVIDIA T4. Spot versus on-demand. Maximum vCPUs so one account cannot launch an unbounded GPU fleet. Subnet and security group so the instance can reach ECR, S3, and logs. The AMI that already carries GPU drivers.
+Now look at what belongs on the environment rather than in the Python script: the instance type, typically `g4dn.xlarge` with one NVIDIA T4; Spot or on-demand capacity; maximum vCPUs; subnet and security group; and the AMI that carries the GPU drivers. Together, those settings control cost, reachability, and what Batch is allowed to launch.
 
-Think of capacity the way bursty marketplace pipelines do: work arrives in waves, machines appear for the wave, then disappear. Our course version is one Spot GPU environment as the default, with an on-demand twin as a fallback when Spot cannot place.
+For this lab, picture one wave of work. The machines appear for that wave, then disappear. The default is one Spot GPU environment, with an on-demand twin as a fallback when Spot cannot place the job.
 
-That's it here for compute environments: the pool rules Batch uses when it needs machines — including none when the queue is quiet. Next we watch how Batch finds a GPU machine and launches it when your job is waiting.
+Keep that boundary clear: the compute environment defines the pool rules, including the rule that no machine is needed while the queue is quiet. Next, we follow a waiting job as Batch looks for a GPU machine.
 
 ---
 
