@@ -17,6 +17,8 @@ One platform constraint is easy to miss: GPU Batch jobs require an EC2-backed co
 
 The successful Batch pattern is consistent: many similar jobs, tolerance for Spot economics, and a team that wants scheduling without operating a cluster day to day. If a design requires permanently warm capacity or request-level latency, repeated RUNNABLE incidents are a symptom of the wrong abstraction.
 
+That is why strong platform teams often split low-latency product requests from offline bulk processing instead of forcing both workloads onto one service shape.
+
 Use one review question: is this work a finite job or a continuously available service? Next we compare Batch, ECS, EKS, and SageMaker with that boundary in mind.
 
 ---

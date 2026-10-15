@@ -17,6 +17,8 @@ Now check the choices that reduce blast radius and idle cost. S3 is the durable 
 
 This is the same pattern used in photo processing and media encoding: durable inputs, independent work items, ephemeral workers, and one durable result. During review, ask one diagnostic question: if this container disappears halfway through a folder, can we rerun the same stem without repairing state by hand?
 
+That pattern keeps showing up in real systems because it makes retries cheaper, failures smaller, and idle cost easier to control.
+
 That is the production baseline: S3 in, an ECR image on Batch, a CSV out, then scale to zero. Next we apply the same shape to thousands of vendor folders.
 
 ---

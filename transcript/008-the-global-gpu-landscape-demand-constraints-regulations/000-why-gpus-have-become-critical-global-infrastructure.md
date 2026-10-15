@@ -15,6 +15,8 @@ A decade ago, GPUs were associated mainly with graphics and specialized scientif
 
 Cloud providers are investing heavily in accelerators. Research labs compete for cluster time. Governments fund AI factories and sovereign clouds. Compute is no longer a background resource; it is a constrained input to economic and national plans.
 
+That is why GPU availability now affects business planning, regional strategy, and even public policy in a way ordinary compute rarely did.
+
 KodeFood shows the practical response. It uses finite inference jobs, prefers Spot capacity, and scales toward zero. Captioning vendor dishes does not need a supercluster. It needs a small amount of reliable GPU time, followed by no GPU bill at all.
 
 Treat accelerator capacity as a dependency, not an assumption. Next we follow the supply chain from chip design to the cloud rack that runs the Batch job.

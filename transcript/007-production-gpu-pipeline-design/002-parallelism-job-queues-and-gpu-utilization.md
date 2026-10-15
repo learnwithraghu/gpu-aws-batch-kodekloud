@@ -15,6 +15,8 @@ Queues express operating intent. Queue priority decides which work receives capa
 
 Utilization tells us whether that capacity was useful. A GPU waiting for photos to download is billed but idle. Micro-batching helps keep the device active after the model loads, while cold starts reduce useful time. Measure GPU activity and memory through tools such as NVIDIA DCGM; a SUCCEEDED status alone cannot show wasted capacity.
 
+That is a very real production lesson: success is not the same thing as efficiency, especially when the hardware you are wasting is the most expensive part of the system.
+
 Watch for three common causes during an incident: CPU-only preparation running on GPU instances, a memory request that prevents placement, and `maxvCpus` set below the intended concurrency.
 
 Parallelism helps only when the queue admits work and the GPU stays busy. Next we decide when that operating model belongs on Batch and when another service is a better fit.

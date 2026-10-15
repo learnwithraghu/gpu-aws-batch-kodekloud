@@ -18,6 +18,8 @@ Then `photo_status` checks each caption. Food-like words produce an accepted row
 
 The CSV is the product contract: image URI, item description, and photo status. KodeFood does not generate titles from the raw folder during a customer request. It reads this file. If this contract is wrong, the product is wrong even when the GPU job reports success.
 
+That is how real product teams stay predictable: they let customer-facing systems read a durable result instead of asking the model to do fresh work in the critical user path.
+
 We now have the end-to-end path. In section two, we’ll separate the CPU and GPU responsibilities and see how memory and batch size affect that path.
 
 ---

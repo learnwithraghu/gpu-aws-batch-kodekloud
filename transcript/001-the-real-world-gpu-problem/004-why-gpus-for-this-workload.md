@@ -14,6 +14,8 @@ The application is not training a new model for every vendor. Training would upd
 
 The caption step contains the heavy matrix math. Each image becomes a grid of numbers that passes through many model layers. A CPU can process a folder of thirty photos, but it does the work slowly. A GPU runs many of those operations in parallel and finishes the folder in a shorter burst.
 
+Large product systems use the same general pattern in many places: do the expensive model scoring in a dedicated compute step, then let the product read a prepared result later.
+
 Also notice what we do not need. We do not need an always-on GPU endpoint. We need GPU capacity while a folder is being processed, then we want that capacity to fall back toward zero. That is the shape of on-demand batch inference.
 
 The failure mode depends on where we run. On a local machine, CPU fallback makes captioning—not S3 listing or CSV writing—the bottleneck. In our Batch design, the job requests a GPU. If no GPU capacity is available, the job remains unplaced and the caption step never starts. That distinction will help us separate application logic from compute problems later.

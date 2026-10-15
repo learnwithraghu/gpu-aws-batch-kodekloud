@@ -14,6 +14,8 @@ The first is a hosted language or vision API. Send an image, receive a sentence,
 
 Now change the scale to thousands of images a day. We need to account for per-image pricing, rate limits, network round trips, data crossing into another endpoint, and the provider’s latency and availability. None of those make hosted APIs wrong. They are simply tradeoffs we should name.
 
+This is a real company decision, not a theoretical one: do we rent intelligence per request, or do we operate a repeatable internal pipeline around our own workload?
+
 The second option is to self-host a finished caption model such as BLIP. We run it on our images and keep the accept-or-reject rule in Python. That gives us control over batching, the CSV contract, and where the image bytes travel. In return, we need a container that can use a GPU and somewhere to run it.
 
 For this KodeFood job, we’ll use the self-hosted path. The workload is batch inference with a clear beginning and end. A vendor folder arrives. We process it, write `descriptions.csv`, and release the expensive capacity.

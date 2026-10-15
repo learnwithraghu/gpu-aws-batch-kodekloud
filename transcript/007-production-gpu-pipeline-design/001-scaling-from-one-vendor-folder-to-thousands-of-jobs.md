@@ -17,6 +17,8 @@ The second pattern is an array job. One parent expands into indexed children. Ea
 
 Keep the recovery boundary at one folder and one CSV. Combining thousands of photos in one container may save a few cold starts, but it creates a long-running job with a large retry cost when Spot interrupts it. The same small, restartable-task principle appears in systems such as Uber’s Michelangelo.
 
+That clue matters because mature ML platforms rarely scale by making one giant job bigger. They usually scale by keeping units of work small enough to retry, route, and isolate.
+
 At this scale, queue depth, quota pressure, and log volume become incident signals. Define a retry ceiling and a quarantine path for a poison stem before the first large backfill.
 
 The model has not changed; the submission and recovery design has. Next we review how those jobs compete for GPUs and whether the devices are doing useful work.

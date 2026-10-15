@@ -21,6 +21,8 @@ Amazon SageMaker manages the ML lifecycle: training, processing, endpoints, expe
 
 The mapping is straightforward. Overnight caption backfills go to Batch. Interactive photo checks need ECS or a SageMaker real-time endpoint with a warm model. A Kubernetes-centered platform points toward EKS, possibly with Batch on EKS. Managed fine-tuning experiments point toward SageMaker Training.
 
+That separation is common in real organizations too. Different GPU workloads often land on different services because the operational shape matters as much as the model itself.
+
 All four still face scarce GPUs, uneven Regional inventory, and the cost of idle devices. The service changes the control plane, not the physical constraint.
 
 That closes the service decision. Next we widen the view and examine why GPU capacity is also a supply-chain, economic, and policy concern.

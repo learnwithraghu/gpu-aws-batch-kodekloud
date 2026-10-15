@@ -16,6 +16,8 @@ A general-purpose CPU is excellent at flexible logic and branching decisions. A 
 
 Now notice the connection to our job. A caption model receives an image as a tensor: height, width, and color channels represented as numbers. Its layers repeatedly multiply, add, and reduce those values. The parallel hardware that once focused on drawing frames is also well suited to this matrix math.
 
+That shift is why GPUs escaped the world of games and became useful in AI, simulation, scientific computing, and other workloads built on the same kind of repeated math.
+
 You do not need the full history of CUDA here. Keep one mental model: when the work is the same math across many elements, a GPU is a strong fit. When the work is a sequence of varied decisions and branches, the CPU usually stays in charge.
 
 We now have the hardware idea. Next, let’s apply it directly to KodeFood’s caption-and-filter job and ask why a larger CPU box is not our first choice.
