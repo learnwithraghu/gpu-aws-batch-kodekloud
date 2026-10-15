@@ -11,15 +11,15 @@
 
 Four services usually enter an AWS GPU design review: Batch, ECS, EKS, and SageMaker. They are not interchangeable. Each places a different operating responsibility on the team. We will compare them against the KodeFood workload.
 
-AWS Batch schedules finite work. You define jobs, queues, and compute environments; Batch launches EC2 GPU capacity, places containers, handles retries, and can scale toward zero. KodeFood follows the lifecycle from SUBMITTED to RUNNABLE, RUNNING, and SUCCEEDED, with the CSV stored in S3. Batch may use ECS or EKS underneath, but the operator thinks in jobs rather than always-on services. It fits queued, restartable work.
+AWS Batch schedules finite work. You think in jobs, queues, and worker capacity rather than always-on services. It fits queued, restartable GPU work and can scale toward zero when the queue drains.
 
-Amazon ECS orchestrates tasks and services. GPU workloads run on EC2 with GPU-optimized AMIs; Fargate is not the NVIDIA GPU option for this design. ECS fits a long-running caption API, sidecars, or a service mesh that must remain warm. In return, the team owns more of the fleet-health and service-availability work.
+Amazon ECS orchestrates tasks and services. It fits a long-running caption API or another warm service that must stay available. In return, the team owns more of the fleet-health and service-availability work.
 
-Amazon EKS is Kubernetes on AWS. The team manages GPU nodes, drivers, device plugins, and bin-packing within its Kubernetes platform. EKS is a strong choice when Pods, CRDs, and GitOps are already the company standard and batch is one workload among many. Batch on EKS adds Batch queue semantics to Kubernetes capacity. Without it, the team must provide scheduling through tools such as Volcano, Kueue, or custom controllers.
+Amazon EKS is Kubernetes on AWS. It is a strong choice when Kubernetes is already the company standard and GPU batch work is only one workload among many. Without Batch on EKS, the team must provide more of its own scheduling behavior.
 
 Amazon SageMaker manages the ML lifecycle: training, processing, endpoints, experiments, and model registration. It is appropriate when those capabilities are part of the requirement. For KodeFood, we already have a container and need it to run when a folder appears, so the broader ML platform would add responsibilities without solving a new problem.
 
-The mapping is straightforward. Overnight caption backfills go to Batch. Interactive photo checks need ECS or a SageMaker real-time endpoint with a warm model. A Kubernetes-centered platform points toward EKS, possibly with Batch on EKS. Managed fine-tuning experiments point toward SageMaker Training.
+The mapping is straightforward. Overnight caption backfills go to Batch. Interactive photo checks need a warm service such as ECS or a real-time endpoint. A Kubernetes-centered platform points toward EKS. Managed fine-tuning experiments point toward SageMaker Training.
 
 That separation is common in real organizations too. Different GPU workloads often land on different services because the operational shape matters as much as the model itself.
 

@@ -18,7 +18,7 @@ In that state, the Batch queue can be valid and the compute environment can be h
 
 Regional availability is a separate constraint. Even with enough quota, a region may not have Spot GPUs available when we submit. The symptom can look similar, but the response is different. Spot scarcity may call for patience or an on-demand fallback. A zero quota requires an approved Service Quotas increase before on-demand can help.
 
-For this KodeFood environment, we stay on Spot until the on-demand G and VT quota can fit at least one `g4dn.xlarge`: at least four vCPUs, with some headroom if available. Check that quota before debugging application code that has not reached a machine.
+For this KodeFood environment, we stay on Spot until the on-demand quota can fit at least one full GPU instance. Check that quota before debugging application code that has not reached a machine.
 
 If a job has no logs and stays `RUNNABLE`, first ask whether it was ever placed. That one check keeps quota and capacity issues separate from container failures.
 

@@ -10,9 +10,9 @@
 
 Let’s assemble the section into one path.
 
-KodeFood’s work unit is a vendor stem. Photos live under `images/<stem>/`, and the catalog is written to `descriptions/<stem>/descriptions.csv`. A container produces that catalog. Inside it, CPU-side code communicates with S3. GPU-side code runs BLIP in micro-batches of eight, and application logic marks each caption accepted or rejected.
+KodeFood’s work unit is a vendor stem. Photos live under one input prefix, and the catalog is written to one output CSV. A container produces that catalog. Inside it, CPU-side code communicates with S3, GPU-side code runs BLIP in micro-batches, and application logic marks each caption accepted or rejected.
 
-AWS Batch surrounds that container. The job definition specifies the image, one GPU, safe memory, and roles. We submit a job with the stem as an override, and it waits in a queue—Spot by default. If quotas and capacity allow, the managed compute environment can start a `g4dn.xlarge` on an NVIDIA ECS-optimized AMI.
+AWS Batch surrounds that container. The job definition specifies the image, resource shape, and roles. We submit a job with the vendor stem as an override, and it waits in a queue. If quotas and capacity allow, the managed compute environment starts the GPU instance and the container can run.
 
 The instance profile lets the host pull from ECR and write logs. The job role lets the container reach S3. After the CSV is written and the queue becomes quiet, capacity can fall toward zero.
 

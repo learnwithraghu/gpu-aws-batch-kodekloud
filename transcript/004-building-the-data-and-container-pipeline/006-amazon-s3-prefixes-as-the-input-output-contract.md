@@ -11,9 +11,9 @@
 
 The two buckets provide durable locations. Prefixes define the objects for one KodeFood job.
 
-S3 keys are flat strings. `images/sample/bowl.jpg` is not a filesystem path, even though tools display slashes like folders. Our application treats `images/<stem>/` as a logical input contract. `photos.py` lists objects using `IMAGE_PREFIX`, so only matching keys become caption work.
+S3 keys are flat strings. A key that looks like a nested path is not really a filesystem path, even though tools display slashes like folders. Our application treats one prefix as the logical input contract, so only matching keys become caption work.
 
-For example, a job with `IMAGE_PREFIX=images/sample` cannot see photos at the bucket root or under another vendor stem. The output key comes from the same stem: `images/sample` maps to `descriptions/sample/descriptions.csv` in the CSV bucket. One input prefix produces one catalog file. A later successful run overwrites that object with the latest result.
+For example, a job aimed at one vendor stem should not see photos at the bucket root or under another vendor stem. The output key comes from that same stem, so one input prefix produces one catalog file. A later successful run overwrites that object with the latest result.
 
 The upload path and submit override must agree. If photos are under `images/vendor-b` but the job receives `IMAGE_PREFIX=images/sample`, the container may start normally and still find no work, or process the wrong vendor. That is a data-contract problem, not a GPU problem.
 

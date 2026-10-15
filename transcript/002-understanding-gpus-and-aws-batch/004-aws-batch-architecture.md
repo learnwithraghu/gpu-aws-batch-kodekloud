@@ -10,13 +10,13 @@
 
 We chose AWS Batch. Now let’s separate its four main objects.
 
-Start with the job definition. Think of it as the recipe. It specifies the container image—in our case, the GPU teaching image in ECR—along with vCPUs, memory, GPU count, the job role for S3 access, logging, and the default command. Our live definition requests one GPU and twelve thousand two hundred eighty-eight MiB of memory. It does not request the full sixteen gibibytes on a `g4dn.xlarge`, because the operating system and ECS agent also need host memory. When the recipe changes, we register a new revision.
+Start with the job definition. Think of it as the recipe. It specifies the container image, CPU and memory, GPU count, permissions, logging, and the default command. In our case, it asks for one GPU and a memory setting that fits the host safely rather than trying to consume the whole machine. When the recipe changes, we register a new revision.
 
 A job is one run of that recipe. We submit “process this stem,” and Batch creates a job with overrides such as the image prefix. Many jobs can use the same definition.
 
-Before a job reaches a machine, it waits in a job queue. Think of the queue as the line. We can use a Spot queue as the lower-cost default and an on-demand queue as a steadier fallback. Queue configuration controls priority and which compute environments are available.
+Before a job reaches a machine, it waits in a job queue. Think of the queue as the line. We can use a lower-cost default path and a steadier fallback path. Queue configuration controls priority and which compute environments are available.
 
-The compute environment supplies the machines. It defines allowed instance types—we focus on `g4dn.xlarge`—the Spot or on-demand purchase model, networking, the instance profile for ECR and logs, and scaling limits. A managed environment lets Batch launch and terminate EC2 capacity. With minimum vCPUs set to zero, an empty queue can allow that capacity to drain.
+The compute environment supplies the machines. It defines allowed instance types, the purchase model, networking, host permissions, and scaling limits. A managed environment lets Batch launch and terminate EC2 capacity. With minimum vCPUs set to zero, an empty queue can allow that capacity to drain.
 
 Let’s trace the normal path. We submit a job to the Spot queue. When its GPU and memory requirements can be placed, the compute environment starts a GPU instance with an NVIDIA ECS-optimized AMI. The agent pulls the image and starts the container with one GPU. The script writes the CSV. When no work remains, desired capacity can fall again.
 

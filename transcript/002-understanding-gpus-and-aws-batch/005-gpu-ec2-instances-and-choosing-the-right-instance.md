@@ -12,7 +12,7 @@ The compute environment can only place our job if we choose an instance shape th
 
 AWS has several GPU families. `g4dn` instances pair NVIDIA T4 GPUs with useful amounts of host memory and suit inference and graphics workloads. `g5` instances use NVIDIA A10G GPUs for more performance, usually at higher cost. Training-oriented families also exist, but they are more capacity than we need for thirty menu photos.
 
-KodeFood uses `g4dn.xlarge`: four vCPUs, sixteen GiB of host memory, and one T4 GPU. That is enough for BLIP with micro-batches of eight. The job definition requests one GPU and twelve thousand two hundred eighty-eight MiB of container memory. We do not request sixteen thousand three hundred eighty-four MiB, because the host must reserve memory for the operating system and ECS agent.
+KodeFood uses `g4dn.xlarge`: a small single-GPU shape that is enough for BLIP with micro-batches of eight. The job definition asks for one GPU and a memory value that leaves room for the operating system and agent. It does not try to consume the entire host.
 
 The selection rule is straightforward. Match the GPU to the model and latency target. Leave enough host memory for both the container and operating system. Then choose the smallest instance that finishes the folder comfortably. Moving to `g5` without measurements adds cost before it solves a demonstrated problem.
 

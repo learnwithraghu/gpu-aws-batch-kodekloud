@@ -9,11 +9,11 @@
 
 ---
 
-In the last section, you saw a job remain RUNNABLE because no GPU was available. In a design review, we would not dismiss that as a lab inconvenience. It is an operating condition: Spot capacity changes, quotas can block on-demand instances, and a cold start can take minutes. The production question is whether the KodeFood design behaves predictably under those constraints.
+In the last section, you saw a job remain RUNNABLE because no GPU was available. In a design review, we would not dismiss that as a lab inconvenience. It is an operating condition. Capacity changes, quotas can block launches, and cold starts can take minutes. The production question is whether the KodeFood design behaves predictably under those constraints.
 
-Trace the system from input to output. Vendor photos arrive at `images/<stem>/` in S3. The image in Amazon ECR contains the caption program: list the files, download them, run BLIP inference, accept or reject each result, and write `descriptions.csv`. AWS Batch connects the compute environment, queue, job definition, and submitted job. The stem arrives as an override. If the container exits with code 1, start the incident review in CloudWatch at `/aws/batch/job`.
+Trace the system from input to output. Vendor photos arrive in S3. The image in ECR contains the caption program. AWS Batch connects the compute environment, queue, job definition, and submitted job. The selected vendor stem arrives at runtime. If the container exits after startup, begin the incident review in CloudWatch logs.
 
-Now check the choices that reduce blast radius and idle cost. S3 is the durable contract; the model container is replaceable. With `minvCpus` set to zero, the GPU fleet can disappear when the queue is empty. Spot is the normal path. On-demand can serve as the capacity fallback only after the account’s G and VT quota reaches at least four vCPUs. The job requests 12288 MiB on `g4dn.xlarge`, because 16384 MiB cannot be placed on that instance after system overhead.
+Now check the choices that reduce blast radius and idle cost. S3 is the durable contract; the model container is replaceable. With scale-to-zero, the GPU fleet can disappear when the queue is empty. Spot is the normal path. On-demand is only the fallback when the account can actually launch it. The job definition also has to fit the instance cleanly, or placement fails before the application ever begins.
 
 This is the same pattern used in photo processing and media encoding: durable inputs, independent work items, ephemeral workers, and one durable result. During review, ask one diagnostic question: if this container disappears halfway through a folder, can we rerun the same stem without repairing state by hand?
 

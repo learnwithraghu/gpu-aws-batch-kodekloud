@@ -11,13 +11,13 @@
 
 Batch pulls our image from Amazon ECR. Let’s separate three terms that describe what it pulls: repository, tag, and digest.
 
-A repository is a named collection of images. Here, the repository is `gpu-teaching`. The image content consists of layers and metadata. ECR identifies that exact content with a digest, which is a content hash. A tag is a movable label that points to a digest.
+A repository is a named collection of images. In our case, it is the `gpu-teaching` image family. ECR identifies exact image content with a digest, which is a content hash. A tag is a movable label that points to a digest.
 
-So `gpu-teaching:latest` means the digest currently selected by the `latest` tag in that repository. Push a new build with the same tag, and `latest` moves. The earlier digest remains immutable, but the label now selects different bytes.
+So the `latest` tag means "whatever digest this label points to right now." Push a new build with the same tag, and the label moves. The earlier digest remains immutable, but the friendly name now selects different bytes.
 
 That behavior is convenient in this course. We rebuild, push, and submit without changing the job definition. It also affects diagnosis. Two jobs submitted against `:latest` may run different image content if a push happened between them.
 
-For repeatable production runs, teams often pin a digest or use an immutable version tag such as a git SHA, `v3`, or a build number. Use `:latest` only when you intend to follow the most recent push.
+For repeatable production runs, teams often pin a digest or use an immutable version tag such as a git SHA, a version number, or a build number. Use `latest` only when you intend to follow the most recent push.
 
 That is one of the quiet differences between demo convenience and production discipline: friendly tags help learning, but immutable references help diagnosis and repeatability.
 
