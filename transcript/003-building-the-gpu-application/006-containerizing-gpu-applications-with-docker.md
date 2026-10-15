@@ -9,17 +9,19 @@
 
 ---
 
-We now have the application and its CUDA-PyTorch stack. Docker packages both as one runnable unit.
+Why containerize a GPU application?
 
-Every GPU Batch job needs the same application filesystem: CUDA runtime libraries, PyTorch, transformers, `photos.py`, and `describe_items.py`. The container provides that filesystem on a fresh `g4dn` instance. The image holds the program; S3 holds the data.
+Because in a company, you do not want every temporary machine to become a custom setup project.
 
-Our Dockerfile stays small. It starts from the PyTorch CUDA runtime base, installs the pinned GPU requirements, and copies both scripts into `/app`. The order supports layer caching. If only `describe_items.py` changes, Docker can reuse the expensive dependency layer. If requirements change, that layer must build again. Expect the first build to be slow and code-only rebuilds to be faster.
+The goal of the container is repeatability. Every time a job starts, the platform should get the same application, the same dependencies, and the same runtime environment. That is especially important for GPU work, where the software stack is heavier and more fragile than a typical CPU script.
 
-On an Apple Silicon laptop, include `--platform linux/amd64`. Batch’s `g4dn.xlarge` is x86_64. Without that flag, Docker may produce an arm64 image. The push can succeed, but the Batch worker cannot run it. If the container fails before Python starts with an architecture error, inspect the image platform.
+Without that packaging discipline, teams run into a familiar problem: the workload worked on one machine yesterday, but not on another machine today. Containers reduce that drift by treating the application environment as a deployable unit rather than as a set of setup instructions.
 
-A local tag is also not a deployable image. `gpu-teaching:latest` on your laptop only identifies an image in the local Docker cache. AWS Batch cannot pull from that cache.
+This is one of the biggest reasons containers matter in production AI systems. They are not only about convenience. They are about making expensive workloads predictable enough to operate.
 
-The container now gives us a repeatable entrypoint and dependency set. In the next section, we move it to a registry that GPU workers can reach.
+So the container becomes the portable box that carries the GPU application from build time into execution time. The data still lives outside it. The scheduler still launches it. But the runtime environment becomes consistent.
+
+Once that environment is packaged, the next question is obvious: where do we store it so Batch workers can actually pull and run it?
 
 ---
 

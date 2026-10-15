@@ -9,17 +9,19 @@
 
 ---
 
-Roles grant permission. Networking provides the path. If a GPU instance has correct IAM but cannot pull the image or download model weights, start with its outbound network path.
+Permissions answer "who is allowed?" Networking answers "can it actually reach the thing?"
 
-Batch places instances in the VPC, subnet, and security group configured on the compute environment. Those choices are set when the environment is created. KodeFood uses a subnet in one Availability Zone and a security group that allows egress. The host must reach Amazon ECR, S3, CloudWatch Logs, and, on the first model load, Hugging Face for BLIP weights.
+You need both.
 
-Think in specific egress paths. The instance needs outbound HTTPS to the required AWS APIs and registries. Without a public IP, NAT gateway, or VPC endpoints, the ECS agent cannot pull from ECR and the job never truly starts. Pull timeouts and missing logs can look like Batch failures even when the root cause is networking.
+This is another place where cloud GPU jobs can confuse beginners. A workload can have the right permission to pull an image or fetch data, but still fail because the network path is missing or blocked.
 
-GPU jobs add model artifacts to the dependency list. If BLIP weights are not fully baked into the image, the cold start fetches them over the network. A locked-down VPC can use endpoints for S3 and ECR, plus a controlled path to any remaining model host. The goal is the least network access that still lets the workload complete.
+That makes networking a very practical concern, not just a VPC theory topic. The machine has to reach the places that matter for startup and execution. If it cannot, the failure can look like a Batch problem or an application problem even though the real issue is connectivity.
 
-We do not need inbound SSH for normal caption runs. Batch and the agent manage the instance. Your laptop calls the Batch and S3 APIs, while the job makes outbound connections from the VPC.
+In company environments, teams usually try to be deliberate here. Give the workload the paths it truly needs, and no more than that. Enough access to pull images, reach required storage and logging systems, and fetch any runtime dependencies that are still external. But not a wide-open design by accident.
 
-When a job cannot pull or produces no startup logs, verify reachability to ECR, S3, the model host, and CloudWatch. Next, we move one layer up to job queues and scheduling.
+So the useful mental model is simple: IAM opens the door in principle, and networking gives you the road in practice.
+
+Next, we move one layer up and look at how waiting work is organized before any machine is chosen.
 
 ---
 

@@ -9,17 +9,21 @@
 
 ---
 
-Compute environments define the machines. Job queues hold the waiting work. We do not submit a caption job directly to a GPU. We submit it to a queue, and that queue is connected to one or more ordered compute environments.
+If compute environments describe possible machines, job queues describe waiting work.
 
-A queue is enabled or disabled, and it has an order for its compute environments. Batch takes `RUNNABLE` jobs and tries to place them on capacity from those environments in order. KodeFood uses `gpu-teaching-gpu-smoke-queue-spot` as the default path. A separate queue, `gpu-teaching-gpu-smoke-queue-on-demand`, is the fallback when Spot will not place.
+This is where the scheduling mindset becomes clearer.
 
-Queue priority matters when several queues share capacity. Higher-priority queues receive scheduling preference. Our teaching path is simpler: one queue and one environment, with jobs waiting their turn for the single `g4dn.xlarge` allowed by the environment's maximum vCPUs.
+You do not hand a job directly to a GPU. You hand it to a queue, and the queue becomes the place where Batch decides what should run first and where it should try to run it.
 
-Separate Spot and on-demand queues make the selected capacity path explicit. The lesson scripts point to the Spot queue by default. We switch the queue only when we deliberately choose on-demand and have confirmed that its quota can launch the instance.
+That sounds simple, but it reflects a real company need. Work often arrives faster than capacity. There has to be some orderly place where jobs wait, compete for resources, and follow the team’s scheduling policy instead of pure chance.
 
-For this small workload, ask one scheduling question: is the queue enabled, connected to a matching compute environment with room, and able to receive an instance from EC2? If any part is no, the job waits.
+So a queue is not just a holding area. It is part of the control plane. It expresses intent about how work should flow toward capacity.
 
-The queue holds work until capacity can take it. Next, we inspect the GPU job definition: image, memory, GPU count, environment variables, role, and logging.
+This becomes especially important with GPU systems because GPUs are scarce and expensive. Teams often care about which workloads get first access, which capacity path they prefer, and what fallback logic should exist when the cheaper path does not place.
+
+So when you think about queues, think beyond "list of waiting jobs." Think scheduling policy.
+
+Next, we look at the job definition, which describes what Batch should actually run once the scheduler finds capacity.
 
 ---
 

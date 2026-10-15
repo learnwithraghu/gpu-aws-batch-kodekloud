@@ -9,19 +9,21 @@
 
 ---
 
-Drivers make the GPU usable. IAM decides which actor may do which work. Batch has three relevant roles, and an `AccessDenied` becomes much easier to diagnose once you identify the actor that failed.
+IAM becomes much easier once you stop thinking about "the job" as one actor.
 
-First is the Batch service role, typically the service-linked role `AWSServiceRoleForBatch`. Batch uses it to manage compute environments, create ECS clusters, scale EC2, and attach capacity. If this role is wrong, the environment does not become healthy. The caption container never gets a chance to start.
+In reality, several different actors are involved, and each one needs a different level of permission.
 
-Second is the instance role, attached through an instance profile. In our account, that is `ecsInstanceRole`. The EC2 host and ECS agent use it to pull the image from Amazon ECR and write container logs to CloudWatch. They do not need permission to read vendor photos or write `descriptions.csv`. This role runs containers; it does not grant access to the workload data.
+There is the AWS service that manages scheduling and capacity. There is the machine that has to pull images and run containers. And there is the application workload inside the container, which needs access only to the data it is supposed to process.
 
-Third is the job role, set as `jobRoleArn` on the job definition. The container assumes `gpu-teaching-batch-job-role` while `describe_items.py` runs. That role lists and reads the images bucket and writes the catalog CSV bucket. Without it, the host can pull from ECR, but the process fails with S3 `AccessDenied` when `photos.py` lists the prefix.
+That separation is not just AWS complexity for its own sake. It is how real teams reduce blast radius. You do not want every layer to have every permission. You want each layer to do only its own job.
 
-The separation limits privilege and blast radius. The workload receives application permissions through the job role. The host receives agent permissions through the instance role. We do not give every container broad S3 access through the instance profile.
+This also makes debugging much cleaner. If the platform cannot manage capacity, that points to one kind of identity problem. If the machine cannot start the container properly, that points to another. If the application starts but cannot read or write the data it needs, that points to the workload identity.
 
-Use the symptom to choose the check. An environment stuck `INVALID` points to the service role. Image-pull or logging failures around `STARTING` point to the instance role. An `AccessDenied` inside Python points to the job role on the active job-definition revision. After re-registering a definition, confirm that the new revision still carries `jobRoleArn`.
+So the real lesson here is not memorizing role names. It is learning to separate orchestrator permissions, host permissions, and application permissions.
 
-Those three roles cover orchestrator, host, and workload. Next, we verify that the host has a network path to ECR, S3, Hugging Face, and CloudWatch Logs.
+That is a very production-oriented way to think, and it helps immediately when you see an access failure in the wild.
+
+Next, we pair permission with connectivity and look at the network path a Batch GPU job still needs in order to work.
 
 ---
 

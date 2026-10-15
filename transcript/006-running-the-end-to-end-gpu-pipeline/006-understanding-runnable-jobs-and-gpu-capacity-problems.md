@@ -9,17 +9,23 @@
 
 ---
 
-`RUNNABLE` means ready to run, but waiting for a place to run. The caption script is not executing. There is no container yet, so do not start by searching for application logs.
+`RUNNABLE` sounds encouraging, but it often frustrates beginners.
 
-Start with the selected queue and its capacity type. On the default Spot path, `gpu-teaching-gpu-smoke-queue-spot` can be healthy while EC2 has no `g4dn.xlarge` Spot capacity in that Availability Zone. The job waits.
+The important meaning is this: the job is ready in theory, but Batch still has nowhere to place it.
 
-The fallback is not automatically available. On `gpu-teaching-gpu-smoke-queue-on-demand`, Batch still cannot launch a `g4dn.xlarge` if the account's Running On-Demand G and VT instances quota, `L-DB2E81BA`, is zero. In this teaching account it has been zero. The job remains `RUNNABLE`, with no container and no application logs. Use on-demand only after that quota is at least 4. The Spot G and VT quota, `L-3819A6DF`, is 8.
+That also means the application is not running yet. No container has started. So this is not the moment to begin blaming the code or searching for application logs.
 
-A resource mismatch produces a similar wait. Revision `:1` requests `16384` MiB on a 16 GiB `g4dn.xlarge`, but ECS cannot register all host memory for the task. The status reason is `MISCONFIGURATION:JOB_RESOURCE_REQUIREMENT`. Use `gpu-teaching-caption-job:4` or later with `12288` MiB.
+In real teams, `RUNNABLE` usually points to one of a few operational questions. Is GPU capacity actually available? Is the chosen purchase model currently placeable? Is the account allowed to launch that kind of instance? Or did the job ask for a resource profile that does not fit the target machine?
 
-Diagnose in a fixed order. Use `aws batch describe-jobs` or `helpers/watch_batch_job.sh` to read the status reason. Describe the queue and compute environment. Confirm the active job-definition revision, `12288` MiB memory, and one-GPU request. Then check the relevant G and VT quota and current Spot availability. Open `/aws/batch/job` only after the job reaches `STARTING` or `RUNNING`.
+Notice what all of those have in common: they are placement questions, not application questions.
 
-You can now distinguish an application failure from a capacity wait: no container means there is no application stack trace yet. With that failure map in place, the next section moves from one vendor folder to production-scale design and utilization.
+This is one of the biggest mindset shifts in cloud GPU work. A healthy queue does not guarantee a healthy launch. A valid job submission does not guarantee a real machine behind it. GPU systems are constrained by capacity, quotas, and fit much more often than CPU beginners expect.
+
+So diagnose `RUNNABLE` in that order. First ask whether Batch can place the job at all. Only after the job moves into actual startup and execution does application-level debugging become the right next step.
+
+If there is no container yet, there is no application failure yet.
+
+With that distinction in place, we can now zoom out from one job and start thinking about production-scale pipeline design.
 
 ---
 

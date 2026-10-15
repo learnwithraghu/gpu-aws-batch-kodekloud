@@ -9,19 +9,21 @@
 
 ---
 
-You have seen the AWS Batch GPU architecture: queues, compute environments, and job definitions. Now let’s put the real KodeFood job in the middle. What command runs when a GPU machine starts?
+We have talked about GPUs and Batch. Now let’s talk about the actual application that sits in the middle.
 
-Batch starts one Python entrypoint: `python /app/describe_items.py`. That script loads the BLIP model and reads one vendor photo folder. It generates captions, marks each photo accepted or rejected, and produces one catalog CSV.
+What is this job really doing for KodeFood?
 
-Notice the execution path. The job definition points to a container image. That image contains `/app/describe_items.py`. When GPU capacity is ready, the container starts and runs the script. This is a finite batch job. It is not a service or an interactive notebook.
+It takes one vendor’s folder of photos, generates short captions, applies a simple acceptance check, and produces one structured catalog file. That is the whole business outcome. Not a long-running service. Not an interactive tool. One finite unit of work with one finite result.
 
-For KodeFood, the contract is deliberately small: one vendor folder in, one `descriptions.csv` out. A simple food-word rule checks each generated caption.
+That small contract is important. In a real company, a system becomes easier to operate when each job has a clear beginning, a clear end, and a clear output. One folder in. One result out.
 
-The file on your laptop is only source code. Batch runs the copy baked into the image at `/app/`. If you edit the script but do not rebuild and push the image, the next job still runs the old code. That symptom belongs to the image delivery path, not to the GPU.
+It also tells us how to think about AWS Batch. Batch is not the application itself. Batch is the scheduler. Its job is to provide the environment and run the workload. The application is the logic that turns raw images into useful catalog data.
 
-Keep this mental model: Batch schedules the capacity, and `describe_items.py` performs the work. S3 helpers, Docker, and CUDA support that entrypoint.
+This distinction matters when things go wrong. Sometimes the platform fails to place or start the job. Sometimes the application runs but produces the wrong outcome. Those are different classes of problems, and good teams separate them early.
 
-Next, we will separate storage operations from model processing. That split will give us a clear first place to look when this job fails.
+So keep the mental model simple: Batch decides where and when the work runs, and the GPU application decides what business result gets produced.
+
+Next, we break that application into two responsibilities so the failure path becomes easier to reason about.
 
 ---
 

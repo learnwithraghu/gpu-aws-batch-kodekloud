@@ -9,19 +9,19 @@
 
 ---
 
-Micro-batching only helps after the model can use the GPU. That requires a compatible software stack.
+When people first hear "GPU application," they often imagine only model code. But in practice, a GPU workload depends on a whole software stack.
 
-CUDA is NVIDIA’s platform for running parallel work on the GPU. PyTorch loads BLIP and calls CUDA. Transformers provides the BLIP processor and generation API. If these versions are incompatible, the container may fail during import, before it reads a photo.
+That stack has to line up correctly before the model can do anything useful.
 
-Our Dockerfile starts from `pytorch/pytorch` with CUDA 11.8 and cuDNN in the tag. That base already pairs a CUDA runtime with a CUDA-enabled PyTorch build for the T4 path used by this Batch job. We do not assemble that toolchain on each temporary instance.
+CUDA is the layer that lets software use NVIDIA GPUs. PyTorch is the framework that speaks to that layer for our workload. The model and its supporting libraries sit above that. If those layers do not fit together properly, the job may fail before any image is processed.
 
-There is also a host side to the stack. The NVIDIA ECS-optimized AMI supplies the GPU driver. The container supplies the CUDA runtime, framework, dependencies, and application. If `Device: cuda` is missing, trace both sides: first GPU and driver availability on the host, then CUDA and PyTorch compatibility in the image.
+This is a very real company concern. Teams do not just manage application logic. They manage compatibility. A model can be correct, and the infrastructure can be available, and the job can still fail because the software stack is mismatched.
 
-Dependency pins protect that compatibility. This course pins `transformers` to a version that works with the PyTorch 2.1 base. An unpinned install can later select a release that expects a newer PyTorch version and break an image that previously built.
+That is why versioning matters so much in GPU work. Stability is not only about your own code. It is also about keeping the framework, CUDA support, and container environment aligned well enough that the workload can reliably reach the GPU.
 
-So our GPU application is not just two Python files. It is a versioned stack that makes `Device: cuda` possible.
+So the key lesson here is broader than one tool or one library. A GPU workload is really a layered system. The model sits at the top, but it depends on everything underneath behaving correctly.
 
-Now we need to package that stack into the same filesystem for every run. The Docker lesson shows exactly what goes into the image.
+Next, we package that layered system into a container so the same environment can be started again and again on fresh infrastructure.
 
 ---
 

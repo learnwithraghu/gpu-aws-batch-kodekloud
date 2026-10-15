@@ -9,19 +9,19 @@
 
 ---
 
-Suppose Batch launches a `g4dn.xlarge`, but `torch.cuda.is_available()` is false. The instance type is correct, so the next check is the AMI: the machine image that boots before the container exists.
+Suppose the machine launches, but the workload still cannot really use the GPU. What went wrong?
 
-GPU containers do not supply the host driver. PyTorch and CUDA inside the image talk through the container runtime to the NVIDIA driver on the host. If that driver is missing, or the stack is incompatible, CUDA detection fails even though the machine has a T4.
+Very often, the answer is that the host side and the container side did not meet correctly.
 
-That is why our compute environments use an NVIDIA ECS-optimized AMI. In the live setup, this is the Amazon Linux 2023 NVIDIA ECS variant, `ECS_AL2023_NVIDIA`. It includes the ECS agent and NVIDIA driver, and exposes the GPU to containers that request it. We are not installing drivers by hand on every cold start.
+This is one of the easiest things to miss in GPU infrastructure. A GPU workload is not only about the application image. The underlying machine also has to expose the device properly. If that host path is wrong, the container may start, but the workload still behaves as if no usable GPU exists.
 
-Keep the responsibility split clear. The AMI owns the host driver and ECS agent. The ECR image owns the application, PyTorch, and the matching CUDA user-space libraries. If either side is wrong, the caption job can fail before BLIP loads a photo.
+That is why the machine image matters so much. Good teams do not want to rebuild GPU driver setup from scratch every time a new machine boots. They want a known-good host foundation that already understands how to run GPU containers reliably.
 
-This is the standard GPU-container contract: driver on the host, user-space libraries in the image. The managed Batch environment gives us an AMI that already supports that contract.
+So the clean mental model is this: part of the GPU path lives on the host, and part of it lives in the container. Both sides have to align.
 
-In the lab, use two checks. A successful `nvidia-smi` smoke job proves the host side. When `describe_items.py` sees CUDA, it also proves the image side.
+This is another example of why production GPU work is layered. The application can be correct, the job definition can be correct, and the scheduler can be correct, but if the host GPU path is broken, the workload still fails before any business value is created.
 
-With the GPU path established, we can separate the three IAM roles. Each role has a different responsibility and a different failure symptom.
+Next, we move from technical compatibility to operational permissions and separate who is allowed to do what in AWS Batch.
 
 ---
 

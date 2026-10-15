@@ -9,19 +9,21 @@
 
 ---
 
-Inference produces the captions. Micro-batching controls how many photos share one GPU pass.
+Once inference is working, the next practical question is: should the GPU process images one by one, or should it process a few together?
 
-The T4 on `g4dn.xlarge` has limited device memory. Model weights already use part of it. Each JPEG is also decoded into RGB tensors, which occupy more memory than the compressed object in S3. Sending all thirty vendor photos to BLIP at once can cause an out-of-memory error, even when the folder looks small.
+That is where micro-batching comes in.
 
-The loop therefore uses `GROUP_SIZE`, set by the `BATCH_SIZE` environment variable. The default is eight. Thirty photos become groups of eight, eight, eight, and six. Each group gets one generate call, and its results join the same list. At the end, `photos.py` writes one CSV.
+The idea is simple. A single image may not use the GPU efficiently. But throwing too many images at the GPU at once can exhaust memory. So teams look for a middle ground: a small group size that keeps the device productive without pushing it into failure.
 
-Notice the naming distinction. AWS Batch groups jobs and queues. Inside our container, `BATCH_SIZE` means photos per GPU forward pass. These are different layers.
+This is a classic production tradeoff. Too small, and you waste expensive GPU time. Too large, and the job becomes unstable or slow for a different reason. The right value is rarely philosophical. It is something you test and tune.
 
-Eight is a safe starting point for this model and instance class. A larger model, higher image resolution, or different GPU may need another value. If this breaks with a CUDA out-of-memory message, reduce `BATCH_SIZE` first. If memory is comfortable but the GPU is underused, test a larger value and measure.
+That is also why micro-batching matters so much in real systems. It connects model behavior to infrastructure limits. You are no longer asking only, "does the model work?" You are asking, "does the model work efficiently on this specific hardware profile?"
 
-Micro-batching changes memory use, not the output contract. One successful job still overwrites `descriptions/<stem>/descriptions.csv`; the groups do not create separate files.
+For this course, the mental model is enough: one job still owns one vendor folder and one final output. Micro-batching changes how the work is processed inside the job. It does not change the external contract of the pipeline.
 
-With that loop clear, we can look underneath it. The next lesson connects CUDA, PyTorch, and the container image that makes the T4 usable.
+So think of micro-batching as the bridge between AI logic and GPU operations.
+
+Next, we step down one layer and look at the software stack that makes the GPU usable in the first place.
 
 ---
 

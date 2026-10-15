@@ -9,17 +9,19 @@
 
 ---
 
-We already have a clean contract: vendor photos live under one S3 prefix, and captions land under another. The container knows how to follow that contract. What it still needs is a place to run.
+We already have the data contract and the container. What is still missing?
 
-That place is a compute environment. In AWS Batch, it defines the pool of machines Batch may grow and shrink for you. KodeFood uses managed compute environments, so Batch creates and removes the EC2 instances. We do not SSH in and start a GPU machine for each vendor folder.
+A place for the work to run.
 
-Our teaching setup keeps `minvCpus` at zero. An empty queue means zero desired capacity, so no `g4dn.xlarge` sits idle between jobs. When a caption job arrives, Batch scales up. When it finishes, capacity can return toward zero. That scale-to-zero pattern fits bursty catalog work and keeps the lab bill controlled.
+That is what a compute environment gives us. In AWS Batch, it defines the pool of machines Batch is allowed to use on our behalf. So instead of humans creating GPU instances whenever work arrives, Batch can grow and shrink capacity using rules we set in advance.
 
-Now look at what belongs on the environment rather than in the Python script: the instance type, typically `g4dn.xlarge` with one NVIDIA T4; Spot or on-demand capacity; maximum vCPUs; subnet and security group; and the AMI that carries the GPU drivers. Together, those settings control cost, reachability, and what Batch is allowed to launch.
+This matters in a real company because GPU time is expensive. Most teams do not want machines sitting idle when no jobs are waiting. They want capacity to appear when needed and disappear when the burst of work is over.
 
-For this lab, picture one wave of work. The machines appear for that wave, then disappear. The default is one Spot GPU environment, with an on-demand twin as a fallback when Spot cannot place the job.
+That is exactly the kind of problem a compute environment solves. It expresses the operational policy: what kind of machines are allowed, how much capacity can exist, how the instances are networked, and whether we prefer the cheaper but less predictable path or the steadier but more expensive one.
 
-Keep that boundary clear: the compute environment defines the pool rules, including the rule that no machine is needed while the queue is quiet. Next, we follow a waiting job as Batch looks for a GPU machine.
+So think of the compute environment as the infrastructure guardrail around the workload. It does not describe the application logic. It describes the conditions under which that logic is allowed to run.
+
+Next, we follow a waiting job and see how Batch tries to turn those rules into a real GPU machine.
 
 ---
 

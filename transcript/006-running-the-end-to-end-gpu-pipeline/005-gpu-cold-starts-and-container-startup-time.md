@@ -9,19 +9,21 @@
 
 ---
 
-The job is correctly submitted, but several minutes pass before BLIP writes its first log line. That gap is a cold start, and on GPU Batch it is usually several waits stacked together.
+One of the easiest mistakes in GPU systems is to think, "the job is slow, so the application must be slow."
 
-First, the compute environment may be at zero. EC2 must find and launch a `g4dn.xlarge`, boot the NVIDIA ECS-optimized AMI, and register the ECS agent. Spot capacity can add minutes to this stage.
+Very often, that is not true.
 
-Second, the container image pulls from ECR. The teaching image is multi-gigabyte and contains CUDA, PyTorch, transformers, and the application. A first pull on a fresh instance can dominate startup time. A later job on a warm host may reuse layers.
+Before the real work begins, several startup costs can stack on top of each other. The platform may need to find capacity. A machine may need to launch. A large container image may need to be pulled. Then the model may need to load before the first useful unit of work happens.
 
-Third, the process starts and loads the model. BLIP weights move into GPU memory before photo iteration begins. If those weights download on first use, network transfer adds another delay.
+That whole gap is what people loosely call a cold start.
 
-There is a direct cost trade-off. Keeping `minvCpus` above zero can hide AMI boot time, but it pays for an idle GPU. This course keeps `minvCpus` at zero to control the teaching bill, so the lab exposes the full cold path.
+In a company setting, this matters because users often experience only the delay, not the reason. They do not care whether the wait came from capacity, image pull, or model initialization. The team has to separate those stages for them.
 
-In the lab, measure two intervals: submission until the job reaches `RUNNING`, then `RUNNING` to the first caption log. The first interval is dominated by capacity and startup. The second exposes model initialization and application work.
+There is also a cost tradeoff behind the scenes. If you keep GPU capacity warm, startup can feel faster, but you pay for idle hardware. If you scale to zero between bursts, you save money, but the next job pays the startup cost. There is no magic answer. It depends on whether you care more about latency or cost.
 
-That separates AMI boot, image pull, and model load instead of assigning the entire delay to `describe_items.py`. Next, we investigate the more serious symptom: a job that never leaves `RUNNABLE`.
+That is why cold starts should be understood, not just tolerated. Otherwise every wait gets blamed on the application, when the real cause may be infrastructure startup.
+
+Next, we look at a different kind of delay entirely: a job that is ready in principle, but still cannot get a place to run.
 
 ---
 

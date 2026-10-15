@@ -9,19 +9,21 @@
 
 ---
 
-The infrastructure is ready. Now we will follow one vendor folder from S3 to a finished catalog row. Keep the sequence clear, because each hop has a different failure symptom.
+The infrastructure is ready. Now let’s follow one vendor folder from upload to result.
 
-Start with the input. Photos are already under `images/<stem>/` in the images bucket. That prefix is the unit of work. Your laptop, or an earlier pipeline step, uploads or syncs those objects. Batch captions what exists under the prefix; it does not create the input.
+Why do this slowly? Because when this kind of pipeline breaks in a real company, it rarely breaks everywhere at once. It breaks at one hop. If you understand the hops, you know where to look first.
 
-Next, submit to `gpu-teaching-gpu-smoke-queue-spot` and name `gpu-teaching-caption-job`. The submission points the container at the stem by passing the bucket names, `IMAGE_PREFIX`, `BATCH_SIZE`, and the command `python /app/describe_items.py`. Batch accepts the request and looks for capacity in the compute environment behind the queue.
+Start at the input. A vendor folder lands in S3. That folder is the unit of work. Batch does not create the images and it does not invent the workload. It processes what already exists under that input boundary.
 
-When the instance is ready and the container starts, `gpu-teaching-batch-job-role` lets the process list and download objects under the prefix. BLIP runs on the GPU, and the process writes `descriptions/<stem>/descriptions.csv` to the catalog bucket. Container logs go to `/aws/batch/job`. Your laptop polls the Batch status; it does not need a shell inside the container.
+Next, a job is submitted. At that point we are simply telling the system, "process this folder." Batch then looks for GPU capacity, starts the container when capacity is available, and lets the application read the images, generate captions, and write back one structured CSV.
 
-The pattern is durable input, asynchronous compute, and structured output. This lab keeps it to one folder and one CSV so every hop remains visible. The wider industry reference remains in Further reading.
+So the full pattern is simple: durable input, asynchronous GPU compute, durable output.
 
-Before we run it, predict the first check for each symptom: an empty catalog, a job waiting in `RUNNABLE`, or a container failing after startup. Then use the sequence: verify S3 input, submit with overrides, wait for GPU placement, inspect the container logs, and read the CSV.
+That is also how many companies think about this design. Keep the upload path simple. Hand off the heavy work to an async system. Store the result in a place other systems can read later.
 
-Next, we slow down on the status field, from `SUBMITTED` through `SUCCEEDED`, and map each state to the checks it supports.
+Once you see that flow, the first checks become much clearer. No output file? Check the input and the job result. Job waiting? Think about placement and capacity. Container starts and then fails? That is when logs become useful.
+
+Next, we zoom in on the job lifecycle itself and use each status as a clue.
 
 ---
 

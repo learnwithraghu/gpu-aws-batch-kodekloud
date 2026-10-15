@@ -9,19 +9,19 @@
 
 ---
 
-A compute environment is a policy. A waiting job is a request. Now let us follow the point where Batch tries to turn both into a real `g4dn.xlarge`.
+A very important mindset shift happens here.
 
-You submit the job to a queue bound to one or more compute environments. Batch reads the request: vCPUs, memory, and one GPU. It then asks whether an allowed instance can take it. If desired capacity is zero, Batch raises it and asks EC2 for a matching instance, using the configured capacity type, allowed instance types, subnet, security group, and instance profile.
+AWS Batch does not own a shelf of waiting GPUs for your application. It has to go and get capacity from EC2 under the rules you configured.
 
-For Spot, Batch often uses a capacity-optimized allocation strategy. It prefers pools with more spare capacity, but it cannot guarantee a machine. If Spot capacity is thin in the Availability Zone, the launch can fail to place. The job then waits even though the queue is healthy.
+That means a submitted job kicks off a chain of decisions. Can this request fit the allowed machine types? Is capacity available right now? Can EC2 actually launch the instance? Can that machine come online cleanly enough for the container to be placed?
 
-On a successful launch, EC2 boots the AMI. The ECS agent registers with the Batch-managed cluster. Only then can Batch place and start the container. From your laptop, this appears as a job changing state. Underneath, the order was scale-up, launch, registration, and placement.
+This is why cloud GPU work feels different from ordinary scripting. The job may be valid and the application may be correct, but the real machine still has to exist before anything useful can happen.
 
-Here is one useful prediction: if the queue is healthy but no Spot instance appears, which job state should you expect to persist? Keep that answer in mind for the lifecycle lesson.
+In a company, this is where operators start to distinguish scheduling from execution. If the system cannot find or launch capacity, the application is still innocent. The platform has not even reached the point where the workload can run.
 
-The operating principle is simple: Batch does not already have GPUs. It requests them from EC2 under the rules on the compute environment.
+So the big lesson is simple: Batch is a scheduler, not a magic GPU warehouse. It reads the request, asks EC2 for matching capacity, and only then can the workload begin.
 
-Next, we inspect the AMI and the host-side pieces required before a container can see the GPU.
+Next, we look at one host-side requirement that has to be right before any container can use the GPU at all: the machine image and driver path.
 
 ---
 

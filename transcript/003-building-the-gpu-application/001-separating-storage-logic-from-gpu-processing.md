@@ -9,17 +9,21 @@
 
 ---
 
-Batch runs `describe_items.py`, but the application has two clear responsibilities. Let’s trace them before we look at the model.
+Why separate storage logic from GPU processing at all?
 
-`photos.py` owns storage. It lists photo keys under an S3 prefix, downloads each object as an image, and writes the completed catalog CSV. It does not load a model or call CUDA. If the logs show an empty prefix, `AccessDenied`, or a failed CSV upload, start with this file and the S3 permissions.
+Because they are different kinds of work, and companies debug them differently.
 
-`describe_items.py` owns the GPU path. It loads BLIP, runs inference in groups, and applies the food-word accept or reject rule. It calls `photos.py` to list, download, and save. Batch still starts one process in one container. Python imports connect the files.
+One side of the application is about data movement. Which images are we reading? Can we access them? Can we produce and store the output correctly? The other side is about model execution. Can the GPU workload start? Can the model process the images? Can it generate useful results within the available memory and time?
 
-This split gives us a useful diagnostic boundary. A wrong bucket or missing object is a data-path problem. Missing CUDA, an out-of-memory error, or invalid generation settings are model-path problems. Both can end with the same failed job status, so the log symptom tells you which layer to inspect.
+Those two concerns often fail for very different reasons. A missing object, wrong prefix, or write problem is not the same kind of issue as a GPU memory problem or an inference failure. If you mix them together mentally, every failure starts to look the same.
 
-Environment variables connect runtime data to the application. Bucket names and `IMAGE_PREFIX` arrive when we submit the job. The same image can process `images/sample` today and another vendor stem tomorrow. No rebuild is needed; only the override changes.
+That is why this separation is so helpful. It gives the team a clean first question when something breaks: is this a data-path problem, or is this a model-path problem?
 
-Keep storage and CSV handling on one side, and model execution on the other. In the next lesson, we will follow one photo through BLIP and see why this job performs inference rather than training.
+This is also how real production systems are usually designed. Keep the boundaries visible. Let one layer handle storage and movement of data. Let another layer handle the expensive compute. The result is easier testing, easier debugging, and clearer ownership.
+
+So before we even talk about the model itself, we already have a useful operating principle: separate the work that moves the data from the work that reasons over the data.
+
+Next, we focus on the GPU side and see what inference actually means in this application.
 
 ---
 

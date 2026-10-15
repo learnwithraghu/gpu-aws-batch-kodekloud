@@ -9,19 +9,21 @@
 
 ---
 
-Storage stays in `photos.py`. GPU processing lives in `describe_items.py`. Let’s trace one group of KodeFood photos after the model loads.
+Now let’s focus on the core GPU work: inference.
 
-First, the job selects a device: `cuda` when a GPU is available, otherwise `cpu`. On a healthy Batch `g4dn` job, the logs should say Device: cuda. If they say cpu, inspect GPU exposure and the software stack before tuning the model. The job then loads Salesforce’s BLIP image-captioning base model and moves its weights to the selected device.
+Inference means the model is not learning from the photos. It is using what it already knows to produce an output. In our case, that output is a caption for each image.
 
-Next, the code calls `model.eval()`. Some layers, including dropout, behave differently during training, and eval mode switches them to inference behavior. The code has no optimizer or loss calculation, while `torch.no_grad()` in the next step disables gradient tracking.
+That distinction matters because many beginners hear "AI workload" and imagine training. But KodeFood is not training a food model here. It is running a ready-made model over incoming vendor photos so the business can get usable catalog signals quickly.
 
-The processor converts each small group of images and a short prompt into tensors on the GPU. Then `model.generate` runs inside `torch.no_grad()`. Disabling gradient tracking avoids building the backpropagation graph and reduces memory use. That is the right behavior for producing captions, not training a model.
+The application flow is conceptually simple. Images come in. The model interprets them. A caption is produced. Then a lightweight business rule turns that caption into a basic accept or reject decision.
 
-Generation uses a photography-style prompt, a few beams, a short token limit, and a repetition penalty. Together, those settings shape the sentence written to the catalog.
+This is a very realistic company pattern. The expensive model produces a rich output. Then a simpler business rule translates that output into a practical operational decision.
 
-Finally, a Python check looks for food-like words. A match is accepted; anything else is rejected. This rule does not verify that the dish matches the menu. It only filters obvious non-food uploads such as a selfie, car, or logo.
+It is also why a GPU helps. The heavy part is not writing a row to a CSV. The heavy part is the model computation needed to understand image content fast enough to be useful at scale.
 
-We now have the full inference path. The remaining question is how many photos should share one call to `model.generate`. That takes us to GPU micro-batching.
+So when you think about inference in this course, do not picture a mysterious AI black box. Picture a production step that converts raw images into structured signals another system can act on.
+
+Next, we ask the operational question that appears immediately after that: how many images should the GPU handle at one time?
 
 ---
 

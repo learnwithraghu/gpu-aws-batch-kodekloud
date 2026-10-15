@@ -9,21 +9,23 @@
 
 ---
 
-The job definition is the stable contract. Container overrides supply the values that change for one run. We do not register a new definition for every vendor folder.
+Why do container overrides exist at all?
 
-At submission time, KodeFood overrides the command with `python /app/describe_items.py`. It also passes the environment variables the script understands: `S3_BUCKET`, `S3_CSV_BUCKET`, `IMAGE_PREFIX`, and `BATCH_SIZE`.
+Because in production, the team wants to keep the heavy execution contract stable while changing only the small details of each run.
 
-The image, memory, and one-GPU requirement stay fixed. Only the stem changes: `images/sample` for one run, another vendor prefix for the next. A new folder of photos does not require a Docker rebuild. `BATCH_SIZE` changes how many images go through one GPU forward pass; it does not change the authoritative bucket.
+Think about the KodeFood case. The kind of work stays the same every time. We still want the same container, the same broad resource profile, and the same general behavior. What changes from run to run is the specific vendor folder, and sometimes a few runtime values that shape how that one job behaves.
 
-This is where the S3 contract helps. Prefixes parameterize the work, and overrides deliver those parameters to the process. The job role still controls what S3 permits. Overrides only select keys within that permission boundary. If the role is healthy but the prefix is wrong, permissions can succeed while the catalog remains empty.
+That is the real purpose of overrides. They let one reusable job definition serve many pieces of work.
 
-This split also supports larger parameterized workloads: keep the heavy execution contract stable and vary the small submission payload.
+This is a very common company pattern. Do not rebuild the whole execution setup every time a new input arrives. Keep the platform contract steady, then pass in just the values that identify the current job.
 
-Be deliberate about resource overrides. Changing memory or GPU count can recreate the placement trap. In particular, do not replace `12288` MiB with `16384` MiB on `g4dn.xlarge`. Prefer varying data parameters unless you intentionally designed a different capacity profile.
+That also keeps the system easier to reason about. If one run succeeds and another run does not, you can ask a focused question: did the environment change, or did only the runtime input change?
 
-One definition can therefore caption many vendors: the prefix and runtime values change, while the execution contract remains stable.
+There is still a boundary here. Small runtime values are good candidates for overrides. Core resource decisions are not something you should casually change per run, because that can alter placement behavior and create a different operational problem.
 
-Next, we account for the time between a correct submission and the first caption.
+So the big idea is this: keep the execution environment stable, and vary the work through runtime input.
+
+Next, we talk about another source of confusion in GPU pipelines: the delay between correct submission and visible execution.
 
 ---
 
