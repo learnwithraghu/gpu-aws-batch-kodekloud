@@ -15,6 +15,8 @@ S3 provides that durable side of the KodeFood pipeline. The job downloads images
 
 This course uses two buckets. One stores vendor images and is mostly read by the job. The other stores catalog output, which the job writes and the application reads. One bucket with separate prefixes could also work. Two buckets make the permissions clearer: read from one and write to the other. They also reduce the chance of mixing raw uploads with curated catalog files.
 
+That separation is common in real pipelines because it makes permissions, data lineage, and debugging much easier to reason about.
+
 Keep both buckets in the same region as Batch. Cross-region access adds latency and cost. Bucket names must also be globally unique across AWS, so the course names include a stable suffix.
 
 Notice the system boundary. The container image contains CUDA, PyTorch, and our scripts. S3 contains every vendor folder processed by that same image. If the container finishes but the CSV is missing, inspect the output bucket, key, and write permission before looking at GPU utilization.

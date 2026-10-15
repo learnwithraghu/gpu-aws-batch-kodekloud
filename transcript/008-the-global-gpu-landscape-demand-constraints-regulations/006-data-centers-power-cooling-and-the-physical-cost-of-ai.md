@@ -15,6 +15,8 @@ Modern AI servers draw much more power per rack than conventional web fleets. In
 
 Cooling is a second constraint. Air cooling reaches practical limits, so new facilities use direct-to-chip liquid systems or immersion. Water use and permitting can put data-center growth in conflict with local power and water needs. The cloud always occupies a physical place.
 
+That physical reality is easy to forget when we work through APIs, but it is one reason GPU supply cannot scale at software speed.
+
 Providers therefore track measures such as Power Usage Effectiveness and publish clean-energy goals. One KodeFood Batch job has a small footprint, but repeated jobs add up. Scale-to-zero reduces both cost and energy use because an idle running instance still consumes power.
 
 Chips are only one limit; power, cooling, and buildings set limits too. Next we turn to policy and who may buy or access advanced accelerators.

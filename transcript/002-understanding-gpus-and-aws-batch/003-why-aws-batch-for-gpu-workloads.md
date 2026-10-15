@@ -18,6 +18,8 @@ Third, Batch works with containers and queues. Our program is a Docker image in 
 
 Fourth, submit-time overrides keep one image reusable. The same job definition can process `images/sample/` today and a different stem tomorrow. We change environment variables for buckets, prefix, and batch size without rebuilding the image.
 
+That is why Batch keeps showing up in rendering, simulation, and batch-inference designs: finite work, clear inputs, and no desire to keep an expensive cluster warm for no reason.
+
 The result is a focused platform for finite GPU work: queued containers, GPU placement, and capacity that can disappear when the work is done. Interactive notebooks and always-on APIs solve different problems.
 
 Next, let’s name the four Batch objects that carry this job from submission to completion.

@@ -16,6 +16,8 @@ Spot uses spare EC2 capacity at a discount. Batch can launch Spot GPU instances 
 
 This course starts with Spot. KodeFood’s vendor folders are batch work and can usually wait for lower-cost capacity. We keep an on-demand queue as a fallback once the account is allowed to run on-demand G and VT instances.
 
+That is a common production pattern: cheaper capacity for background work, steadier capacity only when timing really matters.
+
 For daily decisions, start with the workload deadline. If a catalog refresh can wait, Spot is reasonable. If capacity delay blocks a launch or time-sensitive demonstration, use on-demand after confirming the quota. Keeping both queues available turns that switch into an operational choice instead of an architecture change.
 
 Spot interruption still matters. Our short caption pass has less exposure than a long training job, but the CSV should only be finalized after all photos are described.

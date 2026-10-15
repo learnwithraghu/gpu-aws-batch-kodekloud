@@ -17,6 +17,8 @@ For example, a job with `IMAGE_PREFIX=images/sample` cannot see photos at the bu
 
 The upload path and submit override must agree. If photos are under `images/vendor-b` but the job receives `IMAGE_PREFIX=images/sample`, the container may start normally and still find no work, or process the wrong vendor. That is a data-contract problem, not a GPU problem.
 
+In production, these contract mismatches waste a lot of time because the job can look healthy while the business result is still wrong.
+
 File extensions are also part of the contract. The code accepts `.jpg`, `.jpeg`, and `.png`. It skips GIF and HEIC objects without creating rows. If thirty uploaded files produce twenty-eight rows, check the extensions and prefix before investigating CUDA.
 
 We can now trace the data plane: Batch pulls the program from ECR, reads images from one S3 prefix, and writes one CSV to the derived output key. The next section adds the scheduler: compute environments, queues, roles, and job definitions that place this container on a GPU.

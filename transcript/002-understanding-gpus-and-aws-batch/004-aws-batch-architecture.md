@@ -20,6 +20,8 @@ The compute environment supplies the machines. It defines allowed instance types
 
 Let’s trace the normal path. We submit a job to the Spot queue. When its GPU and memory requirements can be placed, the compute environment starts a GPU instance with an NVIDIA ECS-optimized AMI. The agent pulls the image and starts the container with one GPU. The script writes the CSV. When no work remains, desired capacity can fall again.
 
+Once you see these four objects clearly, you can recognize the same queue-plus-worker pattern in many other production batch systems too.
+
 Keep this map handy: the definition is the recipe, the job is one run, the queue is the line, and the compute environment supplies the kitchen.
 
 Next, we’ll choose the GPU instance inside that compute environment and see why a T4 on `g4dn` fits this inference job.

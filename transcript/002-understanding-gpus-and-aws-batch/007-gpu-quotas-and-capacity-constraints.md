@@ -12,6 +12,8 @@ Spot versus on-demand matters only after the account is allowed to run the insta
 
 EC2 Service Quotas include limits for the G and VT instance families, which cover `g4dn` and similar GPU types. Two quotas matter here: one for running on-demand G and VT capacity, and another for Spot G and VT requests. New accounts often have an on-demand G and VT quota of zero.
 
+That catches a lot of people the first time, because the failure looks technical even when the real problem is simply that the account was never allowed to launch the hardware.
+
 In that state, the Batch queue can be valid and the compute environment can be healthy, while every job remains in `RUNNABLE`. No instance starts. No container runs. No CloudWatch application logs appear. That is an account-capacity limit, not evidence of a broken Dockerfile.
 
 Regional availability is a separate constraint. Even with enough quota, a region may not have Spot GPUs available when we submit. The symptom can look similar, but the response is different. Spot scarcity may call for patience or an on-demand fallback. A zero quota requires an approved Service Quotas increase before on-demand can help.

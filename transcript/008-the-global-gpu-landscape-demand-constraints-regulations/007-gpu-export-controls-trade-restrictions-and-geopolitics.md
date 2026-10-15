@@ -15,6 +15,8 @@ For cloud engineers, this can affect where providers place hardware and which cu
 
 Industrial policy also funds new supply. Programs in the United States, European Union, Japan, and Korea aim to expand semiconductor capacity, but the effect takes years. In the short term, buyers still compete for a limited number of wafers.
 
+That means infrastructure planning is no longer only a technical exercise. In some markets, it is also a policy and procurement exercise.
+
 KodeFood on a G4-class instance in Tokyo is not a sanctions case study. The useful lesson is narrower: accelerator access can be policy-gated. Document the Regions and instance families the service requires, and avoid depending on the newest training SKU in every market.
 
 Trade rules govern hardware access. Next we examine how AI regulation governs the systems running on that hardware.

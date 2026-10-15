@@ -15,6 +15,8 @@ The capacity path includes denser accelerator packages, new fabrication plants, 
 
 The efficiency path includes quantization, distillation, smaller task-specific models, batching, speculative decoding, custom inference chips, better schedulers, and shutting down idle machines. Power grids and capital cannot grow without limit. For many products, a suitable model on a G-class instance is better economics than a larger model kept warm.
 
+That is an increasingly common industry conclusion: better scheduling and right-sized models often create more value than simply chasing the biggest possible GPU footprint.
+
 KodeFood follows that efficiency path. Inference is containerized. Inputs and outputs are durable in S3. AWS Batch schedules the work on Spot when possible. Memory is sized so the job can place. With `minvCpus` at zero, the fleet can disappear when no work remains. The architecture accepts scarcity and limits how much of it the product must buy.
 
 The wider forces remain connected. Supply chains and policy shape the available SKUs. Regulation and residency create requirements for logs, digests, and Regional control. Economics penalizes idle accelerators. Strong platform teams know when work should be a job, when a GPU should be off, and when a smaller model meets the product need.

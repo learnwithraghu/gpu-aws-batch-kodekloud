@@ -17,6 +17,8 @@ Advanced foundries turn designs into silicon. TSMC fabricates a large share of l
 
 Finished accelerators move into boards and servers, then into cloud data centers. Providers install racks, networking, power, and cooling before offering instances such as `g4dn` or `p5`. A cloud GPU is physical capital rented by the hour. Even a Spot bid depends on years of investment upstream.
 
+That is why a cloud capacity problem can begin far away from the cloud itself, in fabs, packaging lines, or other upstream bottlenecks the application team never sees directly.
+
 Custom accelerators from companies such as Apple and Tesla still depend on many of the same foundries and suppliers. The chain is global, but several bottlenecks are concentrated.
 
 When KodeFood waits in RUNNABLE, Regional inventory is the immediate cause, with this supply chain behind it. Next we look at why demand moved faster than supply.

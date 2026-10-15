@@ -19,6 +19,8 @@ That behavior is convenient in this course. We rebuild, push, and submit without
 
 For repeatable production runs, teams often pin a digest or use an immutable version tag such as a git SHA, `v3`, or a build number. Use `:latest` only when you intend to follow the most recent push.
 
+That is one of the quiet differences between demo convenience and production discipline: friendly tags help learning, but immutable references help diagnosis and repeatability.
+
 Authentication also has two paths. Your laptop pushes with a short-lived ECR login password. The GPU instance pulls with `ecsInstanceRole`. Long-lived access keys should never be baked into the image. The first CUDA-plus-PyTorch push is large; later code-only pushes can reuse unchanged layers.
 
 The program now has a durable home. Next, we will give the input photos and output CSV their own durable storage while the GPU instance remains temporary.

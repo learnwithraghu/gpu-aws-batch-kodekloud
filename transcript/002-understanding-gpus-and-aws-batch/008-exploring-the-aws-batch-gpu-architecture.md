@@ -18,6 +18,8 @@ The instance profile lets the host pull from ECR and write logs. The job role le
 
 When something stalls, trace the path in order. No logs often means the job never left `RUNNABLE`; check Spot capacity and G/VT quota. A placement error often points to a memory request that is too large for the host. A container exit means the machine started, so application logs are now the right place to look.
 
+That outside-in debugging order is how experienced teams avoid wasting time on code when the workload never even reached a machine.
+
 That gives us the architecture without hiding the failure boundaries. The remaining question is what the code inside the container does, file by file, and how it separates storage from the model loop.
 
 Section three starts there. We’ll open the application at its entrypoint and trace each responsibility.

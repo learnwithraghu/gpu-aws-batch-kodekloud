@@ -17,6 +17,8 @@ This creates ecosystem gravity. Engineers learn CUDA tools, software vendors cer
 
 NVIDIA reinforces the ecosystem with DGX systems, NGC containers, and AI Enterprise software. Competitors and regulators pay attention because the hardware and software advantages strengthen each other.
 
+That is why teams often feel they are choosing more than a chip vendor here. They are also choosing a software ecosystem and an operations path.
+
 KodeFood uses CUDA because BLIP, PyTorch, and the AWS GPU AMI already agree on that interface. That compatibility is infrastructure. It also means shortages or export controls affecting NVIDIA-class accelerators can affect the application even when the hardware is rented through AWS.
 
 The software path narrows the hardware choices. Next we look at how those choices vary across Regions and cloud providers.

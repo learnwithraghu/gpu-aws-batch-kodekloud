@@ -15,6 +15,8 @@ When Batch places the KodeFood job on a GPU instance, the worker must pull the i
 
 A container registry is the shared source for those image layers. Local Docker is where we build and test. The registry is where Batch retrieves the program. S3 serves the same durable role for the photos and catalog data.
 
+That build-once, push-once, pull-many model is a big reason containers work so well in production delivery pipelines.
+
 For this course, the registry is Amazon ECR in your account and region. The job definition stores an image URI. At startup, the EC2 instance authenticates with its instance role and pulls the layers. Only then does it run `python /app/describe_items.py`. Your laptop credentials do not belong on the GPU instance.
 
 Notice the deployment boundary: a successful local build does not change what Batch runs. Only a successful push changes the image available from ECR. If a submitted job still behaves like yesterday’s code, compare the local build with the image that was actually pushed.

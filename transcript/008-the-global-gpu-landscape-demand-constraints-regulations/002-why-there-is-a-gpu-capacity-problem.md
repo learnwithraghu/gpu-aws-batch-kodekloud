@@ -15,6 +15,8 @@ Manufacturing is the slowest layer. Leading-edge wafers, high-bandwidth memory, 
 
 Cloud inventory is the next layer. Chips must be installed, powered, cooled, and networked in a particular Availability Zone. One Region may have P5 capacity while another has limited G4 stock. Spot draws from spare capacity, so its price is attractive and its depth is unpredictable. An empty Tokyo pool does not mean the world has no GPUs.
 
+That layered view matters because people often say "there is no GPU capacity" when the real constraint is much more specific than that.
+
 Account limits form the third layer. Service Quotas for on-demand G and VT families may be zero or small in a new account, even when AWS has hardware in the Region. A quota increase takes time. This is administrative capacity layered over physical capacity.
 
 Large training clusters can reserve thousands of GPUs for months, reducing flexible inventory for smaller jobs. During the AI expansion of 2023–2025, demand outpaced delivery and cloud waitlists became common.

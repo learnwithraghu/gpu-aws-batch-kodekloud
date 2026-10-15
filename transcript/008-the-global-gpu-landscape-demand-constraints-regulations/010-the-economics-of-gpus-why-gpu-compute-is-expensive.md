@@ -17,6 +17,8 @@ Utilization determines whether that price produces value. A GPU kept warm for an
 
 Software overhead also consumes paid minutes. Large CUDA images, model downloads, and cold starts delay the first useful caption. Micro-batching and moving I/O away from the GPU's critical path improve unit economics.
 
+That is why experienced teams watch cost per useful unit of work, not just whether the GPU was technically running.
+
 The KodeFood CSV makes the unit visible: GPU cost per folder, or per accepted caption. That measure connects infrastructure choices to product economics.
 
 GPU expense combines capital cost, scarcity, and idle risk. The final lesson asks whether the industry answers with more hardware, better efficiency, or both.

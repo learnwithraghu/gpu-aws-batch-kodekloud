@@ -16,6 +16,8 @@ Our application uses micro-batching. The default `BATCH_SIZE` is eight, so thirt
 
 A larger batch can improve GPU utilization because each kernel launch carries more work. That only helps until VRAM becomes the limit. For BLIP on KodeFood’s `g4dn.xlarge`, eight is a practical fit. We can tune the environment variable later, but we cannot treat memory as unlimited.
 
+That is why production teams treat batch size as an operating parameter to tune and measure, not as a number you guess once and forget.
+
 Keep system RAM separate in your mental model. The CPU side still downloads images and builds the CSV. GPU memory holds the model and active micro-batch. If this distinction is wrong, you can easily add host memory while the real limit remains VRAM.
 
 Now that we know the resource shape, let’s decide where the job should run: Lambda, ECS, SageMaker, raw EC2, or Batch.

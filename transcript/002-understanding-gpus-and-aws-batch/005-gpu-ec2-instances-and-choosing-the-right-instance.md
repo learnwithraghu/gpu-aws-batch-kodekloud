@@ -16,6 +16,8 @@ KodeFood uses `g4dn.xlarge`: four vCPUs, sixteen GiB of host memory, and one T4 
 
 The selection rule is straightforward. Match the GPU to the model and latency target. Leave enough host memory for both the container and operating system. Then choose the smallest instance that finishes the folder comfortably. Moving to `g5` without measurements adds cost before it solves a demonstrated problem.
 
+That is how strong teams usually make these calls: start with the smallest shape that safely works, then scale up only after measurements show real pressure.
+
 In this course, one catalog job owns the whole `g4dn.xlarge`. We do not pack several GPU jobs onto one instance. That keeps placement behavior easier to reason about.
 
 The instance shape is set. Next, we’ll decide whether to obtain that `g4dn` capacity through Spot or on-demand.

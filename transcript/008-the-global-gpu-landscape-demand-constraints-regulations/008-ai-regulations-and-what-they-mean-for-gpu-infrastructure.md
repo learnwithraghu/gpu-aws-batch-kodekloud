@@ -17,6 +17,8 @@ Other jurisdictions use different combinations of laws, agency guidance, filing 
 
 KodeFood already creates useful evidence. S3 holds the inputs and CSV outputs. Batch records a job ID. CloudWatch keeps execution logs. An immutable ECR digest can identify the container. The BLIP model revision must also be pinned or recorded; the container digest alone cannot identify weights downloaded at runtime. Together, those artifacts can explain how a vendor photo was processed far better than an untracked notebook.
 
+That is a good example of how infrastructure choices quietly become compliance choices once teams need evidence, traceability, and reproducibility.
+
 Infrastructure becomes part of the evidence plane. Training records may need long retention. Inference batches need reproducibility. Cross-border processing may remain restricted even when another Region is cheaper.
 
 Regulation turns architecture decisions into accountability records. Next we focus on data residency and sovereignty across borders.

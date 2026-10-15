@@ -15,6 +15,8 @@ Residency requirements often keep personal or regulated data in an approved Regi
 
 GPU pipelines can create accidental egress. A job may pull data from another Region, write embeddings elsewhere, call an API in a third country, or include payloads in logs and crash dumps. Keep images, CSV catalogs, ECR mirrors, and CloudWatch logs in the approved Region unless legal and security teams approve another path.
 
+That is why cross-region failover for AI systems is often more of a governance question than a technical one.
+
 Start by classifying the data. Public menu photos may have fewer restrictions than identity documents. KodeFood uses vendor food photos, but processing location should still be an explicit design choice rather than an emergency response to RUNNABLE jobs.
 
 Where data and models live is both a product and compliance decision. Next we examine the economics behind the Regional GPU price.

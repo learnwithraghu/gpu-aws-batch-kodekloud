@@ -20,6 +20,8 @@ Amazon SageMaker supports managed training, hosted endpoints, and processing job
 
 AWS Batch matches the shape closely. We submit a container job, Batch places it on GPU capacity, and capacity can fall when the queue drains.
 
+Different organizations land on different services here because they are choosing an operating model, not just renting a different size of machine.
+
 In a design review, the important question is not which service is most capable. It is which service owns the operational work this job actually needs. Next, we’ll make the case for Batch directly.
 
 ---

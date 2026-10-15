@@ -17,6 +17,8 @@ Inference uses trained weights to produce results. Latency-sensitive application
 
 Cloud demand also includes graphics, scientific computing, video encoding, and recommendation systems. The `g4dn` is suited to inference and graphics rather than frontier training. That makes it appropriate for captioning, but it also puts KodeFood in the same capacity pool as other G-family users.
 
+That is a useful reminder that your workload is competing not only with AI labs, but with many other products that also want accelerator time for different reasons.
+
 The distinction guides architecture. Long-running BLIP fine-tuning may justify reservations and a managed training platform. Captioning vendor folders points to Batch, Spot, and scale-to-zero. Combining both on one permanent fleet can waste capacity while serving neither workload well.
 
 Training creates concentrated peaks; inference creates a broad, persistent load. Next we examine why much of both still runs through CUDA.

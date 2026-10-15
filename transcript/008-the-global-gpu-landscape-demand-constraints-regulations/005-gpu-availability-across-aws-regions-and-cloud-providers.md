@@ -15,6 +15,8 @@ On AWS, instance availability and Service Quotas are Regional. New training fami
 
 Other providers follow the same pattern. Azure N-series, Google Cloud A2 and A3 instances and TPU pods, and Oracle GPU shapes all have Regional matrices that change as inventory expands. Major launch Regions tend to receive capacity first, while Spot remains variable.
 
+That is why multi-region or multi-cloud resilience sounds simple on a whiteboard but becomes much harder once the real accelerator matrix is involved.
+
 For KodeFood, failover is more than creating a second queue. Images, the ECR image, and output storage must also be available in the fallback Region, or the system must accept transfer latency and cost. Data-residency rules may further limit that move.
 
 Availability is a matrix, not a yes-or-no property. A sound plan names the preferred Region, the permitted fallback, and the data-movement cost. Next we examine the power and cooling behind those Regional pools.
