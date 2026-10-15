@@ -16,7 +16,7 @@ Our example company is KodeFood, a fast-food delivery app. Millions of people us
 
 But vendor uploads are messy. One folder may contain a clear plate of food, a selfie, a logo, or a random phone shot. KodeFood still needs a catalog customers can trust. So storing the image is only the first step. The platform must produce a short description and a clear accepted or rejected status.
 
-That is not just a teaching problem. Real delivery platforms also treat menu and storefront imagery as part of product quality, not as decoration around the product.
+That is not just a teaching problem. DoorDash has also written publicly about treating menu and storefront imagery as part of product quality, not as decoration around the product.
 
 We’ll build a teaching-sized version of that flow. Messy uploads go in. Usable catalog signals come out.
 

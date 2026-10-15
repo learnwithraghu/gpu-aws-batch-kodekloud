@@ -14,7 +14,7 @@ One vendor uploads about twenty-five to thirty dish photos. A person could revie
 
 Manual review starts to fail at that scale. The queue grows overnight. New vendors wait. Bad photos can reach the live menu, while good photos sit unpublished.
 
-That is the pattern large product teams keep running into: after a point, this stops being a reviewer discipline problem and becomes a systems design problem.
+That is the kind of scaling pressure companies like Uber keep writing about: after a point, this stops being a reviewer discipline problem and becomes a systems design problem.
 
 Notice that KodeFood does not need an art critique. It needs a practical result for each image: one short sentence, then accepted if the caption looks food-like, or rejected if it does not. Rejected rows remain in the catalog so operations can inspect them.
 

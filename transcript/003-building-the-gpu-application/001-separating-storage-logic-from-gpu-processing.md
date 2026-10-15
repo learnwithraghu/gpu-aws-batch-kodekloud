@@ -19,7 +19,7 @@ Those two concerns often fail for very different reasons. A missing object, wron
 
 That is why this separation is so helpful. It gives the team a clean first question when something breaks: is this a data-path problem, or is this a model-path problem?
 
-This is also how real production systems are usually designed. Keep the boundaries visible. Let one layer handle storage and movement of data. Let another layer handle the expensive compute. The result is easier testing, easier debugging, and clearer ownership.
+Uber’s Michelangelo is a good mental reference here. Keep the boundaries visible. Let one layer handle storage and movement of data. Let another layer handle the expensive compute. The result is easier testing, easier debugging, and clearer ownership.
 
 So before we even talk about the model itself, we already have a useful operating principle: separate the work that moves the data from the work that reasons over the data.
 

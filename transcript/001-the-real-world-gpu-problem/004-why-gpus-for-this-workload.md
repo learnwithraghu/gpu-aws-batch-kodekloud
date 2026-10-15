@@ -14,7 +14,7 @@ The application is not training a new model for every vendor. Training would upd
 
 The caption step contains the heavy matrix math. Each image becomes a grid of numbers that passes through many model layers. A CPU can process a folder of thirty photos, but it does the work slowly. A GPU runs many of those operations in parallel and finishes the folder in a shorter burst.
 
-Large product systems use the same general pattern in many places: do the expensive model scoring in a dedicated compute step, then let the product read a prepared result later.
+Netflix-style recommendation systems use a similar idea: do the expensive model scoring in a dedicated compute step, then let the product read prepared results later.
 
 Also notice what we do not need. We do not need an always-on GPU endpoint. We need GPU capacity while a folder is being processed, then we want that capacity to fall back toward zero. That is the shape of on-demand batch inference.
 

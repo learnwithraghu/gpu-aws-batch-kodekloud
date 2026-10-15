@@ -19,7 +19,7 @@ Next, a job is submitted. At that point we are simply telling the system, "proce
 
 So the full pattern is simple: durable input, asynchronous GPU compute, durable output.
 
-That is also how many companies think about this design. Keep the upload path simple. Hand off the heavy work to an async system. Store the result in a place other systems can read later.
+DoorDash’s engineering writing points at the same kind of concern. Keep the upload path simple. Hand off the heavy work to an async system. Store the result in a place other systems can read later.
 
 Once you see that flow, the first checks become much clearer. No output file? Check the input and the job result. Job waiting? Think about placement and capacity. Container starts and then fails? That is when logs become useful.
 

@@ -17,6 +17,8 @@ It takes one vendor’s folder of photos, generates short captions, applies a si
 
 That small contract is important. In a real company, a system becomes easier to operate when each job has a clear beginning, a clear end, and a clear output. One folder in. One result out.
 
+DoorDash’s engineering material points at the same broader concern: turning messy marketplace inputs into reliable catalog-quality outputs.
+
 It also tells us how to think about AWS Batch. Batch is not the application itself. Batch is the scheduler. Its job is to provide the environment and run the workload. The application is the logic that turns raw images into useful catalog data.
 
 This distinction matters when things go wrong. Sometimes the platform fails to place or start the job. Sometimes the application runs but produces the wrong outcome. Those are different classes of problems, and good teams separate them early.
