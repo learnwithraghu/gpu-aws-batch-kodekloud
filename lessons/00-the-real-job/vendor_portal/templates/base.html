@@ -9,10 +9,11 @@
 <body>
   <div class="wrap">
     <header class="app-header">
-      <h1 class="brand">Kode<span>Food</span> Vendor Portal</h1>
-      <span class="mode-pill">
-        {% if mode == "batch" %}Stage 2 · Nightly GPU Batch{% else %}Stage 1 · Manual Review{% endif %}
-      </span>
+      <div class="brand-group">
+        <h1 class="brand">Kode<span>Food</span> Vendor Portal</h1>
+        <span class="subtitle">Restaurant Partner Menu Management</span>
+      </div>
+      <span class="mode-pill">Partner Console</span>
     </header>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -24,11 +25,6 @@
     {% endwith %}
 
     {% block content %}{% endblock %}
-
-    <footer class="note">
-      Teaching demo for <em>Building Production GPU Workloads on AWS</em>.
-      Not a production vendor console.
-    </footer>
   </div>
 </body>
 </html>

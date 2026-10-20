@@ -1,18 +1,20 @@
-"""KodeFood Vendor Portal — Stage 1 manual review and Stage 2 Batch decisions.
+"""KodeFood Vendor Portal.
 
 Modes (env MODE):
-  manual  — Section 001: upload locally, "account manager will review in 24 hours"
-  batch   — Section 007: show nightly GPU Batch CSV (accepted / rejected)
+  manual  — Upload menu items in order; clicking Process shows:
+            "One of your account managers will review this in 24 hours and get back"
+  batch   — Show nightly GPU Batch CSV decisions (accepted / rejected)
 
 Optional Batch mode env:
-  S3_CSV_BUCKET   — bucket with descriptions/<stem>/descriptions.csv
-  IMAGE_STEM      — folder stem (default: sample)
+  S3_CSV_BUCKET    — bucket with descriptions/<stem>/descriptions.csv
+  IMAGE_STEM       — folder stem (default: sample)
   DESCRIPTIONS_CSV — local CSV path (overrides S3 when set)
 """
 from __future__ import annotations
 
 import csv
 import io
+import json
 import os
 import uuid
 from pathlib import Path
@@ -29,6 +31,7 @@ from flask import (
 
 BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = BASE_DIR / "uploads"
+MANIFEST_FILE = UPLOAD_DIR / "menu_items.json"
 SAMPLE_CSV = BASE_DIR / "sample_data" / "descriptions.csv"
 
 MODE = os.environ.get("MODE", "manual").strip().lower()
@@ -54,19 +57,105 @@ def _safe_ext(filename: str) -> str:
     return Path(filename).suffix.lower()
 
 
-def list_local_uploads() -> list[dict]:
+def _human_title(filename: str) -> str:
+    stem = Path(filename).stem
+    cleaned = stem.replace("_", " ").replace("-", " ").strip()
+    return cleaned.title() if cleaned else "Menu Item"
+
+
+def _load_manifest() -> list[dict]:
     _ensure_upload_dir()
+    if MANIFEST_FILE.is_file():
+        try:
+            data = json.loads(MANIFEST_FILE.read_text(encoding="utf-8"))
+            if isinstance(data, list):
+                valid = []
+                for entry in data:
+                    fname = entry.get("filename", "")
+                    if fname and (UPLOAD_DIR / fname).is_file():
+                        valid.append(
+                            {
+                                "id": entry.get("id") or fname,
+                                "name": entry.get("name") or _human_title(fname),
+                                "price": entry.get("price") or "",
+                                "filename": fname,
+                            }
+                        )
+                return valid
+        except Exception:  # noqa: BLE001
+            pass
+
+    # Fallback: discover any image files in uploads/
     items = []
     for path in sorted(UPLOAD_DIR.iterdir()):
         if path.is_file() and _safe_ext(path.name) in ALLOWED_EXT:
             items.append(
                 {
+                    "id": path.name,
+                    "name": _human_title(path.name),
+                    "price": "",
                     "filename": path.name,
-                    "url": url_for("uploaded_file", filename=path.name),
-                    "status": "pending",
                 }
             )
     return items
+
+
+def _save_manifest(items: list[dict]) -> None:
+    _ensure_upload_dir()
+    MANIFEST_FILE.write_text(json.dumps(items, indent=2), encoding="utf-8")
+
+
+def list_local_uploads() -> list[dict]:
+    raw_items = _load_manifest()
+    items = []
+    for idx, entry in enumerate(raw_items, start=1):
+        items.append(
+            {
+                "order": idx,
+                "id": entry["id"],
+                "name": entry["name"],
+                "price": entry.get("price", ""),
+                "filename": entry["filename"],
+                "url": url_for("uploaded_file", filename=entry["filename"]),
+            }
+        )
+    return items
+
+
+def _save_uploaded_files(files, custom_name: str = "", custom_price: str = "") -> int:
+    _ensure_upload_dir()
+    items = _load_manifest()
+    saved = 0
+    valid_files = [
+        f for f in files if f and f.filename and _safe_ext(f.filename) in ALLOWED_EXT
+    ]
+    for idx, f in enumerate(valid_files):
+        ext = _safe_ext(f.filename)
+        stem = Path(f.filename).stem[:40]
+        stored_name = f"{stem}-{uuid.uuid4().hex[:6]}{ext}"
+        dest = UPLOAD_DIR / stored_name
+        f.save(dest)
+
+        if custom_name and len(valid_files) == 1:
+            item_title = custom_name
+        elif custom_name and len(valid_files) > 1:
+            item_title = f"{custom_name} #{idx + 1}"
+        else:
+            item_title = _human_title(f.filename)
+
+        items.append(
+            {
+                "id": stored_name,
+                "name": item_title,
+                "price": custom_price,
+                "filename": stored_name,
+            }
+        )
+        saved += 1
+
+    if saved:
+        _save_manifest(items)
+    return saved
 
 
 def load_catalog_rows() -> tuple[list[dict], str]:
@@ -89,7 +178,7 @@ def load_catalog_rows() -> tuple[list[dict], str]:
                 .decode("utf-8")
             )
             return _parse_csv_text(body), f"s3://{CSV_BUCKET}/{key}"
-        except Exception as exc:  # noqa: BLE001 — demo UI shows the error
+        except Exception as exc:  # noqa: BLE001
             return [], f"S3 error: {exc}"
 
     if SAMPLE_CSV.is_file():
@@ -155,41 +244,66 @@ def index():
 @app.route("/upload", methods=["POST"])
 def upload():
     if MODE != "manual":
-        flash("Uploads are only enabled in MODE=manual.", "error")
         return redirect(url_for("index"))
 
-    _ensure_upload_dir()
     files = request.files.getlist("photos")
-    saved = 0
-    for f in files:
-        if not f or not f.filename:
-            continue
-        ext = _safe_ext(f.filename)
-        if ext not in ALLOWED_EXT:
-            continue
-        # Keep original stem for demo readability; uuid avoids collisions.
-        stem = Path(f.filename).stem[:40]
-        dest = UPLOAD_DIR / f"{stem}-{uuid.uuid4().hex[:8]}{ext}"
-        f.save(dest)
-        saved += 1
+    item_name = (request.form.get("item_name") or "").strip()
+    item_price = (request.form.get("item_price") or "").strip()
+    action = (request.form.get("action") or "add").strip()
+
+    saved = _save_uploaded_files(files, custom_name=item_name, custom_price=item_price)
+
+    if action == "process":
+        uploads = list_local_uploads()
+        if not uploads:
+            flash("Please upload at least one menu item image before processing.", "error")
+            return redirect(url_for("index"))
+        return redirect(url_for("index", submitted=1))
 
     if saved == 0:
-        flash("No valid images selected (jpg, jpeg, png, webp, gif).", "error")
+        flash("Please select a valid image file (JPG, PNG, WEBP, or GIF).", "error")
         return redirect(url_for("index"))
 
-    flash(f"Uploaded {saved} photo(s). Submit when the order looks right.")
+    return redirect(url_for("index"))
+
+
+@app.route("/move/<item_id>/<direction>", methods=["POST"])
+def move_item(item_id: str, direction: str):
+    items = _load_manifest()
+    idx = next((i for i, x in enumerate(items) if x["id"] == item_id), None)
+    if idx is not None:
+        if direction == "up" and idx > 0:
+            items[idx - 1], items[idx] = items[idx], items[idx - 1]
+            _save_manifest(items)
+        elif direction == "down" and idx < len(items) - 1:
+            items[idx + 1], items[idx] = items[idx], items[idx + 1]
+            _save_manifest(items)
+    return redirect(url_for("index"))
+
+
+@app.route("/remove/<item_id>", methods=["POST"])
+def remove_item(item_id: str):
+    items = _load_manifest()
+    remaining = []
+    for entry in items:
+        if entry["id"] == item_id:
+            fpath = UPLOAD_DIR / entry["filename"]
+            if fpath.is_file():
+                fpath.unlink()
+        else:
+            remaining.append(entry)
+    _save_manifest(remaining)
     return redirect(url_for("index"))
 
 
 @app.route("/submit", methods=["POST"])
 def submit():
     if MODE != "manual":
-        flash("Submit is only enabled in MODE=manual.", "error")
         return redirect(url_for("index"))
 
     uploads = list_local_uploads()
     if not uploads:
-        flash("Upload at least one photo before submitting.", "error")
+        flash("Please upload at least one menu item before clicking Process.", "error")
         return redirect(url_for("index"))
 
     return redirect(url_for("index", submitted=1))
@@ -201,9 +315,8 @@ def clear():
         return redirect(url_for("index"))
     _ensure_upload_dir()
     for path in UPLOAD_DIR.iterdir():
-        if path.is_file():
+        if path.is_file() and path.name != ".gitkeep":
             path.unlink()
-    flash("Cleared local uploads.")
     return redirect(url_for("index"))
 
 

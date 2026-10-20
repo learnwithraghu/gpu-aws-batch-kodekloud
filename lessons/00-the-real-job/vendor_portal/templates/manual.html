@@ -1,69 +1,122 @@
 {% extends "base.html" %}
-{% block title %}KodeFood Vendor Portal — Manual Review{% endblock %}
+{% block title %}KodeFood Vendor Portal — Upload Menu Items{% endblock %}
 
 {% block content %}
   {% if submitted %}
-  <div class="banner pending">
-    <h2>Submitted!</h2>
-    <p>
-      One of your account managers will review this in 24 hours and get back to you.
-      Photos stay in a pending queue until a human accepts or rejects each dish image.
-    </p>
-  </div>
-  {% else %}
-  <div class="banner">
-    <h2>Upload menu photos</h2>
-    <p>
-      Add dish photos in the order they should appear on your KodeFood menu.
-      Today this is a manual process — no GPU, no automated accept/reject yet.
-    </p>
+  <div class="banner pending" id="review-message">
+    <div class="banner-icon">⏳</div>
+    <div>
+      <h2>One of your account managers will review this in 24 hours and get back.</h2>
+      <p>Your {{ uploads|length }} menu item(s) have been received in the order shown below.</p>
+    </div>
   </div>
   {% endif %}
 
   <section class="upload-panel">
-    <h2>Menu photo upload</h2>
-    <p class="hint">Accepted formats: JPG, JPEG, PNG, WEBP, GIF. Files stay on this EC2 host for the demo.</p>
+    <h2>Add Menu Items</h2>
+    <p class="hint">Upload your dish photos in the order you want them to appear on your KodeFood restaurant menu.</p>
 
-    <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
-      <div class="dropzone" id="dropzone">
-        <label for="photos">Choose photos</label>
-        <p class="hint" style="margin-top:0.75rem">Select multiple files to upload in one go.</p>
-        <input id="photos" type="file" name="photos" accept="image/*" multiple required>
+    <form id="upload-form" action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+      <div class="form-row">
+        <div class="field">
+          <label for="item_name">Menu Item Name <span class="opt">(optional — auto-fills from photo filename)</span></label>
+          <input id="item_name" type="text" name="item_name" placeholder="e.g. Spicy Ramen Bowl, Classic Burger…">
+        </div>
+        <div class="field price-field">
+          <label for="item_price">Price <span class="opt">(optional)</span></label>
+          <input id="item_price" type="text" name="item_price" placeholder="e.g. $12.99">
+        </div>
       </div>
+
+      <div class="dropzone" id="dropzone">
+        <label for="photos" class="dropzone-label">
+          <span class="dropzone-title">Select Menu Item Photo(s)</span>
+          <span class="dropzone-sub">Choose one or multiple dish images (JPG, PNG, WEBP)</span>
+        </label>
+        <input id="photos" type="file" name="photos" accept="image/*" multiple>
+      </div>
+
       <div class="actions">
-        <button class="btn" type="submit">Add to gallery</button>
+        <button class="btn secondary" type="submit" name="action" value="add">+ Add to Menu List</button>
+        <button class="btn primary-process" type="submit" name="action" value="process">Process Menu Items</button>
       </div>
     </form>
   </section>
 
-  <h2 style="font-size:1.1rem;margin:0 0 0.75rem">Your gallery{% if uploads %} ({{ uploads|length }}){% endif %}</h2>
-
-  {% if uploads %}
-  <div class="gallery">
-    {% for item in uploads %}
-    <article class="card">
-      <div class="thumb">
-        <img src="{{ item.url }}" alt="{{ item.filename }}">
+  <section class="menu-list-section">
+    <div class="section-header">
+      <h2>Menu Items in Order{% if uploads %} ({{ uploads|length }}){% endif %}</h2>
+      {% if uploads %}
+      <div class="actions">
+        <form action="{{ url_for('submit') }}" method="post" style="display:inline">
+          <button class="btn primary-process" type="submit">Process Menu Items</button>
+        </form>
+        <form action="{{ url_for('clear') }}" method="post" style="display:inline">
+          <button class="btn secondary small" type="submit">Clear All</button>
+        </form>
       </div>
-      <div class="body">
-        <span class="badge pending">Pending Manual Review</span>
-        <span class="name">{{ item.filename }}</span>
-      </div>
-    </article>
-    {% endfor %}
-  </div>
+      {% endif %}
+    </div>
 
-  <div class="actions">
-    <form action="{{ url_for('submit') }}" method="post" style="display:inline">
-      <button class="btn" type="submit"{% if submitted %} disabled{% endif %}>
-        {% if submitted %}Already submitted{% else %}Submit Menu Photos{% endif %}
-      </button>
-    </form>
-    <form action="{{ url_for('clear') }}" method="post" style="display:inline">
-      <button class="btn secondary" type="submit">Clear gallery</button>
-    </form>
-  </div>
-  {% else %}
-  <p class="empty">No photos yet. Upload a few dish images to see the pending-review badges.</p>
-  {% endif %}
+    {% if uploads %}
+    <div class="menu-items-list">
+      {% for item in uploads %}
+      <article class="menu-row">
+        <div class="order-col">
+          <span class="order-num">#{{ item.order }}</span>
+          <div class="order-btns">
+            <form action="{{ url_for('move_item', item_id=item.id, direction='up') }}" method="post">
+              <button type="submit" class="icon-btn" title="Move up" {% if loop.first %}disabled{% endif %}>↑</button>
+            </form>
+            <form action="{{ url_for('move_item', item_id=item.id, direction='down') }}" method="post">
+              <button type="submit" class="icon-btn" title="Move down" {% if loop.last %}disabled{% endif %}>↓</button>
+            </form>
+          </div>
+        </div>
+        <div class="menu-thumb">
+          <img src="{{ item.url }}" alt="{{ item.name }}">
+        </div>
+        <div class="menu-info">
+          <div class="menu-title-row">
+            <h3 class="menu-item-name">{{ item.name }}</h3>
+            {% if item.price %}
+              <span class="menu-item-price">{{ item.price }}</span>
+            {% endif %}
+          </div>
+          <span class="menu-file">{{ item.filename }}</span>
+          {% if submitted %}
+            <span class="badge pending">Submitted for Account Manager Review (24h)</span>
+          {% endif %}
+        </div>
+        <div class="menu-remove">
+          <form action="{{ url_for('remove_item', item_id=item.id) }}" method="post">
+            <button type="submit" class="icon-btn remove" title="Remove item">✕</button>
+          </form>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty">No menu items uploaded yet. Select your dish photos above to add them in order, then click <strong>Process Menu Items</strong>.</p>
+    {% endif %}
+  </section>
+
+  <script>
+    // Auto-add photos to the ordered menu list as soon as the user selects files,
+    // so they immediately see their uploaded menu items in order before clicking "Process Menu Items".
+    const fileInput = document.getElementById('photos');
+    const uploadForm = document.getElementById('upload-form');
+    if (fileInput && uploadForm) {
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files && fileInput.files.length > 0) {
+          const hiddenAction = document.createElement('input');
+          hiddenAction.type = 'hidden';
+          hiddenAction.name = 'action';
+          hiddenAction.value = 'add';
+          uploadForm.appendChild(hiddenAction);
+          uploadForm.submit();
+        }
+      });
+    }
+  </script>
 {% endblock %}

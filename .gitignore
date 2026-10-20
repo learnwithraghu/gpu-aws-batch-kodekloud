@@ -16,7 +16,9 @@ lessons/*/assets/images/*.jpg
 lessons/*/assets/images/*.jpeg
 lessons/*/assets/images/*.png
 
-# KodeFood Vendor Portal (Lesson 00) — Stage 1 local uploads (keep the directory)
+# KodeFood Vendor Portal — Stage 1 local uploads (keep the directory)
 lessons/00-the-real-job/vendor_portal/uploads/*
 !lessons/00-the-real-job/vendor_portal/uploads/.gitkeep
 lessons/00-the-real-job/vendor_portal/.venv/
+vendor_portal/
+
