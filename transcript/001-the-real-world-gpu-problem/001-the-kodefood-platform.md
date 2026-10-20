@@ -1,10 +1,10 @@
-# Video 000 — The KodeFood Platform
+# Video 001 — The KodeFood Platform
 **Section:** 001 — The Real-World GPU Problem
-**Lecture#:** 000
+**Lecture#:** 001
 **Sheet title:** The KodeFood Platfrom
 **Type:** Video
 **Runtime target:** ~2 minutes
-**Topic code:** 001-000-the-kodefood-platfrom
+**Topic code:** 001-001-the-kodefood-platfrom
 
 ---
 

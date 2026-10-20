@@ -19,7 +19,7 @@ Course outline: [syllabus.md](syllabus.md). Live queue, job definition, and buck
 
 | # | Lesson | What you do | Theory |
 |---|--------|-------------|--------|
-| [00](lessons/00-the-real-job/) | The real job | See the folder in, the one CSV out, and why it is a GPU batch job | [theory.md](lessons/00-the-real-job/theory.md) |
+| [00](lessons/00-the-real-job/) | The real job | Run the manual vendor portal (Demo 007), then see the folder-in / CSV-out Batch design | [theory.md](lessons/00-the-real-job/theory.md) · [vendor_portal](lessons/00-the-real-job/vendor_portal/) |
 | [01](lessons/01-batch-and-gpu/) | AWS Batch and the GPU | Learn the compute environment, queue, job definition, and what a GPU job needs | [theory.md](lessons/01-batch-and-gpu/theory.md) |
 | [02](lessons/02-the-container-program/) | The container program | Read `photos.py` (S3) and `describe_items.py` (GPU) | [theory.md](lessons/02-the-container-program/theory.md) |
 | [03](lessons/03-build-the-image/) | Build the image locally | `docker build --platform linux/amd64 -t gpu-teaching:latest .` | [theory.md](lessons/03-build-the-image/theory.md) |

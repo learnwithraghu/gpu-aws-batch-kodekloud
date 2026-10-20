@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}KodeFood Vendor Portal — Nightly GPU Review{% endblock %}
+
+{% block content %}
+  <div class="banner done">
+    <h2>Nightly GPU Review Complete</h2>
+    <p>
+      Processed automatically via AWS Batch — not a 24-hour human queue.
+      Vendors still see results on a nightly cadence, but captions and accept/reject
+      decisions come from the GPU job that wrote <code>descriptions/{{ stem }}/descriptions.csv</code>.
+    </p>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <span class="n">{{ stats.total }}</span>
+      <span class="l">Total</span>
+    </div>
+    <div class="stat ok">
+      <span class="n">{{ stats.accepted }}</span>
+      <span class="l">Accepted</span>
+    </div>
+    <div class="stat bad">
+      <span class="n">{{ stats.rejected }}</span>
+      <span class="l">Rejected</span>
+    </div>
+  </div>
+
+  <p class="hint" style="color:var(--muted);margin:0 0 1rem;font-size:0.9rem">
+    Catalog source: <code>{{ source }}</code>
+  </p>
+
+  {% if rows %}
+  <h2 style="font-size:1.1rem;margin:0 0 0.75rem">Decision catalog</h2>
+  <div class="table-wrap">
+    <table class="catalog">
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Description</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td class="uri">{{ row.image_s3_uri }}</td>
+          <td>{{ row.item_description }}</td>
+          <td>
+            <span class="badge {{ row.photo_status }}">{{ row.photo_status }}</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h2 style="font-size:1.1rem;margin:0 0 0.75rem">Visual review</h2>
+  <div class="gallery">
+    {% for row in rows %}
+    <article class="card">
+      <div class="thumb placeholder">
+        {{ row.filename or "image" }}
+      </div>
+      <div class="body">
+        <span class="badge {{ row.photo_status }}">{{ row.photo_status }}</span>
+        <p class="desc">{{ row.item_description }}</p>
+        <span class="name">{{ row.filename }}</span>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="empty">
+    No catalog rows loaded. Set <code>DESCRIPTIONS_CSV</code>, or
+    <code>S3_CSV_BUCKET</code> + <code>IMAGE_STEM</code>, or keep the bundled sample CSV.
+  </p>
+  {% endif %}
+{% endblock %}

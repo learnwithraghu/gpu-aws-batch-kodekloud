@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}KodeFood Vendor Portal — Manual Review{% endblock %}
+
+{% block content %}
+  {% if submitted %}
+  <div class="banner pending">
+    <h2>Submitted!</h2>
+    <p>
+      One of your account managers will review this in 24 hours and get back to you.
+      Photos stay in a pending queue until a human accepts or rejects each dish image.
+    </p>
+  </div>
+  {% else %}
+  <div class="banner">
+    <h2>Upload menu photos</h2>
+    <p>
+      Add dish photos in the order they should appear on your KodeFood menu.
+      Today this is a manual process — no GPU, no automated accept/reject yet.
+    </p>
+  </div>
+  {% endif %}
+
+  <section class="upload-panel">
+    <h2>Menu photo upload</h2>
+    <p class="hint">Accepted formats: JPG, JPEG, PNG, WEBP, GIF. Files stay on this EC2 host for the demo.</p>
+
+    <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+      <div class="dropzone" id="dropzone">
+        <label for="photos">Choose photos</label>
+        <p class="hint" style="margin-top:0.75rem">Select multiple files to upload in one go.</p>
+        <input id="photos" type="file" name="photos" accept="image/*" multiple required>
+      </div>
+      <div class="actions">
+        <button class="btn" type="submit">Add to gallery</button>
+      </div>
+    </form>
+  </section>
+
+  <h2 style="font-size:1.1rem;margin:0 0 0.75rem">Your gallery{% if uploads %} ({{ uploads|length }}){% endif %}</h2>
+
+  {% if uploads %}
+  <div class="gallery">
+    {% for item in uploads %}
+    <article class="card">
+      <div class="thumb">
+        <img src="{{ item.url }}" alt="{{ item.filename }}">
+      </div>
+      <div class="body">
+        <span class="badge pending">Pending Manual Review</span>
+        <span class="name">{{ item.filename }}</span>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+
+  <div class="actions">
+    <form action="{{ url_for('submit') }}" method="post" style="display:inline">
+      <button class="btn" type="submit"{% if submitted %} disabled{% endif %}>
+        {% if submitted %}Already submitted{% else %}Submit Menu Photos{% endif %}
+      </button>
+    </form>
+    <form action="{{ url_for('clear') }}" method="post" style="display:inline">
+      <button class="btn secondary" type="submit">Clear gallery</button>
+    </form>
+  </div>
+  {% else %}
+  <p class="empty">No photos yet. Upload a few dish images to see the pending-review badges.</p>
+  {% endif %}
+{% endblock %}

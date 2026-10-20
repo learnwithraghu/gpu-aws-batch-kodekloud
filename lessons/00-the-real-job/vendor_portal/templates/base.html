@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}KodeFood Vendor Portal{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="wrap">
+    <header class="app-header">
+      <h1 class="brand">Kode<span>Food</span> Vendor Portal</h1>
+      <span class="mode-pill">
+        {% if mode == "batch" %}Stage 2 · Nightly GPU Batch{% else %}Stage 1 · Manual Review{% endif %}
+      </span>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash{% if category == 'error' %} error{% endif %}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+
+    <footer class="note">
+      Teaching demo for <em>Building Production GPU Workloads on AWS</em>.
+      Not a production vendor console.
+    </footer>
+  </div>
+</body>
+</html>

@@ -2,13 +2,43 @@
 
 KodeFood is a fast-food delivery app. Millions of users. More than 2,000 vendors, and more joining every day. One hard problem is the photo a vendor uploads. Someone still checks it by hand.
 
-This course builds the simple design: run a finished caption model on each photo. A food-like caption accepts the photo and becomes the menu text. A caption about a car, a selfie, or a logo rejects the photo. Nobody on the team has to open every upload.
+**Demo / Lab (Section 001):** [Demo] Current manual menu image verification — run the vendor portal below to feel that manual queue before the course replaces it with AWS Batch.
 
-Theory reading: [`theory.md`](theory.md).
+This course then builds the simple design: run a finished caption model on each photo. A food-like caption accepts the photo and becomes the menu text. A caption about a car, a selfie, or a logo rejects the photo. Nobody on the team has to open every upload.
 
-No AWS commands in this lesson. Later lessons build the pieces that make this run.
+Theory reading: [`theory.md`](theory.md). Portal how-to: [`vendor_portal/README.md`](vendor_portal/README.md).
 
-## What arrives
+## Demo 007 — Current manual menu image verification
+
+Show the **legacy** vendor experience: upload menu photos, submit, get a 24-hour human-review promise. No GPU. No Batch.
+
+### Local dry run
+
+```bash
+cd lessons/00-the-real-job/vendor_portal
+bash run_portal.sh
+# open http://127.0.0.1:8000
+```
+
+### EC2 (Amazon Linux 2023) — instructor / Lab 008 path
+
+1. Launch a `t3.micro` with inbound **SSH 22** and **TCP 8000** from your IP.
+2. Clone the course repo on the instance, then:
+
+```bash
+cd gpu-aws-batch-kodekloud/lessons/00-the-real-job/vendor_portal
+bash setup_ec2.sh
+# MODE defaults to manual
+```
+
+3. Open `http://<public-ip>:8000`.
+4. Upload several dish photos (optionally add a selfie or logo). Confirm **Pending Manual Review**.
+5. Click **Submit Menu Photos**. Confirm the banner:
+   > Submitted! One of your account managers will review this in 24 hours and get back to you.
+
+Later in the course (Section 007 Demo 005), the same app runs with `MODE=batch` and shows accept/reject decisions from `descriptions.csv`.
+
+## What arrives (after Batch exists)
 
 ```
 s3://<images-bucket>/images/<batch>/

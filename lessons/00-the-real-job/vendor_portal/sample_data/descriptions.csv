@@ -1,0 +1,8 @@
+image_s3_uri,item_description,photo_status
+s3://gpu-teaching-images-example/images/vendor-a/bowl.jpg,a food dish of noodles with vegetables,accepted
+s3://gpu-teaching-images-example/images/vendor-a/burger.jpg,a burger with fries on a plate,accepted
+s3://gpu-teaching-images-example/images/vendor-a/pizza.jpg,a pizza with cheese and toppings,accepted
+s3://gpu-teaching-images-example/images/vendor-a/salad.jpg,a bowl of fresh vegetable salad,accepted
+s3://gpu-teaching-images-example/images/vendor-a/car.jpg,a car parked on the street,rejected
+s3://gpu-teaching-images-example/images/vendor-a/selfie.jpg,a person taking a selfie,rejected
+s3://gpu-teaching-images-example/images/vendor-a/logo.jpg,a restaurant logo on a white background,rejected

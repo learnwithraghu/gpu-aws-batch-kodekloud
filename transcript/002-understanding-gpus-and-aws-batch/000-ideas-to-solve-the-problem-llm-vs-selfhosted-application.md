@@ -1,10 +1,10 @@
-# Video 002 — Ideas to solve the problem: LLM vs Selfhosted application
-**Section:** 001 — The Real-World GPU Problem
-**Lecture#:** 002
+# Video 000 — Ideas to solve the problem: LLM vs Selfhosted application
+**Section:** 002 — Understanding GPUs and AWS Batch
+**Lecture#:** 000
 **Sheet title:** Ideas to solve the problem : LLM vs Selfhosted application
 **Type:** Video
 **Runtime target:** ~2 minutes
-**Topic code:** 001-002-ideas-to-solve-the-problem---l
+**Topic code:** 002-000-ideas-to-solve-the-problem---l
 
 ---
 
@@ -20,7 +20,7 @@ The second option is to self-host a finished caption model such as BLIP. We run 
 
 For this KodeFood job, we’ll use the self-hosted path. The workload is batch inference with a clear beginning and end. A vendor folder arrives. We process it, write `descriptions.csv`, and release the expensive capacity.
 
-That leaves a useful question: why does the self-hosted path need special hardware? Next, we’ll trace why image work moved beyond ordinary CPU processing in the first place.
+That leaves a useful question: why does the self-hosted path need a GPU at all? Next, we’ll trace how hardware built for graphics became the engine behind AI inference.
 
 ---
 
@@ -29,3 +29,4 @@ That leaves a useful question: why does the self-hosted path need special hardwa
 - https://huggingface.co/Salesforce/blip-image-captioning-base — the class of caption model our self-hosted path will use
 - https://platform.openai.com/docs/guides/images-vision — example of a hosted vision API path, useful to contrast with batch self-hosting
 - https://aws.amazon.com/what-is/inference/ — AWS overview of inference as “run a finished model,” which is our mode
+

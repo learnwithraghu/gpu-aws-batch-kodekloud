@@ -10,17 +10,17 @@
 - **Lesson 00: The Real Job**
 -  **[Theory] ->** [theory.md](lessons/00-the-real-job/theory.md) — batch inference, GPUs, on-demand vs always-on, one folder one artifact
 -  **[Video] ->** KodeFood photo check: vendor uploads, caption then accept or reject, shared GPU pool
--  **[Demo] ->** Walk the input prefix and the output file, one row per photo with photo_status
--  **[Lab] ->** Read this lesson only. No AWS commands
--  **[Deliverable] ->** You can point at `images/<batch>/` and `descriptions/<batch>/descriptions.csv` and say why this is a batch GPU job for KodeFood
-  - **AWS Services:** None
-  - **Estimated Time:** 15 minutes
+-  **[Demo] ->** [Demo 007] Current manual menu image verification — run [`vendor_portal/`](lessons/00-the-real-job/vendor_portal/) (`MODE=manual`), then contrast with the folder-in / CSV-out Batch design
+-  **[Lab] ->** [Lab 008] Deploy the vendor portal on Amazon Linux EC2; submit photos and confirm the 24-hour manual-review banner
+-  **[Deliverable] ->** You can show the manual queue, then point at `images/<batch>/` and `descriptions/<batch>/descriptions.csv` and say why this becomes a batch GPU job for KodeFood
+  - **AWS Services:** EC2 (portal demo only)
+  - **Estimated Time:** 25–40 minutes
 
 - **Lesson 01: AWS Batch and the GPU**
 -  **[Theory] ->** [theory.md](lessons/01-batch-and-gpu/theory.md) — four Batch objects, GPU placement, roles, Spot vs on-demand, **Service Quotas and requesting a G/VT increase**
 -  **[Video] ->** Compute environment, job queue, job definition, and job — and what changes when the job needs a GPU
--  **[Demo] ->** `g4dn.xlarge`, the NVIDIA AMI, 1 GPU, 12288 MiB, the instance role versus the job role, Spot versus on-demand
--  **[Lab] ->** Describe the live environment, queue, and job definition. Create nothing
+-  **[Demo] ->** [Demo 007] AWS Batch exploration on AWS console — `g4dn.xlarge`, the NVIDIA AMI, 1 GPU, 12288 MiB, the instance role versus the job role, Spot versus on-demand, and G/VT quotas
+-  **[Lab] ->** [Lab 008] AWS Batch exploration on AWS console — inspect the live environment, queue, job definition revisions, and G/VT quotas. Create nothing
 -  **[Deliverable] ->** You can name the four Batch objects and say why 16384 MiB never places
   - **AWS Services:** AWS Batch
   - **Estimated Time:** 25 minutes

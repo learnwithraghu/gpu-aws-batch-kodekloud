@@ -1,10 +1,10 @@
-# Video 001 — The KodeFood Problem: Processing Vendor Images at Scale
+# Video 002 — The KodeFood Problem: Processing Vendor Images at Scale
 **Section:** 001 — The Real-World GPU Problem
-**Lecture#:** 001
+**Lecture#:** 002
 **Sheet title:** The KodeFood Problem: Processing Vendor Images at Scale
 **Type:** Video
 **Runtime target:** ~2 minutes
-**Topic code:** 001-001-the-kodefood-problem--processi
+**Topic code:** 001-002-the-kodefood-problem--processi
 
 ---
 
