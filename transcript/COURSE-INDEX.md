@@ -11,7 +11,7 @@ Source of truth: [`Building Production GPU Workloads on AWS - Draft-Raghu.csv`](
 | Section | Folder | Videos (sheet) |
 |---------|--------|----------------|
 | 001 | [001-the-real-world-gpu-problem](001-the-real-world-gpu-problem/) | 4 (+ whiteboard; Demo/Lab separate) |
-| 002 | [002-understanding-gpus-and-aws-batch](002-understanding-gpus-and-aws-batch/) | 6 |
+| 002 | [002-gpu-fundamentals-from-silicon-to-cloud](002-gpu-fundamentals-from-silicon-to-cloud/) | 6 |
 | 003 | [003-building-the-gpu-application](003-building-the-gpu-application/) | 6 |
 | 004 | [004-building-the-data-and-container-pipeline](004-building-the-data-and-container-pipeline/) | 4 |
 | 005 | [005-building-the-aws-batch-gpu-infrastructure](005-building-the-aws-batch-gpu-infrastructure/) | 7 |
@@ -36,12 +36,12 @@ Source of truth: [`Building Production GPU Workloads on AWS - Draft-Raghu.csv`](
 
 | # | File | Title | Runtime |
 |---|------|-------|---------|
-| 000 | [000-what-is-a-gpu-really.md](002-understanding-gpus-and-aws-batch/000-what-is-a-gpu-really.md) | What Is a GPU, Really? | ~2 min |
-| 001 | [001-from-pixels-to-processors-a-gpu-history.md](002-understanding-gpus-and-aws-batch/001-from-pixels-to-processors-a-gpu-history.md) | From Pixels to Processors: A GPU History | ~2 min |
-| 002 | [002-how-gpus-took-over-computing.md](002-understanding-gpus-and-aws-batch/002-how-gpus-took-over-computing.md) | How GPUs Took Over Computing | ~2 min |
-| 003 | [003-cpu-vs-gpu-why-we-need-both.md](002-understanding-gpus-and-aws-batch/003-cpu-vs-gpu-why-we-need-both.md) | CPU vs GPU: Why We Need Both | ~2 min |
-| 004 | [004-inside-the-gpu-hardware-explained.md](002-understanding-gpus-and-aws-batch/004-inside-the-gpu-hardware-explained.md) | Inside the GPU: Hardware Explained | ~3 min |
-| 005 | [005-gpus-in-the-cloud.md](002-understanding-gpus-and-aws-batch/005-gpus-in-the-cloud.md) | GPUs in the Cloud | ~3 min |
+| 000 | [000-what-is-a-gpu-really.md](002-gpu-fundamentals-from-silicon-to-cloud/000-what-is-a-gpu-really.md) | What Is a GPU, Really? | ~2 min |
+| 001 | [001-from-pixels-to-processors-a-gpu-history.md](002-gpu-fundamentals-from-silicon-to-cloud/001-from-pixels-to-processors-a-gpu-history.md) | From Pixels to Processors: A GPU History | ~2 min |
+| 002 | [002-how-gpus-took-over-computing.md](002-gpu-fundamentals-from-silicon-to-cloud/002-how-gpus-took-over-computing.md) | How GPUs Took Over Computing | ~2 min |
+| 003 | [003-cpu-vs-gpu-why-we-need-both.md](002-gpu-fundamentals-from-silicon-to-cloud/003-cpu-vs-gpu-why-we-need-both.md) | CPU vs GPU: Why We Need Both | ~2 min |
+| 004 | [004-inside-the-gpu-hardware-explained.md](002-gpu-fundamentals-from-silicon-to-cloud/004-inside-the-gpu-hardware-explained.md) | Inside the GPU: Hardware Explained | ~3 min |
+| 005 | [005-gpus-in-the-cloud.md](002-gpu-fundamentals-from-silicon-to-cloud/005-gpus-in-the-cloud.md) | GPUs in the Cloud | ~3 min |
 
 ### 003 — Building the GPU Application
 
