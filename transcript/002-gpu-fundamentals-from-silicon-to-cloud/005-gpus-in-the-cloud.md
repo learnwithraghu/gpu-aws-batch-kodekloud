@@ -23,7 +23,7 @@ DoorDash and similar marketplace teams design around this reality: for offline c
 
 Notice how everything from this section now connects. A GPU gives us parallel tensor math and bounded VRAM; the cloud gives us on-demand access to that silicon; and AWS Batch gives us the control plane to run it only while work is waiting.
 
-Next, we’ll step into the application layer and see how our container program is structured to run cleanly on top of this GPU setup.
+Next, we step into AWS Batch — the scheduler that turns cloud GPU capacity into finite KodeFood jobs that can scale back to zero.
 
 ---
 

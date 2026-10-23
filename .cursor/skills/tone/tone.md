@@ -19,17 +19,17 @@ This reference accompanies [`SKILL.md`](SKILL.md) with concrete patterns and bef
 
 Only name a company when the concept matches the linked `Further reading` source, and never overstate what the public source proves:
 
-- **Product & catalog quality (Sections 001, 003):** **DoorDash** — menu and storefront imagery as product quality and conversion trust, turning messy vendor uploads into structured catalog signals.
-- **Scaling & ML platform boundaries (Sections 001, 003, 007):** **Uber (Michelangelo)** — when human review turns into a systems design problem; separating data movement from expensive model compute; keeping units of work small and restartable.
-- **Offline batch inference vs. real-time (Sections 002, 007):** **Netflix** — running heavy model scoring in a dedicated offline batch step so the customer-facing product reads prepared output quickly.
-- **Storage contracts & lineage (Section 004):** **Airbnb (Bighead)** — separating input/output storage concerns cleanly so permissions, lineage, and debugging remain easy to reason about.
+- **Product & catalog quality (Sections 001, 004):** **DoorDash** — menu and storefront imagery as product quality and conversion trust, turning messy vendor uploads into structured catalog signals.
+- **Scaling & ML platform boundaries (Sections 001, 003, 004, 008):** **Uber (Michelangelo)** — when human review turns into a systems design problem; separating data movement from expensive model compute; keeping units of work small and restartable.
+- **Offline batch inference vs. real-time (Sections 002, 003, 008):** **Netflix** — running heavy model scoring in a dedicated offline batch step so the customer-facing product reads prepared output quickly.
+- **Storage contracts & lineage (Section 005):** **Airbnb (Bighead)** — separating input/output storage concerns cleanly so permissions, lineage, and debugging remain easy to reason about.
 - **Hosted API vs. self-hosted tradeoff (Section 002):** **OpenAI-style vision APIs vs. self-hosted BLIP** — renting intelligence per request vs. operating a repeatable batch container with predictable data boundaries.
 
 ---
 
 ## 3. Canonical Examples from This Repo
 
-### Example A — Opening with "Why" and Company Debugging (`003/001`)
+### Example A — Opening with "Why" and Company Debugging (`004/001`)
 
 ```markdown
 Why separate storage logic from GPU processing at all?
@@ -43,7 +43,7 @@ Those two concerns often fail for very different reasons. A missing object, wron
 That is why this separation is so helpful. It gives the team a clean first question when something breaks: is this a data-path problem, or is this a model-path problem?
 ```
 
-### Example B — Operational State & Symptom Thinking (`006/006`)
+### Example B — Operational State & Symptom Thinking (`007/006`)
 
 ```markdown
 `RUNNABLE` sounds encouraging, but it often frustrates beginners.
@@ -57,7 +57,7 @@ In real teams, `RUNNABLE` usually points to one of a few operational questions. 
 Notice what all of those have in common: they are placement questions, not application questions.
 ```
 
-### Example C — Section 008 Global Context Connected Back to KodeFood (`008/000`)
+### Example C — Section 009 Global Context Connected Back to KodeFood (`009/000`)
 
 ```markdown
 Batch, ECS, EKS, and SageMaker all depend on the same thing: an available accelerator. When the KodeFood job remains RUNNABLE in Tokyo, a small application is meeting a global infrastructure constraint.

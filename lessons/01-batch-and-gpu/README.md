@@ -4,6 +4,8 @@ This is the map for the rest of the course. You will create each piece in a late
 
 **Interactive Demo / Lab (Section 002 Demo 007 & Lab 008):** [`gpu_cpu_simulator/`](gpu_cpu_simulator/README.md) — **Sequential CPU vs Parallel GPU** on the same dish tensor. Run `bash lessons/01-batch-and-gpu/gpu_cpu_simulator/run_simulator.sh` (or open `index.html`).
 
+**Section 003 console demos (AWS Console only, 3 demos):** [`../03-aws-batch-console/`](../03-aws-batch-console/README.md) — (1) Batch control plane, (2) job definition + dummy job, (3) GPU job on Spot. No demo transcripts.
+
 Theory reading: [`theory.md`](theory.md).
 
 Region for every command: `ap-northeast-1`.

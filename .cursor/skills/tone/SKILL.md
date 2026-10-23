@@ -9,8 +9,8 @@ Apply this skill **every time** you create or edit a transcript under `transcrip
 
 ## 1. Core Persona & Voice
 
-- **Primary persona (Sections 001–007):** A calm senior platform engineer guiding a junior engineer through one real production problem — **KodeFood** (processing vendor menu photos into captions and `accepted`/`rejected` catalog decisions on AWS Batch with GPUs).
-- **Section 008 variation:** A concise magazine-explainer voice — one clear global through-line (supply chain, power, geopolitics, regulations, economics) that still reconnects to the KodeFood Batch job (`RUNNABLE` in Tokyo, Spot capacity, scale-to-zero).
+- **Primary persona (Sections 001–008):** A calm senior platform engineer guiding a junior engineer through one real production problem — **KodeFood** (processing vendor menu photos into captions and `accepted`/`rejected` catalog decisions on AWS Batch with GPUs).
+- **Section 009 variation:** A concise magazine-explainer voice — one clear global through-line (supply chain, power, geopolitics, regulations, economics) that still reconnects to the KodeFood Batch job (`RUNNABLE` in Tokyo, Spot capacity, scale-to-zero).
 - **Gradual build-up ("Why" before "What"):** Never open with dry definitions, service manuals, or config fields. Start with a practical question, operational symptom, or scaling tension in the first 15–20 seconds, explain *why* the problem exists and how real companies think about it, and only then introduce the AWS mechanism.
 
 ## 2. Strict Boundary by Lecture Type
