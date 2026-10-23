@@ -2,7 +2,7 @@
 
 Course: **Building Production GPU Workloads on AWS**
 
-Source of truth: [`Building Production GPU Workloads on AWS - Draft-Raghu (1).csv`](../Building%20Production%20GPU%20Workloads%20on%20AWS%20-%20Draft-Raghu%20(1).csv). Video scripts are the default. Demo/Lab runbooks are included where drafted (Section 001 manual verification demo/lab; Section 002 AWS Batch console exploration demo/lab; Section 007 final pipeline walkthrough). Two Section 001 stubs still need full scripts (`000` course approach, `006` whiteboard).
+Source of truth: [`Building Production GPU Workloads on AWS - Draft-Raghu.csv`](../Building%20Production%20GPU%20Workloads%20on%20AWS%20-%20Draft-Raghu.csv). Video scripts are the default. Demo/Lab runbooks are included where drafted (Section 001 manual verification demo/lab; Section 007 final pipeline walkthrough). Two Section 001 stubs still need full scripts (`000` course approach, `006` whiteboard).
 
 **Voice:** conversational teleprompter scripts for slide generation. Target **~2 minutes** (about 260–300 words) unless a topic needs **~3 minutes** (up to ~450 words).
 
@@ -11,7 +11,7 @@ Source of truth: [`Building Production GPU Workloads on AWS - Draft-Raghu (1).cs
 | Section | Folder | Videos (sheet) |
 |---------|--------|----------------|
 | 001 | [001-the-real-world-gpu-problem](001-the-real-world-gpu-problem/) | 4 (+ whiteboard; Demo/Lab separate) |
-| 002 | [002-understanding-gpus-and-aws-batch](002-understanding-gpus-and-aws-batch/) | 7 (+ Demo/Lab) |
+| 002 | [002-understanding-gpus-and-aws-batch](002-understanding-gpus-and-aws-batch/) | 6 |
 | 003 | [003-building-the-gpu-application](003-building-the-gpu-application/) | 6 |
 | 004 | [004-building-the-data-and-container-pipeline](004-building-the-data-and-container-pipeline/) | 4 |
 | 005 | [005-building-the-aws-batch-gpu-infrastructure](005-building-the-aws-batch-gpu-infrastructure/) | 7 |
@@ -32,19 +32,16 @@ Source of truth: [`Building Production GPU Workloads on AWS - Draft-Raghu (1).cs
 | 007 | [007-demo-current-manual-menu-image-verification.md](001-the-real-world-gpu-problem/007-demo-current-manual-menu-image-verification.md) | [Demo] Current manual menu image verification | ~8–10 min |
 | 008 | [008-lab-current-manual-menu-image-verification.md](001-the-real-world-gpu-problem/008-lab-current-manual-menu-image-verification.md) | [Lab] Current manual menu image verification | ~20–30 min |
 
-### 002 — Understanding GPUs and AWS Batch
+### 002 — GPU Fundamentals: From Silicon to Cloud
 
 | # | File | Title | Runtime |
 |---|------|-------|---------|
-| 000 | [000-ideas-to-solve-the-problem-llm-vs-selfhosted-application.md](002-understanding-gpus-and-aws-batch/000-ideas-to-solve-the-problem-llm-vs-selfhosted-application.md) | Ideas to solve the problem : LLM vs Selfhosted application | ~2 min |
-| 001 | [001-why-gpus-from-graphics-hardware-to-ai-inference.md](002-understanding-gpus-and-aws-batch/001-why-gpus-from-graphics-hardware-to-ai-inference.md) | Why GPUs? From Graphics Hardware to AI Inference | ~3 min |
-| 002 | [002-cpu-vs-gpu-compute-vram-and-micro-batching.md](002-understanding-gpus-and-aws-batch/002-cpu-vs-gpu-compute-vram-and-micro-batching.md) | CPU vs GPU: Compute, VRAM, and Micro-Batching | ~3 min |
-| 003 | [003-running-gpu-workloads-in-the-cloud-why-aws-batch.md](002-understanding-gpus-and-aws-batch/003-running-gpu-workloads-in-the-cloud-why-aws-batch.md) | Running GPU Workloads in the Cloud: Why AWS Batch? | ~3 min |
-| 004 | [004-aws-batch-architecture.md](002-understanding-gpus-and-aws-batch/004-aws-batch-architecture.md) | AWS Batch Architecture: Jobs, Queues, Compute Environments, and Job Definitions | ~3 min |
-| 005 | [005-gpu-ec2-instances-and-choosing-the-right-instance.md](002-understanding-gpus-and-aws-batch/005-gpu-ec2-instances-and-choosing-the-right-instance.md) | GPU EC2 Instances and Choosing the Right Instance | ~2 min |
-| 006 | [006-spot-vs-on-demand-and-gpu-quotas.md](002-understanding-gpus-and-aws-batch/006-spot-vs-on-demand-and-gpu-quotas.md) | Spot vs On-Demand and GPU Quotas | ~3 min |
-| 007 | [007-demo-aws-batch-exploration-on-aws-console.md](002-understanding-gpus-and-aws-batch/007-demo-aws-batch-exploration-on-aws-console.md) | [Demo] AWS Batch exploration on AWS console | ~8–10 min |
-| 008 | [008-lab-aws-batch-exploration-on-aws-console.md](002-understanding-gpus-and-aws-batch/008-lab-aws-batch-exploration-on-aws-console.md) | [Lab] AWS Batch exploration on AWS console | ~15–20 min |
+| 000 | [000-what-is-a-gpu-really.md](002-understanding-gpus-and-aws-batch/000-what-is-a-gpu-really.md) | What Is a GPU, Really? | ~2 min |
+| 001 | [001-from-pixels-to-processors-a-gpu-history.md](002-understanding-gpus-and-aws-batch/001-from-pixels-to-processors-a-gpu-history.md) | From Pixels to Processors: A GPU History | ~2 min |
+| 002 | [002-how-gpus-took-over-computing.md](002-understanding-gpus-and-aws-batch/002-how-gpus-took-over-computing.md) | How GPUs Took Over Computing | ~2 min |
+| 003 | [003-cpu-vs-gpu-why-we-need-both.md](002-understanding-gpus-and-aws-batch/003-cpu-vs-gpu-why-we-need-both.md) | CPU vs GPU: Why We Need Both | ~2 min |
+| 004 | [004-inside-the-gpu-hardware-explained.md](002-understanding-gpus-and-aws-batch/004-inside-the-gpu-hardware-explained.md) | Inside the GPU: Hardware Explained | ~3 min |
+| 005 | [005-gpus-in-the-cloud.md](002-understanding-gpus-and-aws-batch/005-gpus-in-the-cloud.md) | GPUs in the Cloud | ~3 min |
 
 ### 003 — Building the GPU Application
 
