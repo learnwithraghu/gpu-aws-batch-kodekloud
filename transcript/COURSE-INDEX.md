@@ -2,7 +2,7 @@
 
 Course: **Building Production GPU Workloads on AWS**
 
-Source of truth: [`Building Production GPU Workloads on AWS - Draft-Raghu.csv`](../Building%20Production%20GPU%20Workloads%20on%20AWS%20-%20Draft-Raghu.csv). Video scripts are the default. Demo/Lab runbooks are included where drafted (Section 001 manual verification demo/lab; Section 002 From Pixels to Tensors simulator demo/lab; Section 007 final pipeline walkthrough). Two Section 001 stubs still need full scripts (`000` course approach, `006` whiteboard).
+Source of truth: [`Building Production GPU Workloads on AWS - Draft-Raghu.csv`](../Building%20Production%20GPU%20Workloads%20on%20AWS%20-%20Draft-Raghu.csv). Video scripts are the default. Demo/Lab runbooks are included where drafted (Section 001 manual verification demo/lab; Section 002 Sequential CPU vs Parallel GPU simulator demo/lab; Section 007 final pipeline walkthrough). Two Section 001 stubs still need full scripts (`000` course approach, `006` whiteboard).
 
 **Voice:** conversational teleprompter scripts for slide generation. Target **~2 minutes** (about 260–300 words) unless a topic needs **~3 minutes** (up to ~450 words).
 
@@ -42,8 +42,8 @@ Source of truth: [`Building Production GPU Workloads on AWS - Draft-Raghu.csv`](
 | 003 | [003-cpu-vs-gpu-why-we-need-both.md](002-gpu-fundamentals-from-silicon-to-cloud/003-cpu-vs-gpu-why-we-need-both.md) | CPU vs GPU: Why We Need Both | ~2 min |
 | 004 | [004-inside-the-gpu-hardware-explained.md](002-gpu-fundamentals-from-silicon-to-cloud/004-inside-the-gpu-hardware-explained.md) | Inside the GPU: Hardware Explained | ~3 min |
 | 005 | [005-gpus-in-the-cloud.md](002-gpu-fundamentals-from-silicon-to-cloud/005-gpus-in-the-cloud.md) | GPUs in the Cloud | ~3 min |
-| 007 | [007-demo-from-pixels-to-tensors-sequential-cpu-vs-parallel-gpu.md](002-gpu-fundamentals-from-silicon-to-cloud/007-demo-from-pixels-to-tensors-sequential-cpu-vs-parallel-gpu.md) | [Demo] From Pixels to Tensors: Sequential CPU vs Parallel GPU | ~6–8 min |
-| 008 | [008-lab-from-pixels-to-tensors-sequential-cpu-vs-parallel-gpu.md](002-gpu-fundamentals-from-silicon-to-cloud/008-lab-from-pixels-to-tensors-sequential-cpu-vs-parallel-gpu.md) | [Lab] From Pixels to Tensors: Sequential CPU vs Parallel GPU | ~15–20 min |
+| 007 | [007-demo-sequential-cpu-vs-parallel-gpu.md](002-gpu-fundamentals-from-silicon-to-cloud/007-demo-sequential-cpu-vs-parallel-gpu.md) | [Demo] Sequential CPU vs Parallel GPU | ~4–6 min |
+| 008 | [008-lab-sequential-cpu-vs-parallel-gpu.md](002-gpu-fundamentals-from-silicon-to-cloud/008-lab-sequential-cpu-vs-parallel-gpu.md) | [Lab] Sequential CPU vs Parallel GPU | ~10–15 min |
 
 ### 003 — Building the GPU Application
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>KodeFood — From Pixels to Tensors (Section 002)</title>
+  <title>KodeFood — Sequential CPU vs Parallel GPU</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -11,260 +11,140 @@
     <header class="app-header">
       <div class="brand-group">
         <h1 class="brand">Kode<span>Food</span> Hardware Lab</h1>
-        <span class="subtitle">Section 002 · From Pixels to Tensors: Sequential CPU vs Parallel GPU</span>
+        <span class="subtitle">Section 002 · Sequential CPU vs Parallel GPU</span>
       </div>
       <div class="header-right">
-        <span class="mode-pill" id="overall-progress-pill">0 / 3 Checkpoints</span>
-        <button class="btn secondary small" id="reset-all-btn" type="button">Reset Lab</button>
+        <span class="mode-pill" id="progress-pill">Run both sides to compare</span>
+        <button class="btn secondary small" id="reset-btn" type="button">Reset</button>
       </div>
     </header>
 
-    <section class="banner done hidden" id="completion-banner">
+    <section class="intro-panel">
+      <h2>Same dish tensor. Same math. Different hardware.</h2>
+      <p>
+        A KodeFood menu photo is a grid of numbers. Captioning it means applying the
+        <strong>same multiply-and-add</strong> on every block. Watch how
+        <strong>4 sequential CPU cores</strong> walk that grid versus how a
+        <strong>GPU</strong> sweeps it in parallel waves.
+      </p>
+    </section>
+
+    <section class="banner done hidden" id="done-banner">
       <div class="banner-icon">✓</div>
       <div>
-        <h2>From Pixels to Tensors — Lab Complete</h2>
-        <p>
-          You inspected a KodeFood dish as a tensor, stepped through the same multiply-and-add math on every block,
-          and compared 4 sequential CPU cores against parallel GPU waves. That is why vision models prefer GPUs for
-          dense grid math — and why AWS Batch can finish a vendor folder in a short burst, then scale toward zero.
+        <h2>Comparison complete</h2>
+        <p id="done-text">
+          The GPU finished the same grid in far fewer ticks because thousands of cores
+          apply the same math at once. That is why vision inference prefers a GPU for
+          this KodeFood job.
         </p>
       </div>
     </section>
 
-    <nav class="checkpoints" aria-label="Lab checkpoints">
-      <div class="chk" id="chk-inspect">1. Inspect pixel → tensor values</div>
-      <div class="chk" id="chk-cpu">2. Step / run sequential CPU</div>
-      <div class="chk" id="chk-gpu">3. Run parallel GPU &amp; compare</div>
-    </nav>
-
-    <!-- STAGE 1 -->
-    <section class="stage-panel" id="stage-1">
-      <div class="panel-header">
-        <span class="eyebrow">Stage 1 · Lectures 000–001</span>
-        <h2>What the Computer Actually Sees</h2>
-        <p class="hint">
-          To a computer, a KodeFood dish photo is not “noodles on a plate.” It is a grid of numbers.
-          Toggle view modes, then click any patch to inspect its <code>[R, G, B]</code> tensor values.
-        </p>
-      </div>
-
-      <div class="stage1-layout">
-        <div class="photo-card">
-          <div class="control-row">
-            <span class="control-label">Grid size</span>
-            <div class="pill-selector" id="grid-size-buttons">
-              <button type="button" class="pill-btn active" data-grid="8">8 × 8 (64 patches)</button>
-              <button type="button" class="pill-btn" data-grid="16">16 × 16 (256 patches)</button>
-            </div>
-          </div>
-          <div class="control-row">
-            <span class="control-label">View mode</span>
-            <div class="pill-selector" id="view-mode-buttons">
-              <button type="button" class="pill-btn active" data-view="visual">Visual pixels</button>
-              <button type="button" class="pill-btn" data-view="rgb">Raw RGB (0–255)</button>
-              <button type="button" class="pill-btn" data-view="tensor">Normalized floats (0–1)</button>
-            </div>
-          </div>
-          <div class="dish-canvas-wrap">
-            <canvas id="dish-canvas" width="384" height="384" aria-label="KodeFood dish pixel grid"></canvas>
-            <div class="grid-overlay" id="pixel-grid"></div>
-          </div>
-          <p class="diag-note">Click a patch on the dish to inspect its tensor values on the right.</p>
-        </div>
-
-        <div class="inspect-card">
-          <h3>Tensor inspector</h3>
-          <div class="inspector-empty" id="inspector-empty">
-            No patch selected yet. Click any cell on the dish grid.
-          </div>
-          <div class="inspector-body hidden" id="inspector-body">
-            <div class="swatch-row">
-              <div class="swatch" id="inspect-swatch"></div>
-              <div>
-                <div class="inspect-title" id="inspect-coord">Patch (r, c)</div>
-                <div class="inspect-sub" id="inspect-shape">Shape: [3, 8, 8]</div>
-              </div>
-            </div>
-            <table class="inspect-table">
-              <tr><th>Channel</th><th>Raw (0–255)</th><th>Tensor (0–1)</th></tr>
-              <tr><td>R</td><td id="val-r-raw">—</td><td id="val-r-f">—</td></tr>
-              <tr><td>G</td><td id="val-g-raw">—</td><td id="val-g-f">—</td></tr>
-              <tr><td>B</td><td id="val-b-raw">—</td><td id="val-b-f">—</td></tr>
-            </table>
-            <p class="diag-note" id="inspect-takeaway">
-              Same idea as the lecture: the photo becomes a grid of millions of pixel values before any model runs.
-            </p>
-          </div>
+    <div class="control-bar">
+      <div class="control-group">
+        <span class="control-label">Grid size</span>
+        <div class="pill-selector" id="size-buttons">
+          <button type="button" class="pill-btn active" data-blocks="64">64 blocks</button>
+          <button type="button" class="pill-btn" data-blocks="256">256 blocks</button>
         </div>
       </div>
-    </section>
-
-    <!-- STAGE 2 -->
-    <section class="stage-panel" id="stage-2">
-      <div class="panel-header">
-        <span class="eyebrow">Stage 2 · Lectures 001–002</span>
-        <h2>Inside One Neural Network Layer</h2>
-        <p class="hint">
-          Every patch runs the <strong>same</strong> multiply-and-add formula — no branching, just uniform math.
-          That is the link from 3D pixel shaders to vision model layers.
-        </p>
+      <div class="control-group">
+        <span class="control-label">Speed</span>
+        <select id="speed-select">
+          <option value="slow">Slow</option>
+          <option value="normal" selected>Normal</option>
+          <option value="fast">Fast</option>
+        </select>
       </div>
+    </div>
 
-      <div class="math-layout">
-        <div class="formula-card">
-          <div class="formula">Output = (R·w<sub>r</sub> + G·w<sub>g</sub> + B·w<sub>b</sub>) + bias</div>
-          <p class="diag-note">
-            Weights are shared across the whole grid. Step one block at a time, or apply the layer to every patch.
-          </p>
+    <div class="race-grid">
+      <!-- CPU -->
+      <div class="proc-card">
+        <div class="proc-header">
+          <div>
+            <h3>Host CPU — sequential</h3>
+            <p class="proc-sub">4 fast cores · 4 blocks per tick · many ticks in a row</p>
+          </div>
           <div class="actions">
-            <button class="btn accent" id="step-one-block-btn" type="button">Step 1 block</button>
-            <button class="btn secondary" id="apply-layer-btn" type="button">Apply layer to all patches</button>
-            <button class="btn secondary small" id="reset-layer-btn" type="button">Reset layer</button>
-          </div>
-          <div class="sim-log" id="layer-log">
-            Select a patch in Stage 1 (or click Step 1 Block) to watch one multiply-and-add on its <code>[R, G, B]</code> values.
+            <button class="btn secondary small" id="cpu-step-btn" type="button">Step</button>
+            <button class="btn" id="cpu-play-btn" type="button">Play CPU</button>
           </div>
         </div>
-        <div class="activation-card">
-          <h3>Activation map</h3>
-          <div class="activation-grid" id="activation-grid"></div>
-          <p class="diag-note" id="layer-insight">
-            Insight: identical arithmetic on every cell is exactly what thousands of GPU cores can do in parallel.
-          </p>
-        </div>
-      </div>
-    </section>
 
-    <!-- STAGE 3 -->
-    <section class="stage-panel" id="stage-3">
-      <div class="panel-header">
-        <span class="eyebrow">Stage 3 · Lectures 000, 003–004</span>
-        <h2>Sequential CPU vs Parallel GPU</h2>
-        <p class="hint">
-          Same dish tensor. Same math. Different hardware: 4 fast sequential CPU cores versus Streaming Multiprocessors
-          that sweep the grid in parallel waves after the tensor crosses PCIe into VRAM.
+        <div class="telemetry-row">
+          <div class="metric">
+            <span class="m-label">Tick</span>
+            <span class="m-val" id="cpu-tick">0</span>
+          </div>
+          <div class="metric">
+            <span class="m-label">Blocks done</span>
+            <span class="m-val" id="cpu-done">0 / 64</span>
+          </div>
+          <div class="metric">
+            <span class="m-label">Time</span>
+            <span class="m-val" id="cpu-time">0 ms</span>
+          </div>
+        </div>
+
+        <div class="core-pills" id="cpu-cores">
+          <span class="core-pill" data-core="0">Core 0</span>
+          <span class="core-pill" data-core="1">Core 1</span>
+          <span class="core-pill" data-core="2">Core 2</span>
+          <span class="core-pill" data-core="3">Core 3</span>
+        </div>
+
+        <div class="tensor-grid" id="cpu-grid"></div>
+        <p class="diag-note" id="cpu-note">
+          Click <strong>Step</strong> to march 4 cores across the grid, or <strong>Play CPU</strong> for the full sequential run.
         </p>
       </div>
 
-      <div class="control-row exec-controls">
-        <span class="control-label">Workload size</span>
-        <div class="pill-selector" id="exec-size-buttons">
-          <button type="button" class="pill-btn active" data-blocks="64">64 blocks (1 photo)</button>
-          <button type="button" class="pill-btn" data-blocks="256">256 blocks (4-photo micro-batch)</button>
-        </div>
-        <div class="speed-row">
-          <label for="speed-select">Speed</label>
-          <select id="speed-select">
-            <option value="slow">Slow</option>
-            <option value="normal" selected>Normal</option>
-            <option value="fast">Fast</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="race-grid">
-        <div class="proc-card">
-          <div class="proc-header">
-            <div>
-              <h3>Host CPU — 4 sequential cores</h3>
-              <p class="proc-sub">Core 0–3 · 4 blocks per tick · many sequential waves</p>
-            </div>
-            <div class="actions">
-              <button class="btn secondary small" id="cpu-step-btn" type="button">Step</button>
-              <button class="btn" id="cpu-play-btn" type="button">Play</button>
-              <button class="btn secondary small" id="cpu-reset-btn" type="button">Reset</button>
-            </div>
+      <!-- GPU -->
+      <div class="proc-card gpu-card">
+        <div class="proc-header">
+          <div>
+            <h3>NVIDIA GPU — parallel</h3>
+            <p class="proc-sub">Thousands of smaller cores · wide waves across the grid</p>
           </div>
-          <div class="telemetry-row">
-            <div class="metric"><span class="m-label">Tick</span><span class="m-val" id="cpu-tick">0</span></div>
-            <div class="metric"><span class="m-label">Blocks done</span><span class="m-val" id="cpu-blocks-done">0 / 64</span></div>
-            <div class="metric"><span class="m-label">Simulated time</span><span class="m-val" id="cpu-time-ms">0 ms</span></div>
+          <div class="actions">
+            <button class="btn accent" id="gpu-play-btn" type="button">Play GPU</button>
           </div>
-          <div class="core-pills" id="cpu-core-pills">
-            <span class="core-pill" data-core="0">Core 0</span>
-            <span class="core-pill" data-core="1">Core 1</span>
-            <span class="core-pill" data-core="2">Core 2</span>
-            <span class="core-pill" data-core="3">Core 3</span>
-          </div>
-          <div class="tensor-grid" id="cpu-grid"></div>
-          <p class="diag-note" id="cpu-note">Use Step to march 4 cores across the grid, or Play to run the full sequential pass.</p>
         </div>
 
-        <div class="proc-card gpu-card">
-          <div class="proc-header">
-            <div>
-              <h3>NVIDIA GPU — parallel SMs</h3>
-              <p class="proc-sub">PCIe → VRAM → SM 0–3 fire in wide parallel waves</p>
-            </div>
-            <div class="actions">
-              <button class="btn accent" id="gpu-play-btn" type="button">Run GPU</button>
-              <button class="btn secondary small" id="gpu-reset-btn" type="button">Reset</button>
-            </div>
+        <div class="telemetry-row">
+          <div class="metric">
+            <span class="m-label">Wave</span>
+            <span class="m-val" id="gpu-wave">0</span>
           </div>
-          <div class="pcie-bridge" id="pcie-indicator">
-            <span class="pcie-arrow">⇅ PCIe bus</span>
-            <small id="pcie-status-text">Idle — host RAM holding the tensor</small>
+          <div class="metric">
+            <span class="m-label">Blocks done</span>
+            <span class="m-val" id="gpu-done">0 / 64</span>
           </div>
-          <div class="telemetry-row">
-            <div class="metric"><span class="m-label">Wave</span><span class="m-val" id="gpu-wave">0</span></div>
-            <div class="metric"><span class="m-label">Blocks done</span><span class="m-val" id="gpu-blocks-done">0 / 64</span></div>
-            <div class="metric"><span class="m-label">Simulated time</span><span class="m-val" id="gpu-time-ms">0 ms</span></div>
+          <div class="metric">
+            <span class="m-label">Time</span>
+            <span class="m-val" id="gpu-time">0 ms</span>
           </div>
-          <div class="core-pills" id="gpu-sm-pills">
-            <span class="core-pill gpu" data-sm="0">SM 0</span>
-            <span class="core-pill gpu" data-sm="1">SM 1</span>
-            <span class="core-pill gpu" data-sm="2">SM 2</span>
-            <span class="core-pill gpu" data-sm="3">SM 3</span>
-          </div>
-          <div class="tensor-grid" id="gpu-grid"></div>
-          <p class="diag-note" id="gpu-note">Run GPU to copy the tensor into VRAM, then watch parallel waves finish far fewer ticks than the CPU.</p>
         </div>
-      </div>
 
-      <div class="compare-bar" id="compare-bar">
-        <strong>Compare:</strong> Finish both runs to unlock the timing ratio and Stage 4 scale-up insight.
-      </div>
-    </section>
+        <div class="core-pills" id="gpu-sms">
+          <span class="core-pill gpu" data-sm="0">SM 0</span>
+          <span class="core-pill gpu" data-sm="1">SM 1</span>
+          <span class="core-pill gpu" data-sm="2">SM 2</span>
+          <span class="core-pill gpu" data-sm="3">SM 3</span>
+        </div>
 
-    <!-- STAGE 4 -->
-    <section class="stage-panel" id="stage-4">
-      <div class="panel-header">
-        <span class="eyebrow">Stage 4 · Lectures 002 &amp; 005</span>
-        <h2>Scale-Up: Why Parallel Waves Matter for KodeFood</h2>
-        <p class="hint">
-          Slide from one photo to a full vendor folder to hundreds of vendors. Sequential CPU time piles into a backlog;
-          GPU waves finish the burst, then capacity can return toward zero on AWS Batch.
+        <div class="tensor-grid" id="gpu-grid"></div>
+        <p class="diag-note" id="gpu-note">
+          Click <strong>Play GPU</strong> to watch parallel Streaming Multiprocessors finish the same blocks in a few wide waves.
         </p>
       </div>
+    </div>
 
-      <div class="scale-layout">
-        <div class="scale-controls">
-          <label for="scale-slider">Workload scale</label>
-          <input type="range" id="scale-slider" min="0" max="2" step="1" value="0" />
-          <div class="scale-labels">
-            <span>1 photo</span>
-            <span>30 photos (1 vendor)</span>
-            <span>3,000 photos (100 vendors)</span>
-          </div>
-          <div class="scale-summary" id="scale-summary">
-            Select a scale to compare sequential CPU backlog vs parallel GPU burst time.
-          </div>
-        </div>
-        <div class="scale-meters">
-          <div class="scale-meter">
-            <div class="meter-label"><span>CPU sequential backlog</span><strong id="cpu-scale-time">—</strong></div>
-            <div class="meter-bar"><div class="meter-fill warn" id="cpu-scale-bar" style="width: 8%;"></div></div>
-          </div>
-          <div class="scale-meter">
-            <div class="meter-label"><span>GPU parallel burst</span><strong id="gpu-scale-time">—</strong></div>
-            <div class="meter-bar"><div class="meter-fill ok" id="gpu-scale-bar" style="width: 4%;"></div></div>
-          </div>
-          <p class="diag-note" id="scale-takeaway">
-            Cloud takeaway: rent a GPU for the short burst (Spot/Batch), write <code>descriptions.csv</code>, then scale toward zero.
-          </p>
-        </div>
-      </div>
-    </section>
+    <div class="compare-bar" id="compare-bar">
+      Finish <strong>Play CPU</strong> and <strong>Play GPU</strong> on the same grid size to unlock the timing comparison.
+    </div>
   </div>
   <script src="app.js"></script>
 </body>
