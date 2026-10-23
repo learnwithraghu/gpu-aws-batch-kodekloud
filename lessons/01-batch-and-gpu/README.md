@@ -2,6 +2,8 @@
 
 This is the map for the rest of the course. You will create each piece in a later lesson. Here you learn what the pieces are, and what changes when the job needs a GPU.
 
+**Interactive Demo / Lab (Section 002 Demo 007 & Lab 008):** [`gpu_cpu_simulator/`](gpu_cpu_simulator/README.md) — run `bash lessons/01-batch-and-gpu/gpu_cpu_simulator/run_simulator.sh` (or open `index.html`) to complete the 3-mission GPU vs CPU workload simulator.
+
 Theory reading: [`theory.md`](theory.md).
 
 Region for every command: `ap-northeast-1`.

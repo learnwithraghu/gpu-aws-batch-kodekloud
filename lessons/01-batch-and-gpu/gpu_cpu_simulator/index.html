@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KodeFood — GPU vs CPU Interactive Simulator (Section 002)</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="app-header">
+      <div class="brand-group">
+        <h1 class="brand">Kode<span>Food</span> Hardware Lab</h1>
+        <span class="subtitle">Section 002 · GPU Fundamentals: From Silicon to Cloud</span>
+      </div>
+      <div class="header-right">
+        <span class="mode-pill" id="overall-progress-pill">0 / 3 Missions Complete</span>
+        <button class="btn secondary small" id="reset-all-btn" type="button">Reset Lab</button>
+      </div>
+    </header>
+
+    <!-- Mission Stepper -->
+    <nav class="stepper" aria-label="Simulator Missions">
+      <button class="step-tab active" data-step="1" id="tab-1" type="button">
+        <span class="step-num">1</span>
+        <span class="step-info">
+          <strong>Pixel &amp; Tensor Race</strong>
+          <small>Sequential CPU vs Parallel GPU</small>
+        </span>
+        <span class="step-status" id="status-1">Pending</span>
+      </button>
+      <button class="step-tab" data-step="2" id="tab-2" type="button">
+        <span class="step-num">2</span>
+        <span class="step-info">
+          <strong>CPU vs GPU Task Router</strong>
+          <small>Why We Need Both Processors</small>
+        </span>
+        <span class="step-status" id="status-2">Pending</span>
+      </button>
+      <button class="step-tab" data-step="3" id="tab-3" type="button">
+        <span class="step-num">3</span>
+        <span class="step-info">
+          <strong>VRAM &amp; Micro-Batch Tuner</strong>
+          <small>Inside the T4 GPU (16 GB VRAM)</small>
+        </span>
+        <span class="step-status" id="status-3">Pending</span>
+      </button>
+    </nav>
+
+    <!-- Completion Banner (hidden until all 3 missions complete) -->
+    <section class="banner done hidden" id="completion-banner">
+      <div class="banner-icon">✓</div>
+      <div>
+        <h2>All 3 GPU Fundamentals Missions Complete!</h2>
+        <p>
+          You proved why GPUs excel at uniform tensor math, why the Host CPU still orchestrates I/O and control flow,
+          and why micro-batching (`BATCH_SIZE=8`) keeps a 16 GB NVIDIA T4 productive without hitting a CUDA Out-of-Memory crash.
+        </p>
+      </div>
+    </section>
+
+    <!-- ==================== MISSION 1 ==================== -->
+    <section class="mission-panel" id="mission-1">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Mission 1 · Lectures 000–002</span>
+          <h2>From Pixels to Tensors: Sequential CPU vs Parallel GPU</h2>
+          <p class="hint">
+            To a vision model, a KodeFood dish photo is a grid of pixel numbers (a tensor). Every neural network layer multiplies
+            and adds across all blocks. Run both processors on the <strong>64 tensor blocks</strong> below to compare how 4 fast sequential CPU cores
+            behave versus thousands of smaller GPU cores working in parallel waves.
+          </p>
+        </div>
+      </div>
+
+      <div class="race-grid">
+        <!-- CPU Card -->
+        <div class="proc-card">
+          <div class="proc-header">
+            <div>
+              <h3>Host CPU (`4 vCPU Cores`)</h3>
+              <p class="proc-sub">Built for branching logic &amp; sequential speed · Processes 4 blocks per tick</p>
+            </div>
+            <button class="btn" id="run-cpu-btn" type="button">Run on CPU</button>
+          </div>
+
+          <div class="telemetry-row">
+            <div class="metric">
+              <span class="m-label">Active Cores</span>
+              <span class="m-val">4</span>
+            </div>
+            <div class="metric">
+              <span class="m-label">Blocks Processed</span>
+              <span class="m-val" id="cpu-blocks-done">0 / 64</span>
+            </div>
+            <div class="metric">
+              <span class="m-label">Simulated Time</span>
+              <span class="m-val" id="cpu-time-ms">0 ms</span>
+            </div>
+          </div>
+
+          <div class="tensor-grid" id="cpu-grid" aria-label="CPU Tensor Grid"></div>
+          <p class="diag-note" id="cpu-note">Click <strong>Run on CPU</strong> to watch 4 powerful cores step through the image tensor 4 blocks at a time.</p>
+        </div>
+
+        <!-- GPU Card -->
+        <div class="proc-card gpu-card">
+          <div class="proc-header">
+            <div>
+              <h3>NVIDIA GPU (`Streaming Multiprocessors`)</h3>
+              <p class="proc-sub">Built for uniform throughput · Applies the same math across whole tensor waves</p>
+            </div>
+            <button class="btn accent" id="run-gpu-btn" type="button">Run on GPU</button>
+          </div>
+
+          <div class="telemetry-row">
+            <div class="metric">
+              <span class="m-label">Parallel Threads</span>
+              <span class="m-val">2,560+</span>
+            </div>
+            <div class="metric">
+              <span class="m-label">Blocks Processed</span>
+              <span class="m-val" id="gpu-blocks-done">0 / 64</span>
+            </div>
+            <div class="metric">
+              <span class="m-label">Simulated Time</span>
+              <span class="m-val" id="gpu-time-ms">0 ms</span>
+            </div>
+          </div>
+
+          <div class="tensor-grid" id="gpu-grid" aria-label="GPU Tensor Grid"></div>
+          <p class="diag-note" id="gpu-note">Click <strong>Run on GPU</strong> to watch parallel cores sweep across the entire tensor in a short burst.</p>
+        </div>
+      </div>
+
+      <div class="mission-footer">
+        <div class="insight-box" id="m1-insight">
+          <strong>Mission 1 Goal:</strong> Run both the CPU and the GPU on the dish tensor to unlock the takeaway.
+        </div>
+        <button class="btn secondary" id="next-to-m2" type="button">Next: Mission 2 →</button>
+      </div>
+    </section>
+
+    <!-- ==================== MISSION 2 ==================== -->
+    <section class="mission-panel hidden" id="mission-2">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Mission 2 · Lecture 003 (CPU vs GPU: Why We Need Both)</span>
+          <h2>Route the KodeFood Pipeline: Who Does What?</h2>
+          <p class="hint">
+            Even on a GPU instance, the GPU never runs the whole container. Assign each step of the KodeFood photo check pipeline
+            to either the <strong>Host CPU (Orchestrator &amp; I/O)</strong> or the <strong>Device GPU (Parallel Tensor Math)</strong>.
+          </p>
+        </div>
+      </div>
+
+      <div class="router-score-bar">
+        <span>Correctly Routed: <strong id="routed-count">0 / 6</strong></span>
+        <button class="btn secondary small" id="reset-m2-btn" type="button">Reset Choices</button>
+      </div>
+
+      <div class="tasks-list" id="tasks-container"></div>
+
+      <div class="mission-footer">
+        <div class="insight-box" id="m2-insight">
+          <strong>Mission 2 Goal:</strong> Route all 6 KodeFood tasks to the right processor. Watch the diagnostic feedback for each choice.
+        </div>
+        <button class="btn secondary" id="next-to-m3" type="button">Next: Mission 3 →</button>
+      </div>
+    </section>
+
+    <!-- ==================== MISSION 3 ==================== -->
+    <section class="mission-panel hidden" id="mission-3">
+      <div class="panel-header">
+        <div>
+          <span class="eyebrow">Mission 3 · Lectures 004–005 (Inside the GPU &amp; Cloud Sizing)</span>
+          <h2>Inside `g4dn.xlarge`: Tune Micro-Batching Without Crashing VRAM</h2>
+          <p class="hint">
+            A vendor just uploaded <strong>30 menu photos</strong>. Our cloud instance (`g4dn.xlarge`) has <strong>16 GB of Host System RAM</strong>
+            and an <strong>NVIDIA T4 GPU with 16 GB of physical VRAM</strong>. Experiment with `BATCH_SIZE` to see why pushing all 30 photos at once
+            triggers a CUDA Out-of-Memory (`OOM`) error—even when Host RAM has plenty of room—and find the sweet spot (`BATCH_SIZE = 8`).
+          </p>
+        </div>
+      </div>
+
+      <div class="tuner-layout">
+        <!-- Controls -->
+        <div class="tuner-controls">
+          <h3>1. Configure Job Parameters</h3>
+
+          <div class="control-group">
+            <label for="batch-size-select">Micro-Batch Size (`BATCH_SIZE`)</label>
+            <div class="pill-selector" id="batch-size-buttons">
+              <button type="button" class="pill-btn" data-batch="1">1 photo</button>
+              <button type="button" class="pill-btn" data-batch="4">4 photos</button>
+              <button type="button" class="pill-btn active" data-batch="8">8 photos (Default)</button>
+              <button type="button" class="pill-btn" data-batch="16">16 photos</button>
+              <button type="button" class="pill-btn danger-hint" data-batch="30">30 photos (All at once)</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>PCIe Model Loading Strategy</label>
+            <div class="pill-selector" id="model-load-buttons">
+              <button type="button" class="pill-btn active" data-preload="once">Load BLIP weights once into VRAM</button>
+              <button type="button" class="pill-btn" data-preload="every">Reload weights over PCIe every batch</button>
+            </div>
+          </div>
+
+          <div class="checklist-mini">
+            <h4>Lab Checkpoints (Complete both to pass Mission 3):</h4>
+            <ul>
+              <li id="chk-oom">Trigger and observe a <strong>VRAM Out-of-Memory (`BATCH_SIZE=30`)</strong> crash</li>
+              <li id="chk-opt">Complete a healthy high-utilization run with <strong>`BATCH_SIZE=8` (Load weights once)</strong></li>
+            </ul>
+          </div>
+
+          <button class="btn accent full-width" id="run-batch-sim-btn" type="button">
+            Run 30-Photo Vendor Folder on `g4dn.xlarge`
+          </button>
+        </div>
+
+        <!-- Hardware Architecture Visualization -->
+        <div class="hardware-diagram">
+          <h3>2. Live `g4dn.xlarge` Hardware Telemetry</h3>
+
+          <div class="hw-boxes">
+            <!-- Host Box -->
+            <div class="hw-box">
+              <div class="hw-title">
+                <strong>Host System (`4 vCPU`)</strong>
+                <span>16.0 GB System RAM</span>
+              </div>
+              <div class="meter-wrap">
+                <div class="meter-label">
+                  <span>Host RAM Usage (OS + ECS Agent + S3 Buffers)</span>
+                  <strong id="host-ram-text">4.2 / 16.0 GB</strong>
+                </div>
+                <div class="meter-bar">
+                  <div class="meter-fill ok" id="host-ram-bar" style="width: 26%;"></div>
+                </div>
+              </div>
+              <p class="hw-caption">
+                Note: AWS Batch reserves ~4 GB for Linux &amp; ECS agent (why our job definition requests `12288 MiB`, not `16384 MiB`).
+              </p>
+            </div>
+
+            <!-- PCIe Bridge -->
+            <div class="pcie-bridge" id="pcie-indicator">
+              <span class="pcie-arrow">⇅ PCIe Bus</span>
+              <small id="pcie-status-text">Idle — waiting for job start</small>
+            </div>
+
+            <!-- GPU Box -->
+            <div class="hw-box gpu-box" id="gpu-hw-box">
+              <div class="hw-title">
+                <strong>NVIDIA T4 Accelerator</strong>
+                <span>16.0 GB GDDR6 VRAM</span>
+              </div>
+              <div class="meter-wrap">
+                <div class="meter-label">
+                  <span>GPU VRAM (BLIP Weights + Active Micro-Batch Tensors)</span>
+                  <strong id="vram-text">0.0 / 16.0 GB</strong>
+                </div>
+                <div class="meter-bar">
+                  <div class="meter-fill" id="vram-bar" style="width: 0%;"></div>
+                </div>
+              </div>
+
+              <div class="gpu-stats-grid">
+                <div class="g-stat">
+                  <span class="g-label">Micro-Batch Pass</span>
+                  <strong id="pass-counter">0 / 0</strong>
+                </div>
+                <div class="g-stat">
+                  <span class="g-label">Photos Captioned</span>
+                  <strong id="photos-counter">0 / 30</strong>
+                </div>
+                <div class="g-stat">
+                  <span class="g-label">GPU Core Utilization</span>
+                  <strong id="gpu-util-text">0%</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sim-log" id="sim-log-box">
+            <strong> Diagnostic Console:</strong> Select a `BATCH_SIZE` and click <em>Run 30-Photo Vendor Folder</em>.
+          </div>
+        </div>
+      </div>
+
+      <div class="mission-footer">
+        <div class="insight-box" id="m3-insight">
+          <strong>Mission 3 Goal:</strong> Test `BATCH_SIZE=30` to witness a CUDA OOM crash while Host RAM stays green, then run `BATCH_SIZE=8` with weights loaded once.
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -11,7 +11,7 @@ Source of truth: [`Building Production GPU Workloads on AWS - Draft-Raghu.csv`](
 | Section | Folder | Videos (sheet) |
 |---------|--------|----------------|
 | 001 | [001-the-real-world-gpu-problem](001-the-real-world-gpu-problem/) | 4 (+ whiteboard; Demo/Lab separate) |
-| 002 | [002-gpu-fundamentals-from-silicon-to-cloud](002-gpu-fundamentals-from-silicon-to-cloud/) | 6 |
+| 002 | [002-gpu-fundamentals-from-silicon-to-cloud](002-gpu-fundamentals-from-silicon-to-cloud/) | 6 (+ Demo/Lab) |
 | 003 | [003-building-the-gpu-application](003-building-the-gpu-application/) | 6 |
 | 004 | [004-building-the-data-and-container-pipeline](004-building-the-data-and-container-pipeline/) | 4 |
 | 005 | [005-building-the-aws-batch-gpu-infrastructure](005-building-the-aws-batch-gpu-infrastructure/) | 7 |
@@ -42,6 +42,8 @@ Source of truth: [`Building Production GPU Workloads on AWS - Draft-Raghu.csv`](
 | 003 | [003-cpu-vs-gpu-why-we-need-both.md](002-gpu-fundamentals-from-silicon-to-cloud/003-cpu-vs-gpu-why-we-need-both.md) | CPU vs GPU: Why We Need Both | ~2 min |
 | 004 | [004-inside-the-gpu-hardware-explained.md](002-gpu-fundamentals-from-silicon-to-cloud/004-inside-the-gpu-hardware-explained.md) | Inside the GPU: Hardware Explained | ~3 min |
 | 005 | [005-gpus-in-the-cloud.md](002-gpu-fundamentals-from-silicon-to-cloud/005-gpus-in-the-cloud.md) | GPUs in the Cloud | ~3 min |
+| 007 | [007-demo-interactive-gpu-vs-cpu-workload-simulator.md](002-gpu-fundamentals-from-silicon-to-cloud/007-demo-interactive-gpu-vs-cpu-workload-simulator.md) | [Demo] Interactive GPU vs CPU Workload Simulator | ~6–8 min |
+| 008 | [008-lab-interactive-gpu-vs-cpu-workload-simulator.md](002-gpu-fundamentals-from-silicon-to-cloud/008-lab-interactive-gpu-vs-cpu-workload-simulator.md) | [Lab] Interactive GPU vs CPU Workload Simulator | ~15–20 min |
 
 ### 003 — Building the GPU Application
 
