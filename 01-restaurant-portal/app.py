@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import signal
 import uuid
 from pathlib import Path
 
@@ -15,9 +16,22 @@ from flask import Flask, flash, redirect, render_template, request, send_from_di
 
 BASE_DIR = Path(__file__).resolve().parent
 REPO_ROOT = BASE_DIR.parent
-SAMPLE_DIR = REPO_ROOT / "images"
-UPLOAD_DIR = BASE_DIR / "uploads"
+
+
+def _default_sample_dir() -> Path:
+    env_dir = os.environ.get("SAMPLE_DIR")
+    if env_dir:
+        return Path(env_dir)
+    local_dir = BASE_DIR / "images"
+    if local_dir.is_dir():
+        return local_dir
+    return REPO_ROOT / "images"
+
+
+SAMPLE_DIR = _default_sample_dir()
+UPLOAD_DIR = Path(os.environ.get("UPLOAD_DIR", str(BASE_DIR / "uploads")))
 MANIFEST_FILE = UPLOAD_DIR / "menu.json"
+HOST = os.environ.get("HOST", "0.0.0.0")
 PORT = int(os.environ.get("PORT", "8000"))
 ALLOWED_EXT = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 
@@ -204,10 +218,15 @@ def sample_file(filename: str):
     return send_from_directory(SAMPLE_DIR, safe)
 
 
+def _handle_sigterm(_signum: int, _frame: object) -> None:
+    raise SystemExit(0)
+
+
 def main() -> None:
+    signal.signal(signal.SIGTERM, _handle_sigterm)
     _ensure_dirs()
     print(f"KodeFood menu desk — http://127.0.0.1:{PORT}", flush=True)
-    app.run(host="127.0.0.1", port=PORT, debug=False)
+    app.run(host=HOST, port=PORT, debug=False)
 
 
 if __name__ == "__main__":

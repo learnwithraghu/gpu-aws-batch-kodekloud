@@ -1,0 +1,16 @@
+.git
+.gitignore
+.env
+.env.*
+.agents
+.DS_Store
+**/.DS_Store
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/.venv
+01-restaurant-portal/uploads
+02-aws-batch
+docs
+*.md
+01-restaurant-portal/*.md
