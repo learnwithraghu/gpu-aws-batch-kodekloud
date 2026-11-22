@@ -20,3 +20,6 @@ awscliv2.zip
 !03-s3-upload/03b-restaurant-portal-s3/uploads/.gitkeep
 03-s3-upload/03b-restaurant-portal-s3/.venv/
 
+# Step 04 menu scorer virtualenv
+04-menu-scorer/.venv/
+
