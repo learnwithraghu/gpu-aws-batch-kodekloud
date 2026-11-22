@@ -6,13 +6,13 @@ A job does not talk to the compute environment directly. You submit it to a queu
 
 1. Stay in **Tokyo**.
 2. **AWS Batch** → **Job queues** → **Create**.
-3. Orchestration type: **Amazon Elastic Compute Cloud (Amazon EC2)**.
-4. Name: **`kodefood-queue`**
-5. Priority: **`1`**
-6. Leave the scheduling policy empty.
-7. Connected compute environment: **`kodefood-ce`**, order **`1`**.
-8. State: **Enabled**.
-9. Create the queue.
+3. **Orchestration type**: **Amazon Elastic Compute Cloud (Amazon EC2)**.
+4. **Name**: **`kodefood-queue`**
+5. **Priority**: **`1`**
+6. Leave **Scheduling policy Amazon Resource Name (ARN)** empty.
+7. **Connected compute environments**: select **`kodefood-ce`** (it must already be **VALID**) and use **Compute environment order** to keep `kodefood-ce` at order **`1`**.
+8. Leave **Job state time limit** (if shown) empty and keep the queue state **Enabled** (default).
+9. Choose **Create job queue**.
 
 ## Check it
 

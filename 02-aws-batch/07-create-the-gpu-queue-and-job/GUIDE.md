@@ -6,28 +6,55 @@ The GPU machines need their own queue, and the recipe has to ask for a GPU. A jo
 
 1. Stay in **Tokyo**.
 2. **AWS Batch** → **Job queues** → **Create**.
-3. Orchestration type: **Amazon EC2**.
-4. Name: **`kodefood-gpu-queue`**
-5. Priority: **`1`**
-6. Connected compute environment: **`kodefood-gpu-ce-spot`**, order **`1`**.
-7. State: **Enabled**.
-8. Create it and wait until it is **VALID**.
+3. **Orchestration type**: **Amazon Elastic Compute Cloud (Amazon EC2)**.
+4. **Name**: **`kodefood-gpu-queue`**
+5. **Priority**: **`1`**
+6. Leave **Scheduling policy Amazon Resource Name (ARN)** empty.
+7. **Connected compute environments**: select **`kodefood-gpu-ce-spot`** and confirm **Compute environment order** puts it at order **`1`**.
+8. Leave **Job state time limit** (if shown) empty and keep state **Enabled** (default).
+9. Choose **Create job queue** and wait until **Status** is **VALID**.
 
 ## Job definition
 
-1. **Job definitions** → **Create**.
-2. Orchestration type: **Amazon EC2**.
-3. Name: **`kodefood-gpu-job`**
-4. Image: **`nvidia/cuda:12.6.3-runtime-ubuntu22.04`**
-5. Command:
-   - One text box: `nvidia-smi`
-   - Argument boxes: a single box, `nvidia-smi`
-6. vCPUs: **`1`**
-7. Memory: **`1024`**
-8. Number of GPUs: **`1`**
-9. Job role: leave empty. `nvidia-smi` does not call AWS.
-10. Logging: `awslogs` to `/aws/batch/job` in `ap-northeast-1`, stream prefix `kodefood-gpu`.
-11. Create it.
+### Step 1: General configuration
+
+1. **AWS Batch** → **Job definitions** → **Create**.
+2. **Orchestration type**: **Amazon Elastic Compute Cloud (Amazon EC2)**.
+3. **EC2 platform configuration**: turn **Enable multi-node parallel** **off**.
+4. **Name**: **`kodefood-gpu-job`**
+5. **Job attempts**: **`1`**; leave **Execution timeout**, **Scheduling priority**, **Retry strategy conditions**, **Tags**, and **Propagate tags** untouched, then choose **Next page**.
+
+### Step 2: Container configuration and Environment configuration
+
+Under **Container configuration**:
+
+1. **Image**: **`nvidia/cuda:12.6.3-runtime-ubuntu22.04`**
+2. **Command** (enter as a JSON string array):
+   ```json
+   ["nvidia-smi"]
+   ```
+3. Leave **Execution role**, **Job Role configuration**, and **Parameters** empty. `nvidia-smi` does not call AWS.
+
+Under **Environment configuration**:
+
+4. **vCPUs**: **`1`**
+5. **Memory**: **`1024`** (MiB)
+6. **Number of GPUs**: **`1`**
+7. Leave **Environment variables** and **Secrets** empty, then choose **Next page**.
+
+### Step 3: Linux, Filesystem, Task properties, and Logging configuration
+
+1. Leave **Linux configuration**, **Filesystem configuration**, and **Task properties** at their defaults.
+2. Under **Logging configuration**, keep **Log driver** as **`awslogs`** (default).
+3. Under **Options**, choose **Add option** for each pair:
+   - `awslogs-group` = `/aws/batch/job`
+   - `awslogs-region` = `ap-northeast-1`
+   - `awslogs-stream-prefix` = `kodefood-gpu`
+4. Leave **Secrets** empty, then choose **Next page**.
+
+### Step 4: Job definition review
+
+Review the configuration and choose **Create job definition**.
 
 ## Check the recipe before you submit
 

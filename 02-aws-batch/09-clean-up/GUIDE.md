@@ -7,28 +7,28 @@ Delete in this order. Batch will not delete a compute environment while a queue 
 ## Stop running work
 
 1. Stay in **Tokyo**.
-2. **Jobs**. Filter each of `kodefood-queue` and `kodefood-gpu-queue`.
-3. If any job is **RUNNABLE**, **STARTING**, or **RUNNING**, open it and **Cancel** it. Wait until it is no longer running.
+2. **AWS Batch** → **Jobs**. Pick **`kodefood-queue`** and **`kodefood-gpu-queue`** one at a time in the **Job queue** dropdown.
+3. If any job is **SUBMITTED**, **PENDING**, or **RUNNABLE**, open it and **Cancel** it; if it is **STARTING** or **RUNNING**, **Terminate** it. Wait until no active jobs remain.
 
 ## Delete the queues
 
-1. **Job queues**.
-2. Select **`kodefood-queue`** → **Disable**. Wait until the state is **DISABLED**.
-3. **Delete** it.
+1. **AWS Batch** → **Job queues**.
+2. Open **`kodefood-queue`** → **Actions** → **Disable**. Wait until **State** is **DISABLED**.
+3. Choose **Actions** → **Delete**, then confirm **Delete job queue**.
 4. Repeat for **`kodefood-gpu-queue`**.
 
 ## Delete the compute environments
 
-1. **Compute environments**.
-2. Select **`kodefood-ce`** → **Disable**. Wait until it is **DISABLED**. This can take a minute or two.
-3. **Delete** it.
+1. **AWS Batch** → **Environments**.
+2. Open **`kodefood-ce`** → **Actions** → **Disable**. Wait until **State** is **DISABLED**. This can take a minute or two.
+3. Choose **Actions** → **Delete** and confirm deletion.
 4. Repeat for **`kodefood-gpu-ce-spot`**.
 
 ## Job definitions
 
 Job definitions have no hourly charge. You can leave `kodefood-job` and `kodefood-gpu-job` ACTIVE.
 
-To retire one: open the job definition → select the active revision → **Deregister**. Deregister every revision you created.
+To retire one: **Job definitions** → open the job definition → select the active revision → **Actions** → **Deregister**. Deregister every revision you created.
 
 ## Leave these alone
 

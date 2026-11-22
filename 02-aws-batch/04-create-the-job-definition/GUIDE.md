@@ -2,43 +2,52 @@
 
 The job definition is the recipe: which image, which command, and how much CPU and memory. This recipe only prints a line. It proves the queue and the environment before any GPU work.
 
-## Create it
+## Step 1: General configuration
 
 1. Stay in **Tokyo**.
 2. **AWS Batch** → **Job definitions** → **Create**.
-3. Orchestration type: **Amazon Elastic Compute Cloud (Amazon EC2)**.
-4. Name: **`kodefood-job`**
-5. Execution timeout: leave empty.
-6. Job attempts: **1** if the form asks. Retrying a hello-world job hides a bad setup.
+3. **Orchestration type**: **Amazon Elastic Compute Cloud (Amazon EC2)**.
+4. **EC2 platform configuration**: turn **Enable multi-node parallel** **off**.
+5. **Name**: **`kodefood-job`**
+6. Leave **Execution timeout** empty and keep **Scheduling priority** off.
+7. **Job attempts**: **`1`**. Retrying a hello-world job hides a bad setup.
+8. Leave **Retry strategy conditions**, **Tags**, and **Propagate tags** untouched, then choose **Next page**.
 
-## Container
+## Step 2: Container configuration and Environment configuration
 
-1. Image: **`public.ecr.aws/amazonlinux/amazonlinux:2023`**
-2. Command:
-   - One text box: `echo KodeFood menu desk is connected`
-   - Separate argument boxes: first box `echo`, second box `KodeFood menu desk is connected`
-3. vCPUs: **`1`**
-4. Memory: **`512`**
-5. Number of GPUs: leave empty or **`0`**
-6. Job role: leave empty. This container does not call AWS APIs.
-7. Do not add environment variables.
+Under **Container configuration**:
 
-## Logging
+1. **Image**: **`public.ecr.aws/amazonlinux/amazonlinux:2023`**
+2. **Command** (enter as a JSON string array):
+   ```json
+   ["echo", "KodeFood menu desk is connected"]
+   ```
+3. Leave **Execution role**, **Job Role configuration**, and **Parameters** empty. This container does not call AWS APIs.
 
-1. Log driver: **`awslogs`**
-2. Options:
+Under **Environment configuration**:
+
+4. **vCPUs**: **`1`**
+5. **Memory**: **`512`** (MiB)
+6. **Number of GPUs**: leave empty or **`0`**
+7. Leave **Environment variables** and **Secrets** empty, then choose **Next page**.
+
+## Step 3: Linux, Filesystem, Task properties, and Logging configuration
+
+1. Leave **Linux configuration**, **Filesystem configuration**, and **Task properties** at their defaults.
+2. Under **Logging configuration**, keep **Log driver** set to **`awslogs`** (default).
+3. Under **Options**, choose **Add option** for each of these three pairs:
    - `awslogs-group` = `/aws/batch/job`
    - `awslogs-region` = `ap-northeast-1`
    - `awslogs-stream-prefix` = `kodefood`
-3. If the form has a single logging section, point it at the log group `/aws/batch/job` in Tokyo.
+4. Leave **Secrets** empty, then choose **Next page**.
 
-## Finish
+## Step 4: Job definition review
 
-Create the job definition. Open it and confirm:
+Review the settings and choose **Create job definition**. Open **`kodefood-job`** and confirm:
 
 - Platform is EC2
-- Image is the public Amazon Linux image
-- vCPU is 1, memory is 512, GPU is 0
+- Image is `public.ecr.aws/amazonlinux/amazonlinux:2023`
+- vCPU is 1, memory is 512 MiB, GPU is 0
 - Revision **1** is **ACTIVE**
 
 ## You are done when
