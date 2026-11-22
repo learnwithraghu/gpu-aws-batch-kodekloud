@@ -1,5 +1,10 @@
 # AWS Batch setup (live inventory)
 
+The course path is [`01-restaurant-portal/`](../01-restaurant-portal/) and
+[`02-aws-batch/`](../02-aws-batch/). The console walkthrough creates
+`kodefood-*` resources. Do not recreate or delete the `gpu-teaching-*`
+resources listed below.
+
 Source of truth for the course AWS account. Gathered from the AWS CLI on
 2026-09-27. Use this instead of re-discovering queues, job definitions,
 buckets, and network IDs every session.

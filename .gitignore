@@ -10,15 +10,8 @@ __pycache__/
 awscliv2.zip
 /aws/
 
-# Local sample media used by lessons — each lesson's assets/README.md explains
-# how to add your own; don't commit large personal sample files
-lessons/*/assets/images/*.jpg
-lessons/*/assets/images/*.jpeg
-lessons/*/assets/images/*.png
-
-# KodeFood Vendor Portal — Stage 1 local uploads (keep the directory)
-lessons/00-the-real-job/vendor_portal/uploads/*
-!lessons/00-the-real-job/vendor_portal/uploads/.gitkeep
-lessons/00-the-real-job/vendor_portal/.venv/
-vendor_portal/
+# Restaurant portal — local uploads and its virtualenv
+01-restaurant-portal/uploads/*
+!01-restaurant-portal/uploads/.gitkeep
+01-restaurant-portal/.venv/
 
