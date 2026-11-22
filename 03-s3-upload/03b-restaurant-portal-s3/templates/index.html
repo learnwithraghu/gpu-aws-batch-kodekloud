@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KodeFood — Menu desk</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="page">
+    <header class="top">
+      <div>
+        <p class="eyebrow">Restaurant back office</p>
+        <h1>KodeFood</h1>
+      </div>
+      <p class="desk-label">Menu desk</p>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <p class="flash{% if category == 'error' %} error{% endif %}">{{ message }}</p>
+      {% endfor %}
+    {% endwith %}
+
+    {% if submitted %}
+    <section class="notice" id="review-message">
+      <p class="notice-kicker">Sent to the menu team</p>
+      <h2>Someone from the menu team will review these photos and update the menu within 24 hours.</h2>
+      <p>Nothing goes on the customer menu until that review is finished. {{ items|length }} photo{{ 's' if items|length != 1 else '' }} in this update.</p>
+    </section>
+    {% endif %}
+
+    <div class="layout">
+      <section class="panel composer">
+        <h2>Add a dish photo</h2>
+        <p class="lede">Upload the photo, write its name, then add it to this update.</p>
+
+        {% if submitted %}
+        <p class="locked">This update is with the menu team. Start another update when you want to send more photos.</p>
+        {% else %}
+        <form id="add-form" action="{{ url_for('add_dish') }}" method="post" enctype="multipart/form-data">
+          <input type="hidden" name="sample_id" id="sample-id" value="">
+
+          <label class="field-label" for="photo">Photo</label>
+          <label class="file-box" for="photo">
+            <span id="file-label">Choose a photo from your computer</span>
+            <input id="photo" type="file" name="photo" accept="image/jpeg,image/png,image/webp,image/gif">
+          </label>
+
+          {% if samples %}
+          <p class="or">or use a sample photo</p>
+          <div class="samples">
+            {% for sample in samples %}
+            <button class="sample" type="button" data-sample="{{ sample.id }}">
+              <img src="{{ sample.url }}" alt="">
+              <span>{{ sample.label }}</span>
+            </button>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <div id="preview" class="preview" hidden>
+            <img id="preview-image" alt="Selected photo">
+            <p id="preview-caption"></p>
+          </div>
+
+          <label class="field-label" for="item-name">Name of this photo</label>
+          <input id="item-name" name="item_name" type="text" maxlength="80" placeholder="Salmon hand roll" autocomplete="off" required>
+
+          <button class="btn add" type="submit">Add to this update</button>
+        </form>
+        {% endif %}
+      </section>
+
+      <section class="panel queue">
+        <div class="queue-head">
+          <h2>This update</h2>
+          <p>{{ items|length }} photo{{ 's' if items|length != 1 else '' }}</p>
+        </div>
+
+        {% if items %}
+        <ol class="dishes">
+          {% for item in items %}
+          <li class="dish">
+            <img src="{{ item.url }}" alt="">
+            <div>
+              <h3>{{ item.name }}</h3>
+              {% if submitted %}
+              <p class="wait">Waiting on the menu team</p>
+              {% endif %}
+            </div>
+            {% if not submitted %}
+            <form action="{{ url_for('remove_dish', item_id=item.id) }}" method="post">
+              <button class="text-btn" type="submit">Remove</button>
+            </form>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ol>
+        {% else %}
+        <p class="empty">No photos yet. Add a photo and its name, then update the menu.</p>
+        {% endif %}
+
+        {% if submitted %}
+        <form action="{{ url_for('reset') }}" method="post">
+          <button class="btn ghost" type="submit">Start another update</button>
+        </form>
+        {% else %}
+        <form action="{{ url_for('update_menu') }}" method="post">
+          <button class="btn send" type="submit" {% if not items %}disabled{% endif %}>Update our menu</button>
+        </form>
+        <p class="fine">The menu team reviews every photo before it appears for customers.</p>
+        {% endif %}
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const sampleInput = document.getElementById("sample-id");
+    const fileInput = document.getElementById("photo");
+    const fileLabel = document.getElementById("file-label");
+    const preview = document.getElementById("preview");
+    const previewImage = document.getElementById("preview-image");
+    const previewCaption = document.getElementById("preview-caption");
+    const samples = document.querySelectorAll(".sample");
+
+    function showPreview(src, caption) {
+      previewImage.src = src;
+      previewCaption.textContent = caption;
+      preview.hidden = false;
+    }
+
+    samples.forEach((button) => {
+      button.addEventListener("click", () => {
+        samples.forEach((other) => other.classList.remove("selected"));
+        button.classList.add("selected");
+        sampleInput.value = button.dataset.sample;
+        if (fileInput) fileInput.value = "";
+        if (fileLabel) fileLabel.textContent = "Choose a photo from your computer";
+        const img = button.querySelector("img");
+        showPreview(img.src, button.querySelector("span").textContent + " selected");
+      });
+    });
+
+    if (fileInput) {
+      fileInput.addEventListener("change", () => {
+        const file = fileInput.files && fileInput.files[0];
+        samples.forEach((other) => other.classList.remove("selected"));
+        sampleInput.value = "";
+        if (!file) return;
+        fileLabel.textContent = file.name;
+        showPreview(URL.createObjectURL(file), file.name);
+      });
+    }
+  </script>
+</body>
+</html>

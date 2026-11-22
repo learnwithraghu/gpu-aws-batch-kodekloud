@@ -14,3 +14,6 @@
 docs
 *.md
 01-restaurant-portal/*.md
+03-s3-upload/03a-create-s3-bucket
+03-s3-upload/03b-restaurant-portal-s3/uploads
+03-s3-upload/**/*.md

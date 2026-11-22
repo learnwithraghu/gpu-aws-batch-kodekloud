@@ -15,3 +15,8 @@ awscliv2.zip
 !01-restaurant-portal/uploads/.gitkeep
 01-restaurant-portal/.venv/
 
+# Step 03b restaurant portal (S3) — local uploads and its virtualenv
+03-s3-upload/03b-restaurant-portal-s3/uploads/*
+!03-s3-upload/03b-restaurant-portal-s3/uploads/.gitkeep
+03-s3-upload/03b-restaurant-portal-s3/.venv/
+

@@ -1,10 +1,12 @@
 # KodeFood on AWS Batch
 
-Two parts.
+Three parts.
 
 **[01 — Restaurant portal](01-restaurant-portal/)** is the back office a restaurant uses today. Staff upload a dish photo, type the name of that photo, and choose **Update our menu**. The page tells them someone from the menu team will review it and update the menu within 24 hours. It runs in Docker — see its README for cleanup, build, and run commands.
 
 **[02 — AWS Batch](02-aws-batch/)** is the console path that replaces that wait: a compute environment, a job queue, a job definition, one job, then the same three pieces again for a GPU on Spot. Each step is a folder with a click-by-click guide.
+
+**[03 — Upload portal photos to S3](03-s3-upload/)** links the portal to Amazon S3: `03a` creates the private S3 bucket in Tokyo, and `03b` runs the same restaurant portal from `01` with S3 upload wired in so photos land in S3 for a later AWS Batch GPU scoring step.
 
 Sample dish photos are in [`images/`](images/).
 
